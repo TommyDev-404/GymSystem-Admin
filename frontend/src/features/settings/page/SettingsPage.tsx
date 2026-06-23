@@ -3,11 +3,11 @@ import { useLocation } from "react-router-dom";
 
 import { SettingsHeader } from "@/features/settings/components/SettingsHeader";
 import { SettingsSidebar } from "@/features/settings//components/SettingsSidebar";
-import { GymSection } from "@/features/settings/components/sections/GymSection";
-import { PricingSection } from "@/features/settings/components/sections/PricingSection";
-import { NotificationsSection } from "@/features/settings/components/sections/NotificationsSection";
-import { SecuritySection } from "@/features/settings/components/sections/SecuritySection";
-import { AdminProfileSection } from "../components/sections/AdminProfileSection";
+import { GymSection } from "@/features/settings/sections/gym_info/page/GymSection";
+import { PricingSection } from "@/features/settings/sections/membership_plans/page/PricingSection";
+import { NotificationsSection } from "@/features/settings/sections/notification_config/page/NotificationsSection";
+import { SecuritySection } from "@/features/settings/sections/security/page/SecuritySection";
+import { AdminProfileSection } from "../sections/admin_info/page/AdminProfileSection";
 
 const initialPlans = [
    {

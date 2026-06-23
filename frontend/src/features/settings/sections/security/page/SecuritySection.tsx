@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { VerifyCodeModal } from "../VerifyCodeModal";
+import { VerifyCodeModal } from "@/features/settings/components/VerifyCodeModal";
 import { useState } from "react";
 
 type Props = {

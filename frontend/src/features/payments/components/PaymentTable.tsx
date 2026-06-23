@@ -7,7 +7,17 @@ interface Props {
 
 export function PaymentsTable({ payments }: Props) {
    const TH_CLASS = "text-left text-slate-500 font-medium px-5 py-3.5";
-
+   
+   const getInitials = (name: string) => {
+      return name
+        .split(" ")
+        .filter(Boolean)
+        .map((n) => n[0])
+        .slice(0, 2)
+        .join("")
+        .toUpperCase();
+   };
+   
    return (
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
          <table className="w-full text-sm">
@@ -48,11 +58,11 @@ export function PaymentsTable({ payments }: Props) {
                         <div className="flex items-center gap-3">
                            <div className="w-9 h-9 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
                               <span className="text-emerald-700 text-xs font-semibold">
-                              {p.avatar}
+                              {getInitials(p.memberName)}
                               </span>
                            </div>
                            <span className="text-slate-700 font-medium">
-                              {p.member}
+                              {p.memberName}
                            </span>
                         </div>
                      </td>
@@ -66,7 +76,10 @@ export function PaymentsTable({ payments }: Props) {
 
                      {/* AMOUNT */}
                      <td className="px-4 py-4 text-slate-700 font-medium">
-                        ${p.amount}
+                        {new Intl.NumberFormat("en-PH", {
+                           style: "currency",
+                           currency: "PHP",
+                        }).format(p.amount)}
                      </td>
 
                      {/* STATUS */}
@@ -81,13 +94,21 @@ export function PaymentsTable({ payments }: Props) {
 
                      {/* DUE DATE */}
                      <td className="px-4 py-4 text-slate-500">
-                        {p.dueDate}
+                        {new Date(p.dueDate).toLocaleDateString('en-PH', { month: 'short', day: '2-digit', year: 'numeric'})}
                      </td>
 
                      {/* PAID DATE */}
                      <td className="px-4 py-4 text-slate-500">
-                        {p.paidDate ?? (
-                           <span className="text-slate-300">—</span>
+                        {p.paidDate ? (
+                           new Date(p.paidDate).toLocaleDateString("en-PH", {
+                              year: "numeric",
+                              month: "short",
+                              day: "2-digit",
+                           })
+                        ) : (
+                           <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-400">
+                              Not paid yet
+                           </span>
                         )}
                      </td>
                   </tr>

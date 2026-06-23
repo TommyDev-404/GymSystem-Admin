@@ -110,7 +110,7 @@ export function DashboardPage() {
         />
         <StatCard
           title="Total Paid"
-          value="$28,450"
+          value="₱28,450"
           sub="This month"
           icon={DollarSign}
           trend="+18% revenue"
@@ -119,7 +119,7 @@ export function DashboardPage() {
         />
         <StatCard
           title="Monthly Income"
-          value="$27,500"
+          value="₱27,500"
           sub="July 2026"
           icon={TrendingUp}
           trend="+6.6% vs June"

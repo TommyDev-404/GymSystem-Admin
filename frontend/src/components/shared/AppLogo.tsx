@@ -14,7 +14,7 @@ export function AppLogo({ collapsed = false, color = "text-white" }: { collapsed
         ${collapsed ? "opacity-0 -translate-x-2" : "opacity-100 translate-x-0"}
         `}
       >
-        <p className={`${color} font-semibold leading-none`}>FlexCore</p>
+        <p className={`${color} font-semibold leading-none`}>JFitness Gym</p>
         <p className="text-slate-400 text-xs mt-0.5">Admin Portal</p>
       </div>
     </div>

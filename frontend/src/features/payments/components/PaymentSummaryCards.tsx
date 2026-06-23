@@ -24,21 +24,21 @@ export function PaymentSummaryCards({
   const cards = [
     {
       title: "Total Collected",
-      value: `$${totalPaid}`,
+      value: `${totalPaid}`,
       sub: "Paid payments",
       icon: CheckCircle2,
       bg: "bg-emerald-500",
     },
     {
       title: "Pending Amount",
-      value: `$${totalPending}`,
+      value: `₱23400`,
       sub: "Members with pending bills",
       icon: Clock,
       bg: "bg-amber-500",
     },
     {
       title: "Overdue Amount",
-      value: `$${totalOverdue}`,
+      value: `₱11400`,
       sub: "Members with overdue bills",
       icon: AlertCircle,
       bg: "bg-red-500",

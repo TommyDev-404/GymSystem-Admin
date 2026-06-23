@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
-import { AttendanceStats } from "@/features/attendance/components/AttendanceStats";
 import { PresentMembersTable } from "@/features/attendance/components/PresentMembersTable";
 import { QRCodeModal } from "@/features/attendance/components/QRCodeModal";
+
+import { useTodayQr } from "@/features/attendance/hooks/useQRCode";
 
 const presentMembers = [
   { id: 1, name: "Sarah Johnson", avatar: "SJ", checkIn: "06:32 AM", duration: "2h 14m", plan: "Premium" },
@@ -16,6 +17,9 @@ const presentMembers = [
 export function AttendancePage() {
   const [search, setSearch] = useState("");
   const [qrOpen, setQrOpen] = useState(false);
+
+  const { data, isLoading: qrCodeLoading } = useTodayQr();
+  console.log(data);
 
   const filtered = presentMembers.filter((m) =>
     m.name.toLowerCase().includes(search.toLowerCase())
@@ -47,8 +51,12 @@ export function AttendancePage() {
       />
 
       {/* MODAL */}
-      <QRCodeModal open={qrOpen} setOpen={setQrOpen} />
-
+      <QRCodeModal
+        open={qrOpen}
+        setOpen={setQrOpen}
+        qr={data?.qr}
+        loading={qrCodeLoading}
+      />
     </div>
   );
 }

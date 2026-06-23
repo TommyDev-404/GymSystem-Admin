@@ -126,7 +126,7 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
           `}
         >
           <div className="text-xs text-slate-400">
-            Powered by FlexCoreOS
+            Powered by JFitness Gym
           </div>
           <div className="text-[10px] text-slate-600">
             All systems operational

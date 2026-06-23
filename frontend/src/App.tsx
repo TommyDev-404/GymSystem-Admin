@@ -14,27 +14,26 @@ import { NotificationsPage } from "@/features/notifications/page/NotificationsPa
 import { SettingsPage } from "@/features/settings/page/SettingsPage";
 import { ChangePassword } from "@/features/auth/page/ChangePasswordPage";
 
-
 export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/change-password" element={<ChangePassword />} />
+      <BrowserRouter>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/change-password" element={<ChangePassword />} />
 
-        <Route element={<RootLayout />}>
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/members" element={<MembersPage />} />
-          <Route path="/attendance" element={<AttendancePage />} />
-          <Route path="/payments" element={<PaymentsPage />} />
-          <Route path="/rewards" element={<RewardsPage />} />
-          <Route path="/analytics" element={<AnalyticsPage />} />
-          <Route path="/notifications" element={<NotificationsPage />} />
-          <Route path="/reports" element={<ReportsPage />} />
-          <Route path="/settings" element={<SettingsPage />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+          <Route element={<RootLayout />}>
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/members" element={<MembersPage />} />
+            <Route path="/attendance" element={<AttendancePage />} />
+            <Route path="/payments" element={<PaymentsPage />} />
+            <Route path="/rewards" element={<RewardsPage />} />
+            <Route path="/analytics" element={<AnalyticsPage />} />
+            <Route path="/notifications" element={<NotificationsPage />} />
+            <Route path="/reports" element={<ReportsPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
   );
 }

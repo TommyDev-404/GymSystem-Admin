@@ -1,0 +1,161 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model attendance {
+  id               Int                @id @default(autoincrement())
+  member_id        Int
+  session_id       String             @db.VarChar(36)
+  check_in_time    DateTime           @default(now()) @db.DateTime(0)
+  status           attendance_status? @default(PRESENT)
+  members          members            @relation(fields: [member_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_member")
+  checkin_sessions checkin_sessions   @relation(fields: [session_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_session")
+
+  @@unique([member_id, session_id], map: "unique_member_session")
+  @@index([session_id], map: "fk_session")
+}
+
+model checkin_sessions {
+  id         String       @id @db.VarChar(36)
+  created_at DateTime     @default(now()) @db.DateTime(0)
+  expires_at DateTime     @db.DateTime(0)
+  is_active  Boolean      @default(true)
+  attendance attendance[]
+}
+
+model member_activations {
+  id              Int       @id @default(autoincrement())
+  member_id       Int
+  activation_code String    @db.VarChar(10)
+  expires_at      DateTime  @db.DateTime(0)
+  is_used         Boolean?  @default(false)
+  created_at      DateTime? @default(now()) @db.Timestamp(0)
+  updated_at      DateTime? @default(now()) @db.Timestamp(0)
+  members         members   @relation(fields: [member_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_member_activations")
+
+  @@index([member_id], map: "fk_member_activations")
+}
+
+model members {
+  id                 Int                  @id @default(autoincrement())
+  fullname           String               @db.VarChar(100)
+  email              String               @unique(map: "email") @db.VarChar(255)
+  age                Int?
+  gender             members_gender?
+  plan_id            Int
+  status             members_status?      @default(Inactive)
+  is_activated       Boolean?             @default(false)
+  join_date          DateTime?            @default(now()) @db.Timestamp(0)
+  updated_at         DateTime?            @default(now()) @db.Timestamp(0)
+  attendance         attendance[]
+  member_activations member_activations[]
+  member_bills       member_bills[]
+  membership_plans   membership_plans     @relation(fields: [plan_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_members")
+
+  @@index([plan_id], map: "fk_members")
+}
+
+model membership_plans {
+  id            Int                            @id @default(autoincrement())
+  plan_name     String                         @db.VarChar(100)
+  price         Decimal                        @db.Decimal(10, 2)
+  duration      Int
+  duration_type membership_plans_duration_type
+  created_at    DateTime?                      @default(now()) @db.Timestamp(0)
+  updated_at    DateTime?                      @default(now()) @db.Timestamp(0)
+  members       members[]
+}
+
+model otp_codes {
+  id        Int               @id @default(autoincrement())
+  user_id   Int
+  code      String            @db.VarChar(10)
+  purpose   otp_codes_purpose
+  expiresAt DateTime          @db.DateTime(0)
+  used      Boolean?          @default(false)
+  createdAt DateTime?         @default(now()) @db.Timestamp(0)
+  users     users             @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_otp")
+
+  @@index([user_id], map: "fk_otp")
+}
+
+model users {
+  id        Int         @id @default(autoincrement())
+  username  String      @db.VarChar(255)
+  email     String      @unique(map: "email") @db.VarChar(255)
+  contact   String      @db.VarChar(11)
+  password  String      @db.VarChar(255)
+  hash_pass String      @db.Text
+  role      users_role  @default(MEMBER)
+  createdAt DateTime?   @default(now()) @db.Timestamp(0)
+  updatedAt DateTime?   @default(now()) @db.Timestamp(0)
+  otp_codes otp_codes[]
+}
+
+model payments {
+  id           Int          @id @default(autoincrement())
+  bill_id      Int
+  amount_paid  Decimal      @db.Decimal(10, 2)
+  paid_on      DateTime     @db.Date
+  created_at   DateTime?    @default(now()) @db.Timestamp(0)
+  updated_at   DateTime?    @default(now()) @db.Timestamp(0)
+  member_bills member_bills @relation(fields: [bill_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_payments_bill")
+
+  @@index([bill_id], map: "fk_payments_bill")
+}
+
+model member_bills {
+  id         Int                  @id @default(autoincrement())
+  member_id  Int
+  amount_due Decimal              @db.Decimal(10, 2)
+  due_date   DateTime             @db.Date
+  status     member_bills_status? @default(Pending)
+  created_at DateTime?            @default(now()) @db.Timestamp(0)
+  updated_at DateTime?            @default(now()) @db.Timestamp(0)
+  members    members              @relation(fields: [member_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_member_bills_member")
+  payments   payments[]
+
+  @@index([member_id], map: "fk_member_bills_member")
+}
+
+enum attendance_status {
+  PRESENT
+}
+
+enum membership_plans_duration_type {
+  Week
+  Month
+}
+
+enum members_gender {
+  Male
+  Female
+}
+
+enum users_role {
+  ADMIN
+  MEMBER
+}
+
+enum members_status {
+  Inactive
+  Active
+  Suspended
+}
+
+enum member_bills_status {
+  Pending
+  Paid
+  Overdue
+}
+
+enum otp_codes_purpose {
+  LOGIN
+  RESET_PASSWORD
+  VERIFY_EMAIL
+}

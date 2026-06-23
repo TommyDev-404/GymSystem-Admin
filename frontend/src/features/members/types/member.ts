@@ -1,11 +1,13 @@
 export interface Member {
-   id: number;
-   name: string;
-   age: number;
-   gender: "Male" | "Female";
-   expiration: string;
-   status: "Active" | "Inactive" | "Suspended";
-   plan: "Basic" | "Premium" | "Elite";
-   joined: string;
-   avatar: string;
+  id?: number;
+  fullname: string;
+  email: string;
+  age: number;
+  gender: "Male" | "Female";
+  plan_id: number;
+  membership_plans: {
+    plan_name: string
+  };
+  status?: string
+  join_date?: string
  }

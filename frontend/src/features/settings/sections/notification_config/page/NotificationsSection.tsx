@@ -1,4 +1,4 @@
-import { Toggle } from "../Toggle";
+import { Toggle } from "@/features/settings/components/Toggle";
 
 type Item = {
   id: string;
