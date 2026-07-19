@@ -6,40 +6,47 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend,
 } from "recharts";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import type { WeeklyAttendance } from "../types/DashboardTypes";
 
 interface WeeklyAttendanceProps {
-  data: {
-    day: string;
-    members: number;
-    guests: number;
-  }[];
+  data: WeeklyAttendance[];
 }
 
 export function WeeklyAttendance({ data }: WeeklyAttendanceProps) {
   return (
-    <Card className="lg:col-span-2">
+    <Card className="lg:col-span-2 h-full">
       <CardHeader>
         <CardTitle>Weekly Attendance</CardTitle>
         <p className="text-sm text-muted-foreground">
-          Members and guests this week
+          Member attendance this week
         </p>
       </CardHeader>
 
-      <CardContent>
-        <ResponsiveContainer width="100%" height={180}>
+      <CardContent className="h-[470px]">
+        <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data}>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="day" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
 
-            <Bar dataKey="members" fill="#10B981" />
-            <Bar dataKey="guests" fill="#334155" />
+            <XAxis dataKey="day" />
+
+            <YAxis
+              domain={[0, 50]}
+              ticks={[0, 10, 20, 30, 40, 50]}
+              allowDecimals={false}
+            />
+
+            <Tooltip />
+
+            <Bar
+              dataKey="presentMembers"
+              name="Present Members"
+              fill="#10B981"
+              radius={[6, 6, 0, 0]}
+              minPointSize={3}
+            />
           </BarChart>
         </ResponsiveContainer>
       </CardContent>

@@ -2,13 +2,13 @@ import { Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import type { FilterType } from "../types/payment";
 
 interface Props {
   search: string;
   setSearch: (value: string) => void;
-
   filterStatus: string;
-  setFilterStatus: (value: string) => void;
+  setFilterStatus: (value: FilterType) => void;
 }
 
 export function PaymentFilters({
@@ -17,6 +17,7 @@ export function PaymentFilters({
   filterStatus,
   setFilterStatus,
 }: Props) {
+
   const statuses = [
     "All",
     "Paid",
@@ -56,7 +57,7 @@ export function PaymentFilters({
         {statuses.map((status) => (
           <Button
             key={status}
-            onClick={() => setFilterStatus(status)}
+            onClick={() => setFilterStatus(status as FilterType)}
             variant="outline"
             className={`
               rounded-xl

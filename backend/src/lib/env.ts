@@ -20,8 +20,6 @@ export const env = {
   NODE_ENV: requiredEnv("NODE_ENV", "development"),
   PORT: parseInt(requiredEnv("PORT", "5000")),
 
-  DATABASE_URL: requiredEnv("DATABASE_URL"),
-
   JWT_SECRET: requiredEnv("JWT_SECRET"),
 
   SMTP_USER: requiredEnv("SMTP_USER"),

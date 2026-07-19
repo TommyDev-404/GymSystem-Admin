@@ -1,15 +1,11 @@
 import { Router } from "express";
-import { PaymentController } from "./payments.controller";
+import * as controller from "./payments.controller";
 
 const router = Router();
 
-// Create payment
-router.post("/add", PaymentController.createPayment);
-
-// Get payments (filter + search)
-router.get("/", PaymentController.getPayments);
-
-router.get("/unpaid-members", PaymentController.getUnpaidMembers);
-
+router.get("/summary", controller.getSummaryDataController)
+router.post("/add", controller.createPaymentController);;
+router.get("/", controller.getPaymentsController);
+router.get("/unpaid-members", controller.getUnpaidMembersController);
 
 export default router;

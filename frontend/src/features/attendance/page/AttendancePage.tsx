@@ -1,30 +1,61 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 
-import { PresentMembersTable } from "@/features/attendance/components/PresentMembersTable";
+import { AttendanceTable } from "@/features/attendance/components/AttendanceTable";
 import { QRCodeModal } from "@/features/attendance/components/QRCodeModal";
 
-import { useTodayQr } from "@/features/attendance/hooks/useQRCode";
-
-const presentMembers = [
-  { id: 1, name: "Sarah Johnson", avatar: "SJ", checkIn: "06:32 AM", duration: "2h 14m", plan: "Premium" },
-  { id: 2, name: "Emma Davis", avatar: "ED", checkIn: "07:01 AM", duration: "1h 45m", plan: "Premium" },
-  { id: 3, name: "Aisha Diallo", avatar: "AD", checkIn: "07:15 AM", duration: "1h 31m", plan: "Premium" },
-  { id: 4, name: "Luca Ferrari", avatar: "LF", checkIn: "08:05 AM", duration: "41m", plan: "Elite" },
-  { id: 5, name: "Zoe Kim", avatar: "ZK", checkIn: "08:22 AM", duration: "24m", plan: "Basic" },
-];
+import { useGetMemberAttendance, useTodayQr } from "@/features/attendance/hooks/useAttendance";
+import { AttendanceFilter } from "../components/AttendanceFilter";
+import type { Filters } from "../types/AttendanceTypes";
+import { useSocket } from "@/context/SocketContext";
+import { useQueryClient } from "@tanstack/react-query";
 
 export function AttendancePage() {
-  const [search, setSearch] = useState("");
+  const socket = useSocket();
+  const queryClient = useQueryClient();
+
   const [qrOpen, setQrOpen] = useState(false);
+  const [filters, setFilters] = useState<Filters>({
+    year: new Date().getFullYear(),
+    month: new Date().getMonth() + 1,
+    day: new Date().getDate(),
+  });
 
   const { data, isLoading: qrCodeLoading } = useTodayQr();
-  console.log(data);
-
-  const filtered = presentMembers.filter((m) =>
-    m.name.toLowerCase().includes(search.toLowerCase())
-  );
-
+  const { data: memberAttendance = [], isLoading: attendanceLoading } = useGetMemberAttendance(filters);
+  
+  useEffect(() => {
+    const handleNewAttendance = (data: any) => {
+      queryClient.invalidateQueries({
+        queryKey: ["attendance"],
+      });
+  
+      queryClient.invalidateQueries({
+        queryKey: ["dashboard-summary-data"],
+      });
+  
+      queryClient.invalidateQueries({
+        queryKey: ["dashboard-weekly-attendance"],
+      });
+  
+      queryClient.invalidateQueries({
+        queryKey: ["dashboard-recent-activity"],
+      });
+    };
+  
+    socket.on(
+      "attendance:new",
+      handleNewAttendance
+    );
+  
+    return () => {
+      socket.off(
+        "attendance:new",
+        handleNewAttendance
+      );
+    };
+  }, [socket, queryClient]);
+      
   return (
     <div className="space-y-5">
 
@@ -43,11 +74,14 @@ export function AttendancePage() {
         </Button>
       </div>
       
+      <AttendanceFilter
+        filters={filters}
+        setFilters={setFilters}
+      />
+      
       {/* TABLE */}
-      <PresentMembersTable
-        members={filtered}
-        search={search}
-        setSearch={setSearch}
+      <AttendanceTable
+        members={memberAttendance}
       />
 
       {/* MODAL */}

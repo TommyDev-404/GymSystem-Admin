@@ -5,7 +5,6 @@ import { MemberModal } from "@/features/members/components/MemberModal";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useMembers } from "../hooks/useMember";
-import { Loading } from "@/components/shared/PageLoading";
 
 export function MembersPage() {
    const [search, setSearch] = useState("");
@@ -23,7 +22,7 @@ export function MembersPage() {
  
    const { data: members = [], isLoading } = useMembers(params);
  
-  if (isLoading) return <Loading />;
+  //if (isLoading) return <Loading />;
 
    return (
      <div className="space-y-5">

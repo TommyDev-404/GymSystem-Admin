@@ -7,6 +7,19 @@ datasource db {
   provider = "mysql"
 }
 
+model activities {
+  id             Int                       @id @default(autoincrement())
+  member_id      Int?
+  recepient_type activities_recepient_type
+  type           activities_type
+  title          String                    @db.VarChar(255)
+  description    String?                   @db.Text
+  created_at     DateTime?                 @default(now()) @db.DateTime(0)
+  members        members?                  @relation(fields: [member_id], references: [id], onUpdate: Restrict, map: "fk_activity_member")
+
+  @@index([member_id], map: "fk_activity_member")
+}
+
 model attendance {
   id               Int                @id @default(autoincrement())
   member_id        Int
@@ -41,23 +54,67 @@ model member_activations {
   @@index([member_id], map: "fk_member_activations")
 }
 
+model member_bills {
+  id         Int                  @id @default(autoincrement())
+  member_id  Int
+  amount_due Int
+  due_date   DateTime             @db.Date
+  status     member_bills_status? @default(Pending)
+  created_at DateTime?            @default(now()) @db.Timestamp(0)
+  updated_at DateTime?            @default(now()) @db.Timestamp(0)
+  members    members              @relation(fields: [member_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_member_bills_member")
+  payments   payments[]
+
+  @@index([member_id], map: "fk_member_bills_member")
+}
+
+model member_workout_exercises {
+  id              Int             @id @default(autoincrement())
+  workout_id      Int
+  exercise_name   String          @db.VarChar(150)
+  sets            Int
+  reps            Int
+  weight          Decimal         @db.Decimal(6, 2)
+  member_workouts member_workouts @relation(fields: [workout_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_member_workouts_exercises")
+
+  @@index([workout_id], map: "fk_member_workouts_exercises")
+}
+
+model member_workouts {
+  id                       Int                        @id @default(autoincrement())
+  member_id                Int
+  workout_name             String                     @db.VarChar(150)
+  duration_minutes         Int
+  calories_burned          Int
+  completed_at             DateTime?                  @default(now()) @db.DateTime(0)
+  member_workout_exercises member_workout_exercises[]
+  members                  members                    @relation(fields: [member_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_member_workouts")
+
+  @@index([member_id], map: "fk_member_workouts")
+}
+
 model members {
   id                 Int                  @id @default(autoincrement())
+  user_id            Int?                 @unique(map: "user_id")
   fullname           String               @db.VarChar(100)
   email              String               @unique(map: "email") @db.VarChar(255)
-  age                Int?
-  gender             members_gender?
+  age                Int
+  gender             members_gender
   plan_id            Int
-  status             members_status?      @default(Inactive)
-  is_activated       Boolean?             @default(false)
+  status             members_status       @default(Active)
+  is_activated       Boolean              @default(false)
+  points             Int
   join_date          DateTime?            @default(now()) @db.Timestamp(0)
   updated_at         DateTime?            @default(now()) @db.Timestamp(0)
+  activities         activities[]
   attendance         attendance[]
   member_activations member_activations[]
   member_bills       member_bills[]
+  member_workouts    member_workouts[]
   membership_plans   membership_plans     @relation(fields: [plan_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_members")
+  users              users?               @relation(fields: [user_id], references: [id], onUpdate: Restrict, map: "fk_members_user")
 
-  @@index([plan_id], map: "fk_members")
+  @@index([plan_id], map: "fk_members_plan")
 }
 
 model membership_plans {
@@ -69,6 +126,19 @@ model membership_plans {
   created_at    DateTime?                      @default(now()) @db.Timestamp(0)
   updated_at    DateTime?                      @default(now()) @db.Timestamp(0)
   members       members[]
+}
+
+model notifications {
+  id             Int                          @id @default(autoincrement())
+  recepient_type notifications_recepient_type
+  recepient_id   Int
+  type           notifications_type
+  title          String                       @db.VarChar(255)
+  message        String?                      @db.Text
+  reference_id   Int?
+  reference_type String?                      @db.VarChar(100)
+  is_read        Boolean?                     @default(false)
+  created_at     DateTime?                    @default(now()) @db.DateTime(0)
 }
 
 model otp_codes {
@@ -84,19 +154,6 @@ model otp_codes {
   @@index([user_id], map: "fk_otp")
 }
 
-model users {
-  id        Int         @id @default(autoincrement())
-  username  String      @db.VarChar(255)
-  email     String      @unique(map: "email") @db.VarChar(255)
-  contact   String      @db.VarChar(11)
-  password  String      @db.VarChar(255)
-  hash_pass String      @db.Text
-  role      users_role  @default(MEMBER)
-  createdAt DateTime?   @default(now()) @db.Timestamp(0)
-  updatedAt DateTime?   @default(now()) @db.Timestamp(0)
-  otp_codes otp_codes[]
-}
-
 model payments {
   id           Int          @id @default(autoincrement())
   bill_id      Int
@@ -109,18 +166,76 @@ model payments {
   @@index([bill_id], map: "fk_payments_bill")
 }
 
-model member_bills {
-  id         Int                  @id @default(autoincrement())
-  member_id  Int
-  amount_due Decimal              @db.Decimal(10, 2)
-  due_date   DateTime             @db.Date
-  status     member_bills_status? @default(Pending)
-  created_at DateTime?            @default(now()) @db.Timestamp(0)
-  updated_at DateTime?            @default(now()) @db.Timestamp(0)
-  members    members              @relation(fields: [member_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_member_bills_member")
-  payments   payments[]
+model rewards {
+  id              Int       @id @default(autoincrement())
+  name            String    @db.VarChar(255)
+  description     String    @db.Text
+  points_required Int
+  category        String    @db.VarChar(255)
+  total_claim     Int
+  createdAt       DateTime? @default(now()) @db.Timestamp(0)
+  updatedAt       DateTime? @default(now()) @db.Timestamp(0)
+}
 
-  @@index([member_id], map: "fk_member_bills_member")
+model tutorials {
+  id               Int             @id @default(autoincrement())
+  name             String          @db.VarChar(255)
+  category         String          @db.VarChar(255)
+  level            tutorials_level
+  video_url        String          @db.VarChar(500)
+  instructions     String          @db.Text
+  equipment        String          @db.LongText
+  muscles_targeted String          @db.LongText
+  demo_images      String          @db.LongText
+  created_at       DateTime?       @default(now()) @db.Timestamp(0)
+  updated_at       DateTime?       @default(now()) @db.Timestamp(0)
+}
+
+model users {
+  id        Int         @id @default(autoincrement())
+  username  String      @db.VarChar(255)
+  email     String      @unique(map: "email") @db.VarChar(255)
+  contact   String      @db.VarChar(11)
+  password  String      @db.VarChar(255)
+  hash_pass String      @db.Text
+  role      users_role  @default(MEMBER)
+  createdAt DateTime?   @default(now()) @db.Timestamp(0)
+  updatedAt DateTime?   @default(now()) @db.Timestamp(0)
+  members   members?
+  otp_codes otp_codes[]
+}
+
+enum notifications_recepient_type {
+  ADMIN
+  MEMBER
+}
+
+enum activities_type {
+  CHECK_IN
+  PAYMENT
+  REWARD_CLAIM
+  REGISTER
+  RENEWAL
+}
+
+enum tutorials_level {
+  Beginner
+  Intermediate
+  Advanced
+}
+
+enum otp_codes_purpose {
+  LOGIN
+  RESET_PASSWORD
+  VERIFY_EMAIL
+}
+
+enum notifications_type {
+  CHECK_IN
+  PAYMENT
+  REWARD
+  WARNING
+  REMINDER
 }
 
 enum attendance_status {
@@ -130,11 +245,18 @@ enum attendance_status {
 enum membership_plans_duration_type {
   Week
   Month
+  Day
 }
 
 enum members_gender {
   Male
   Female
+}
+
+enum member_bills_status {
+  Pending
+  Paid
+  Overdue
 }
 
 enum users_role {
@@ -148,14 +270,7 @@ enum members_status {
   Suspended
 }
 
-enum member_bills_status {
-  Pending
-  Paid
-  Overdue
-}
-
-enum otp_codes_purpose {
-  LOGIN
-  RESET_PASSWORD
-  VERIFY_EMAIL
+enum activities_recepient_type {
+  ADMIN
+  MEMBER
 }

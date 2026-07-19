@@ -6,21 +6,27 @@ import { AddPaymentModal } from "@/features/payments/components/AddPaymentModal"
 
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import { usePayments } from "../hooks/usePayments";
+import { usePayments, usePaymentSummaryData } from "../hooks/usePayments";
+import type { FilterType } from "../types/payment";
 
+function toPHP(value: string) {
+  const num = Number(value);
+  return new Intl.NumberFormat('en-PH', {
+    style: "currency", currency: "PHP"
+  }).format(num);
+}
+      
 export function PaymentsPage() {
   const [search, setSearch] = useState("");
-  const [filterStatus, setFilterStatus] = useState<
-    "Paid" | "Pending" | "Overdue" | "All"
-  >("All");
+  const [filterStatus, setFilterStatus] = useState<FilterType>("All");
   const [openAddModal, setOpenAddModal] = useState(false);
 
-  const { data: paymentsData = [] } = usePayments({
+  const { data: paymentsData = [], isLoading: loadingPayments } = usePayments({
     search: search || undefined,
     status: filterStatus,
   });
-
-  console.log(paymentsData);
+  
+  const { data: summaryData = [], isLoading: loadingSummaryData } = usePaymentSummaryData();
 
   return (
     <div className="space-y-6">
@@ -42,9 +48,12 @@ export function PaymentsPage() {
       </div>
 
       <PaymentSummaryCards
-        totalPaid={12}
-        totalPending={4}
-        totalOverdue={5}
+        totalPaid={summaryData.totalPaid}
+        totalPaidAmount={toPHP(summaryData.totalPaidAmount)}
+        totalPending={summaryData.totalPending}
+        totalPendingAmount={toPHP(summaryData.totalPendingAmount)}
+        totalOverdue={summaryData.totalOverdue}
+        totalOverdueAmount={summaryData.totalOverdueAmount}
       />
 
       <PaymentFilters

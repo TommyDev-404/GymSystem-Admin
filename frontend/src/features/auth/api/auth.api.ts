@@ -20,13 +20,8 @@ export const loginApi = async (data: LoginPayload) => {
   return res.data;
 };
 
-/* ---------------- FORGOT PASSWORD ---------------- */
-type ForgotPasswordPayload = {
-  email: string;
-};
-
-export const forgotPasswordApi = async (data: ForgotPasswordPayload) => {
-  const res = await api.post("/auth/forgot-password", data);
+export const sentCodeApi = async (data: { email: string }) => {
+  const res = await api.post("/auth/send-otp", data);
   return res.data;
 };
 

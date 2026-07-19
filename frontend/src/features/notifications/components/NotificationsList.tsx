@@ -1,6 +1,6 @@
-import { Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { typeConfig } from "@/features/notifications/constants/typeConfig";
+import { EmptyState } from "./EmptyState";
 
 interface Props {
   notifications: any[];
@@ -93,15 +93,16 @@ export function NotificationsList({
           </div>
         );
       })}
-
+      
       {/* empty state */}
-      {notifications.length === 0 && (
-        <div className="bg-white rounded-2xl p-12 text-center shadow-sm border border-slate-100">
-          <p className="text-slate-400 text-sm">
-            No notifications in this category
-          </p>
-        </div>
-      )}
+      {
+        notifications.length === 0 && (
+          <EmptyState
+            title="No notifications"
+            message="No notifications found in this category."
+          />
+        )
+      }
     </div>
   );
 }

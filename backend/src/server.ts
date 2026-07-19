@@ -1,13 +1,23 @@
 import app from "./app";
 import { env } from "./lib/env";
 import { prisma } from "./lib/prisma";
-
+import http from "http";
+import { initSocket } from "./lib/socket";
 
 // ==================== Server Setup ====================
 
 const PORT = Number(env.PORT) || 5000;
 
-const server = app.listen(PORT, () => {
+
+// Create HTTP server
+const server = http.createServer(app);
+
+
+// Initialize Socket.IO
+initSocket(server);
+
+
+server.listen(PORT, () => {
   console.log(`
 ╔════════════════════════════════════════════╗
 ║        🏋️ Gym System Backend Server        ║
@@ -17,6 +27,7 @@ const server = app.listen(PORT, () => {
 ╚════════════════════════════════════════════╝
   `);
 });
+
 
 // ==================== Graceful Shutdown ====================
 
@@ -37,9 +48,11 @@ const shutdown = async () => {
   });
 };
 
+
 // Handle termination signals
 process.on("SIGTERM", shutdown);
 process.on("SIGINT", shutdown);
+
 
 // Handle unexpected errors
 process.on("uncaughtException", (err) => {

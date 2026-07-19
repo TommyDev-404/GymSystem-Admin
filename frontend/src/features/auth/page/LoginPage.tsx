@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Loader } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AuthLayout } from "@/layout/AuthLayout";
-import { loginApi } from "@/features/auth/api/auth.api";
+import { useAuth } from "@/context/AuthContext";
+import axios from "axios";
 
 type LoginForm = {
   email: string;
@@ -11,6 +12,8 @@ type LoginForm = {
 };
 
 export function Login() {
+  const { login } = useAuth();
+  
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -27,19 +30,17 @@ export function Login() {
       setLoading(true);
       setError(null);
 
-      const res = await loginApi({
-        username: data.email, // backend expects username
-        password: data.password,
-      });
-       
-      localStorage.setItem("token", res.token);
+      await login(data.email, data.password);
 
       navigate("/dashboard");
-    } catch (err: any) {
-      setError(
-        err?.response?.data?.message ||
-          "Invalid credentials"
-      );
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        setError(
+          err.response?.data?.message ?? "Invalid credentials"
+        );
+      } else {
+        setError("Something went wrong");
+      }
     } finally {
       setLoading(false);
     }
@@ -68,10 +69,10 @@ export function Login() {
             </div>
          )}
            
-        {/* Email */}
+        {/* Username */}
         <div>
           <label className="text-sm text-slate-600">
-            Email
+            Username
           </label>
 
           <input
@@ -145,9 +146,15 @@ export function Login() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white py-2.5 rounded-xl text-sm font-medium transition mt-4"
+          className="w-full bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed text-white py-2.5 rounded-xl text-sm font-medium transition mt-4 flex items-center justify-center gap-2"
         >
-          {loading ? "Logging in..." : "Login"}
+          {loading ? (
+            <>
+              <Loader className="w-5 h-5 animate-spin" />
+            </>
+          ) : (
+            "Login"
+          )}
         </button>
       </form>
     </AuthLayout>

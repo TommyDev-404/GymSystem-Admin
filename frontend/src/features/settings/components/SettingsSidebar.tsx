@@ -1,10 +1,10 @@
 import { Dumbbell, CreditCard, Bell, Shield, User } from "lucide-react";
 
 const sections = [
-  { id: "gym", label: "Gym Info", icon: Dumbbell },
+  //{ id: "gym", label: "Gym Info", icon: Dumbbell },
   { id: "profile", label: "Admin Profile", icon: User },
   { id: "pricing", label: "Pricing", icon: CreditCard },
-  { id: "notifications", label: "Notifications", icon: Bell },
+  //{ id: "notifications", label: "Notifications", icon: Bell },
   { id: "security", label: "Security", icon: Shield },
 ];
 

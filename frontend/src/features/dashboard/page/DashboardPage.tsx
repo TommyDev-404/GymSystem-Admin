@@ -11,69 +11,20 @@ import { RevenueChart } from "@/features/dashboard/components/RevenueChart";
 import { MembershipStatus } from "@/features/dashboard/components/MembershipStatus";
 import { WeeklyAttendance } from "@/features/dashboard/components/WeeklyAttendance";
 import { GenderWidget } from "@/features/dashboard/components/GenderWidget";
-import { AttendanceToday } from "@/features/dashboard/components/AttendanceToday";
+import { TopClaimedRewards } from "@/features/dashboard/components/TopRewards";
 import { RecentActivity } from "@/features/dashboard/components/RecentActivity";
-
-const revenueData = [
-   { month: "Jan", revenue: 18400 },
-   { month: "Feb", revenue: 21000 },
-   { month: "Mar", revenue: 19800 },
-   { month: "Apr", revenue: 24300 },
-   { month: "May", revenue: 22700 },
-   { month: "Jun", revenue: 27500 },
-   { month: "Jul", revenue: 29100 },
- ];
- 
-  const memberStatusData = [
-   { name: "Active", value: 342 },
-   { name: "Inactive", value: 87 },
-   { name: "Suspended", value: 23 },
- ];
- 
-  const weeklyAttendance = [
-   { day: "Mon", members: 142, guests: 18 },
-   { day: "Tue", members: 128, guests: 22 },
-   { day: "Wed", members: 165, guests: 14 },
-   { day: "Thu", members: 119, guests: 31 },
-   { day: "Fri", members: 187, guests: 27 },
-   { day: "Sat", members: 203, guests: 41 },
-   { day: "Sun", members: 89, guests: 12 },
- ];
- 
-  const recentActivity = [
-   {
-     name: "Sarah Johnson",
-     action: "Checked in",
-     time: "2 min ago",
-     avatar: "SJ",
-   },
-   {
-     name: "Mike Chen",
-     action: "Payment received",
-     time: "15 min ago",
-     avatar: "MC",
-   },
-   {
-     name: "Emma Davis",
-     action: "Membership renewed",
-     time: "42 min ago",
-     avatar: "ED",
-   },
-   {
-     name: "Carlos Rivera",
-     action: "New member registered",
-     time: "1 hr ago",
-     avatar: "CR",
-   },
-   {
-     name: "Priya Patel",
-     action: "Reward redeemed",
-     time: "2 hrs ago",
-     avatar: "PP",
-   },
- ];
+import { useGenderDistribution, useGetDashboardSummaryData, useGetMemberStatus, useGetMonthlyRevenueTrend, useGetRecentActivity, useGetTopClaimedRewards, useGetWeeklyAttendance } from "../hooks/useDashboard";
+import type { SummaryData } from "../types/DashboardTypes";
 
 export function DashboardPage() {
+  const { data: summaryData = {} as SummaryData, isLoading: summaryDataLoading } = useGetDashboardSummaryData();
+  const { data: revenueTrend = [], isLoading: revenueTrendLoading } = useGetMonthlyRevenueTrend();
+  const { data: weeklyAttendance = [], isLoading: weeklyAttendanceLoading } = useGetWeeklyAttendance();
+  const { data: memberStatus = [], isLoading: memberStatusLoading } = useGetMemberStatus();
+  const { data: genderDistribution = [], isLoading: genderDistributionLoading } = useGenderDistribution();
+  const { data: topClaimedRewards = [], isLoading: topClaimedRewardsLoading } = useGetTopClaimedRewards();
+  const { data: recentActivity = [], isLoading: recentActivityLoading } = useGetRecentActivity();
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -92,56 +43,70 @@ export function DashboardPage() {
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
         <StatCard
           title="Total Members"
-          value="452"
-          sub="Male: 262 · Female: 190"
+          value={summaryData?.totalMembers?.toString() ?? "0"}
+          sub={`New Members: ${summaryData?.newMembersThisMonth ?? 0}`}
           icon={Users}
-          trend="+12% growth"
-          trendUp
+          trend={`${summaryData?.memberTrend ?? 0}%`}
+          trendUp={(summaryData?.memberTrend ?? 0) >= 0}
+          trendLabel="vs last month"
           color="bg-emerald-500"
         />
         <StatCard
           title="Currently Present"
-          value="87"
-          sub="Members: 71 · Guests: 16"
+          value={summaryData?.currentlyPresent?.toString() ?? 0}
+          sub={`Male: ${summaryData?.totalMalePresent ?? 0} · Female: ${summaryData?.totalFemalePresent ?? 0}`}
           icon={UserCheck}
-          trend="+5 vs yesterday"
-          trendUp
+          trend={`${summaryData?.presentTrend ?? 0}%`}
+          trendUp={(summaryData?.presentTrend ?? 0) >= 0}
+          trendLabel="vs yesterday"
           color="bg-indigo-500"
         />
+
         <StatCard
           title="Total Paid"
-          value="₱28,450"
+          value={new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP'}).format(summaryData?.totalPaidThisMonth ?? 0)}
           sub="This month"
           icon={DollarSign}
-          trend="+18% revenue"
-          trendUp
+          trend={`${summaryData?.paymentTrendThisMonth ?? 0}%`}
+          trendUp={(summaryData?.paymentTrendThisMonth ?? 0) >= 0}
+          trendLabel="vs last month"
           color="bg-violet-500"
         />
+
         <StatCard
-          title="Monthly Income"
-          value="₱27,500"
-          sub="July 2026"
+          title="Overall Income"
+          value={new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP'}).format(summaryData?.totalPaidThisYear ?? 0)}
+          sub="This year"
           icon={TrendingUp}
-          trend="+6.6% vs June"
-          trendUp
+          trend={`${summaryData?.paymentTrendThisYear ?? 0}%`}
+          trendUp={(summaryData?.paymentTrendThisYear ?? 0) >= 0}
+          trendLabel="vs previous year"
           color="bg-amber-500"
         />
       </div>
 
       {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <RevenueChart data={revenueData} />
-        <MembershipStatus data={memberStatusData} />
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
+        {/* Main Revenue Chart */}
+        <RevenueChart data={revenueTrend} />
+        
+          <TopClaimedRewards data={topClaimedRewards} />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      {/* Analytics */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
+        {/* Attendance takes more space */}
         <WeeklyAttendance data={weeklyAttendance} />
+
+        {/* Right Side Widgets */}
         <div className="space-y-4">
-          <GenderWidget />
-          <AttendanceToday />
+          <MembershipStatus data={memberStatus} />
+
+          <GenderWidget data={genderDistribution} />
         </div>
       </div>
 
+      {/* Activity */}
       <RecentActivity data={recentActivity} />
     </div>
   );

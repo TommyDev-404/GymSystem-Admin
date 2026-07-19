@@ -1,68 +1,40 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  getPaymentsApi,
-  createPaymentApi,
-  getPaymentByIdApi,
-  type PaymentFilters,
-  type CreatePaymentDTO,
-  getUnpaidMembersApi,
-} from "@/features/payments/api/payments.api";
-
-/* ---------------- QUERY KEYS ---------------- */
-
-const paymentKeys = {
-   all: ["payments"] as const,
-   list: () => [...paymentKeys.all, "list"] as const,
-   detail: (id: number) => [...paymentKeys.all, "detail", id] as const,
-   unpaidMembers: () => [...paymentKeys.all, "unpaid-members"] as const,
-};
-
-/* ---------------- GET ALL PAYMENTS ---------------- */
+import * as api from "@/features/payments/api/payments.api";
+import type { CreatePaymentDTO, PaymentFilters, UnpaidMember } from "../types/payment";
 
 export function usePayments(params?: PaymentFilters) {
   return useQuery({
     queryKey: ["payments", params],
-    queryFn: () => getPaymentsApi(params),
+    queryFn: () => api.getPaymentsApi(params),
   });
 }
 
-/* ---------------- GET SINGLE PAYMENT ---------------- */
+export function useUnpaidMembers() {
+  return useQuery<UnpaidMember[]>({
+    queryKey: ['payment-unpaid-members'],
+    queryFn: api.getUnpaidMembersApi,
+  });
+}
 
-export function usePayment(id: number) {
+export function usePaymentSummaryData() {
   return useQuery({
-    queryKey: paymentKeys.detail(id),
-    queryFn: () => getPaymentByIdApi(id),
-    enabled: !!id,
+    queryKey: ['payment-summary-data'],
+    queryFn: api.getSummaryDataApi
   });
 }
-
-/* ---------------- CREATE PAYMENT ---------------- */
 
 export function useCreatePayment() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (data: CreatePaymentDTO) =>
-      createPaymentApi(data),
+      api.createPaymentApi(data),
 
     onSuccess: () => {
       // refresh payments list
       queryClient.invalidateQueries({
-        queryKey: paymentKeys.all,
+        queryKey: ['payments'],
       });
     },
-  });
-}
-
-export type UnpaidMember = {
-  id: number;
-  name: string;
-};
-
-export function useUnpaidMembers() {
-  return useQuery<UnpaidMember[]>({
-    queryKey: paymentKeys.unpaidMembers(),
-    queryFn: getUnpaidMembersApi,
-    staleTime: 1000 * 60 * 5, // cache for 5 mins
   });
 }

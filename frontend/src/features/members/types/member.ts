@@ -10,4 +10,11 @@ export interface Member {
   };
   status?: string
   join_date?: string
- }
+  points?: number
+}
+ 
+export type MemberFilters = {
+  search?: string;
+  gender?: string;
+  status?: string;
+};

@@ -6,8 +6,11 @@ export interface CreatePlanDTO {
  }
  
  export interface UpdatePlanDTO {
-   plan_name?: string;
-   price?: number;
-   duration?: number;
-   duration_type?: "Week" | "Month" ;
- }
+  id: number;
+  data: {
+    plan_name?: string;
+    price?: number;
+    duration?: number;
+    duration_type?:  "Week" | "Month";
+  };
+}

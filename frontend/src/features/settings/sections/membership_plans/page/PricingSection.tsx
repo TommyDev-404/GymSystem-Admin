@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useForm, useFieldArray, Controller } from "react-hook-form";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Trash2, Plus } from "lucide-react";
 
 import {
   Select,
@@ -12,160 +12,268 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import { PlanModal } from "@/features/settings/components/PlanModal";
+import { CreditCard, Loader2, Plus, Save, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
-type Plan = {
-  id: string;
-  label: string;
-  value: number;
-  duration: number;
-  durationType: "Day" | "Week" | "Month";
-  color: string;
-  badge: string;
-};
+import { AddPlanModal } from "@/features/settings/components/PlanModal";
+import { ConfirmationDialog } from "@/components/ConfirmationDialog";
 
-type Props = {
+import { useDeletePlan, usePlans, useUpdatePlan } from "../hook/usePlan";
+import type { Plan, UpdatePlanDTO } from "../types/plans.types";
+
+type FormValues = {
   plans: Plan[];
-  setPlans: React.Dispatch<React.SetStateAction<Plan[]>>;
-  onChange: (id: string, field: keyof Plan, value: any) => void;
-  onDelete: (id: string) => void;
 };
 
-export function PricingSection({
-  plans,
-  setPlans,
-  onChange,
-  onDelete,
-}: Props) {
-  const [open, setOpen] = useState(false);
+export function PricingSection() {
+  const { data: plansData = [] } = usePlans();
+  const { mutate: deletePlan, isPending: deleting } = useDeletePlan();
+  const { mutate: updatePlan, isPending: updating } = useUpdatePlan();
 
-  const [form, setForm] = useState({
-    name: "",
-    price: 0,
-    duration: 1,
-    durationType: "Month" as "Day" | "Week" | "Month",
+  const [open, setOpen] = useState<"Add" | "Delete" | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<{ id: number, name: string } | null>(null);
+
+  const {
+    register,
+    control,
+    handleSubmit,
+    reset,
+    formState: { dirtyFields }
+  } = useForm<FormValues>({
+    defaultValues: {
+      plans: [],
+    },
   });
 
-  // OPEN MODAL (ADD)
-  const handleAdd = () => {
-    setForm({
-      name: "",
-      price: 0,
-      duration: 1,
-      durationType: "Month",
+  const { fields } = useFieldArray({
+    control,
+    name: "plans",
+    keyName: "fieldId",
+  });
+
+  useEffect(() => {
+    reset({
+      plans: plansData,
     });
-    setOpen(true);
+  }, [plansData, reset]);
+
+  const handleAdd = () => {
+    setOpen("Add");
   };
 
-  // SAVE NEW PLAN
-  const handleSave = () => {
-    const newPlan: Plan = {
-      id: crypto.randomUUID(),
-      label: form.name,
-      value: form.price,
-      duration: form.duration,
-      durationType: form.durationType,
-      color: "bg-slate-50",
-      badge: "bg-slate-100 text-slate-600",
-    };
+  const onSubmit = (data: FormValues) => {
+    const updates = data.plans.map((plan, index) => {
+      const dirty = dirtyFields.plans?.[index];
 
-    setPlans([...plans, newPlan]);
-    setOpen(false);
+      if (!dirty) return null;
+
+      const changedData: Partial<Plan> = {};
+
+      Object.keys(dirty).forEach((key) => {
+        changedData[key as keyof Plan] =
+          plan[key as keyof Plan];
+      });
+
+      return {
+        id: plan.id,
+        data: changedData
+      };
+    }).filter(
+      (item): item is UpdatePlanDTO => item !== null
+    );
+  
+    updatePlan({ data: updates }, {
+      onSuccess: () => {
+        toast.success("Plans updated successfully!");
+      },
+    });
   };
 
   return (
-    <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 space-y-5">
-
-      {/* HEADER */}
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm space-y-6"
+    >
+      {/* Header */}
       <div className="flex items-center justify-between">
-        <h3 className="text-slate-800 font-medium">
-          Membership Pricing
-        </h3>
+        <div>
+          <h3 className="text-lg font-semibold text-slate-800">
+            Membership Pricing
+          </h3>
 
-        <Button
-          size="sm"
-          className="bg-emerald-500 hover:bg-emerald-600"
-          onClick={handleAdd}
-        >
-          <Plus className="w-4 h-4 mr-1" />
-          Add Plan
-        </Button>
+          <p className="text-sm text-slate-500">
+            Manage membership plans and pricing.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleAdd}
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Add Plan
+          </Button>
+
+          <Button
+            type="submit"
+            className="bg-emerald-500 hover:bg-emerald-600"
+            disabled={updating}
+          >
+            {updating ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save className="mr-2 h-4 w-4" />
+                Save Changes
+              </>
+            )}
+          </Button>
+        </div>
       </div>
 
-      {/* PLANS */}
+      {/* Plans */}
       <div className="space-y-4">
-        {plans.map((plan) => (
+        {fields.length > 0 ? fields.map((field, index) => (
           <div
-            key={plan.id}
-            className={`border rounded-2xl p-4 space-y-4 ${plan.color}`}
+            key={field.id}
+            className="rounded-xl border border-slate-200 p-5"
           >
+            <div className="mb-5 flex items-center justify-between">
+              <div>
+                <h4 className="font-semibold text-slate-800">
+                  {field.plan_name}
+                </h4>
 
-            {/* TOP */}
-            <div className="flex items-center justify-between">
-              <span className={`px-3 py-1 rounded-lg text-sm font-medium ${plan.badge}`}>
-                {plan.label}
-              </span>
+                <p className="text-sm text-slate-500">
+                  Edit membership details
+                </p>
+              </div>
 
               <Button
+                type="button"
                 size="icon"
                 variant="ghost"
-                onClick={() => onDelete(plan.id)}
+                onClick={() => {
+                  setSelectedPlan({ id: field.id, name: field.plan_name });
+                  setOpen("Delete");
+                }}
               >
-                <Trash2 className="w-4 h-4 text-red-500" />
+                <Trash2 className="h-4 w-4 text-red-500" />
               </Button>
             </div>
 
-            {/* PRICE + DURATION */}
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 gap-4">
+              {/* Price */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-600">
+                  Price (₱)
+                </label>
 
-              <Input
-                type="number"
-                value={plan.value}
-                onChange={(e) =>
-                  onChange(plan.id, "value", Number(e.target.value))
-                }
-              />
+                <Input
+                  type="number"
+                  {...register(`plans.${index}.price`, {
+                    valueAsNumber: true,
+                  })}
+                />
+              </div>
 
-              <Input
-                type="number"
-                value={plan.duration}
-                onChange={(e) =>
-                  onChange(plan.id, "duration", Number(e.target.value))
-                }
-              />
+              {/* Duration */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-600">
+                  Duration
+                </label>
 
-              <Select
-                value={plan.durationType}
-                onValueChange={(value) =>
-                  onChange(plan.id, "durationType", value)
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Type" />
-                </SelectTrigger>
+                <Input
+                  type="number"
+                  {...register(`plans.${index}.duration`, {
+                    valueAsNumber: true,
+                  })}
+                />
+              </div>
 
-                <SelectContent>
-                  <SelectItem value="Day">Day</SelectItem>
-                  <SelectItem value="Week">Week</SelectItem>
-                  <SelectItem value="Month">Month</SelectItem>
-                </SelectContent>
-              </Select>
+              {/* Duration Type */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-600">
+                  Duration Type
+                </label>
 
+                <Controller
+                  control={control}
+                  name={`plans.${index}.duration_type`}
+                  render={({ field }) => (
+                    <Select
+                      value={field.value}
+                      onValueChange={field.onChange}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+
+                      <SelectContent>
+                        <SelectItem value="Day">
+                          Day
+                        </SelectItem>
+
+                        <SelectItem value="Week">
+                          Week
+                        </SelectItem>
+
+                        <SelectItem value="Month">
+                          Month
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              </div>
             </div>
-
           </div>
-        ))}
+        )) : (
+          <div className="flex min-h-[260px] flex-col items-center justify-center text-center">
+          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-slate-100">
+            <CreditCard className="h-7 w-7 text-slate-400" />
+          </div>
+        
+          <h3 className="text-sm font-semibold text-slate-700">
+            No pricing plans yet
+          </h3>
+        
+          <p className="mt-1 max-w-xs text-sm text-slate-400">
+            Add membership plans to start managing your gym pricing.
+          </p>
+        </div>
+        )}
       </div>
 
-      {/* 🔥 PLAN MODAL */}
-      <PlanModal
-        open={open}
-        setOpen={setOpen}
-        form={form}
-        setForm={setForm}
-        onSave={handleSave}
+      {/* Add Plan */}
+      <AddPlanModal
+        open={open === "Add"}
+        onClose={() => setOpen(null)}
       />
 
-    </div>
+      {/* Delete */}
+      <ConfirmationDialog
+        open={open === "Delete"}
+        name={selectedPlan?.name}
+        type="Plan"
+        onClose={() => setOpen(null)}
+        isPending={deleting}
+        onConfirm={() => {
+          if (!selectedPlan) return;
+
+          deletePlan(selectedPlan.id, {
+            onSuccess: () => {
+              toast.success("Plan removed successfully!");
+              setOpen(null);
+            },
+          });
+        }}
+      />
+    </form>
   );
 }

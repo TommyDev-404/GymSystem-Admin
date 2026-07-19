@@ -1,5 +1,6 @@
 import type { Payment } from "@/features/payments/types/payment";
 import { statusConfig } from "@/features/payments/constants/statusConfig";
+import { getInitials } from "@/utils/initials";
 
 interface Props {
   payments: Payment[];
@@ -7,16 +8,6 @@ interface Props {
 
 export function PaymentsTable({ payments }: Props) {
    const TH_CLASS = "text-left text-slate-500 font-medium px-5 py-3.5";
-   
-   const getInitials = (name: string) => {
-      return name
-        .split(" ")
-        .filter(Boolean)
-        .map((n) => n[0])
-        .slice(0, 2)
-        .join("")
-        .toUpperCase();
-   };
    
    return (
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">

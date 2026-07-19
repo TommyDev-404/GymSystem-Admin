@@ -3,9 +3,10 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import {
-  forgotPasswordApi,
+  sentCodeApi,
   verifyOtpApi,
 } from "@/features/auth/api/auth.api";
+import { Loader } from "lucide-react";
 
 type EmailForm = {
   email: string;
@@ -43,7 +44,7 @@ export function ForgotPassword() {
       setLoading(true);
       setError(null);
 
-      await forgotPasswordApi({ email: data.email });
+      await sentCodeApi({ email: data.email });
 
       setEmail(data.email);
       setStep(2);
@@ -132,11 +133,15 @@ export function ForgotPassword() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white py-2.5 rounded-xl text-sm font-medium transition"
+              className="w-full bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed text-white py-2.5 rounded-xl text-sm font-medium transition mt-4 flex items-center justify-center gap-2"
             >
-              {loading
-                ? "Sending..."
-                : "Send Recovery Code"}
+              {loading ? (
+                <>
+                  <Loader className="w-5 h-5 animate-spin" />
+                </>
+              ) : (
+                "Login"
+              )}
             </button>
           </form>
         )}

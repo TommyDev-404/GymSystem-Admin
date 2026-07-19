@@ -8,7 +8,8 @@ import {
 
 import { useForm } from "react-hook-form";
 import { useCreatePayment, useUnpaidMembers } from "../hooks/usePayments";
-import type { CreatePaymentDTO } from "../api/payments.api";
+import type { CreatePaymentDTO } from "../types/payment";
+import { toast } from "sonner";
 
 type AddPaymentModalProps = {
   open: boolean;
@@ -40,6 +41,7 @@ export function AddPaymentModal({ open, setOpen }: AddPaymentModalProps) {
       },
       {
         onSuccess: () => {
+          toast.success('Payment added successfully.');
           reset();
           setOpen(false);
         },
@@ -63,7 +65,7 @@ export function AddPaymentModal({ open, setOpen }: AddPaymentModalProps) {
             <label className="text-sm font-medium">
               Member
             </label>
-
+            
             {isLoading ? (
                 <p className="text-sm text-slate-500">Loading members...</p>
               ) : unpaidMembers?.length > 0 ? (
@@ -71,7 +73,7 @@ export function AddPaymentModal({ open, setOpen }: AddPaymentModalProps) {
                   {...register("member_id", { required: true })}
                   className="w-full border rounded-md p-2 mt-1"
                 >
-                  <option value="">Select Member</option>
+                  <option disabled hidden value="">Select Member</option>
 
                   {unpaidMembers.map((m: { id: number; name: string }) => (
                     <option key={m.id} value={m.id}>
@@ -94,7 +96,7 @@ export function AddPaymentModal({ open, setOpen }: AddPaymentModalProps) {
           {/* Amount */}
           <div>
             <label className="text-sm font-medium">
-              Amount
+              Amount(₱)
             </label>
 
             <input

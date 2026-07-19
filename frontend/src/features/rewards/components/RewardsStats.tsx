@@ -1,49 +1,33 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { HOVER_EFFECT } from "@/utils/animations";
 import { Trophy, Gift, Star, Zap } from "lucide-react";
-
-const rewards = [
-  {
-    id: 1,
-    title: "Free Personal Training Session",
-    description: "1 hour with a certified trainer",
-    points: 500,
-    category: "Fitness",
-    claimedBy: 12,
-  },
-  {
-    id: 2,
-    title: "Protein Shake Bundle",
-    description: "5 premium protein shakes",
-    points: 250,
-    category: "Nutrition",
-    claimedBy: 28,
-  },
-];
+import { useGetSummaryData } from "../hook/useRewards";
 
 export function RewardsStats() {
+  const { data: summaryData = [], isLoading } = useGetSummaryData();
+
   const stats = [
     {
       label: "Total Rewards",
-      value: rewards.length,
+      value: summaryData.totalRewards ?? 0,
       icon: Trophy,
       color: "bg-amber-500",
     },
     {
       label: "Total Claims",
-      value: rewards.reduce((s, r) => s + r.claimedBy, 0),
+      value: summaryData.totalClaimed ?? 0,
       icon: Gift,
       color: "bg-emerald-500",
     },
     {
       label: "Active Members",
-      value: 5,
+      value: summaryData.active ?? 0,
       icon: Star,
       color: "bg-indigo-500",
     },
     {
       label: "Avg Points Earned",
-      value: "628",
+      value: summaryData.averagePoints ?? 0,
       icon: Zap,
       color: "bg-violet-500",
     },

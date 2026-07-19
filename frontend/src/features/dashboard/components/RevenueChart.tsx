@@ -9,8 +9,13 @@ import {
 } from "recharts";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import type { RevenueTrend } from "../types/DashboardTypes";
 
-export function RevenueChart({ data }: { data: any}) {
+type Props = {
+  data: RevenueTrend[];
+};
+
+export function RevenueChart({ data }: Props) {
   return (
     <Card className="lg:col-span-2">
       <CardHeader>
@@ -21,23 +26,44 @@ export function RevenueChart({ data }: { data: any}) {
       </CardHeader>
 
       <CardContent>
-        <ResponsiveContainer width="100%" height={250}>
+        <ResponsiveContainer width="100%" height={350}>
           <AreaChart data={data}>
             <defs>
-              <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+              <linearGradient
+                id="colorRevenue"
+                x1="0"
+                y1="0"
+                x2="0"
+                y2="1"
+              >
                 <stop offset="5%" stopColor="#10B981" stopOpacity={0.2} />
                 <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
               </linearGradient>
             </defs>
 
             <CartesianGrid strokeDasharray="3 3" />
+
             <XAxis dataKey="month" />
-            <YAxis />
-            <Tooltip />
+
+            <YAxis
+              tickFormatter={(value) =>
+                `₱${value.toLocaleString()}`
+              }
+            />
+            
+            <Tooltip
+              formatter={(value) =>
+                new Intl.NumberFormat("en-PH", {
+                  style: "currency",
+                  currency: "PHP",
+                }).format(Number(value))
+              }
+            />
 
             <Area
               type="monotone"
               dataKey="revenue"
+              name={"Revenue"}
               stroke="#10B981"
               strokeWidth={2}
               fill="url(#colorRevenue)"

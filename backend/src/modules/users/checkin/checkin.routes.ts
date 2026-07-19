@@ -4,7 +4,6 @@ import { checkInController} from "./checkin.controller";
 
 const router = Router();
 
-// member scans QR
-router.post("/", checkInController);
+router.post("/:id", checkInController);
 
 export default router;

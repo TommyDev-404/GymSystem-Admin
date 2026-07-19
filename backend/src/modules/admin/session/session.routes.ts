@@ -6,10 +6,7 @@ import {
 
 const router = Router();
 
-// Admin creates session manually
 router.post("/create", createSessionController);
-
-// Get today's QR
 router.get("/qr", getTodayQrController);
 
 export default router;

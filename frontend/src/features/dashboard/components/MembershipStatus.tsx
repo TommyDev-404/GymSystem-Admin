@@ -7,11 +7,12 @@ import {
 } from "recharts";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import type { MemberStatus } from "../types/DashboardTypes";
 
 const COLORS = ["#10B981", "#334155", "#94a3b8"];
 
 interface MembershipStatusProps {
-  data: { name: string; value: number }[];
+  data: MemberStatus[];
 }
 
 export function MembershipStatus({ data }: MembershipStatusProps) {

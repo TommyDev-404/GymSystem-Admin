@@ -6,25 +6,23 @@ import {
   CalendarCheck,
   CreditCard,
   Trophy,
-  BarChart3,
   Bell,
-  FileText,
   Settings,
-  Dumbbell,
   ChevronRight,
-  LogOut,
+  PlaySquare,
 } from "lucide-react";
 import { AppLogo } from "./shared/AppLogo";
 
 const navItems = [
   { id: "dashboard", label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
+  //{ id: "analytics", label: "Analytics", path: "/analytics", icon: BarChart3 },
   { id: "members", label: "Members", path: "/members", icon: Users },
   { id: "attendance", label: "Attendance", path: "/attendance", icon: CalendarCheck },
   { id: "payments", label: "Payments", path: "/payments", icon: CreditCard },
   { id: "rewards", label: "Rewards", path: "/rewards", icon: Trophy },
-  { id: "analytics", label: "Analytics", path: "/analytics", icon: BarChart3 },
+  { id: "tutorials", label: "Tutorials", path: "/tutorials", icon: PlaySquare },
   { id: "notifications", label: "Notifications", path: "/notifications", icon: Bell },
-  { id: "reports", label: "Reports", path: "/reports", icon: FileText },
+  //{ id: "reports", label: "Reports", path: "/reports", icon: FileText },
   { id: "settings", label: "Settings", path: "/settings", icon: Settings },
 ];
 

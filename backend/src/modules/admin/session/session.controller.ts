@@ -1,12 +1,9 @@
-import {
-   createDailySessionService,
-   getTodayQrService
-} from "./session.service";
+import * as service from "./session.service";
 import { Request, Response } from "express";
 
 export const createSessionController = async (req: Request, res: Response) => {
   try {
-    const session = await createDailySessionService();
+    const session = await service.createDailySessionService();
 
     return res.status(201).json(session);
   } catch (error: unknown) {
@@ -20,7 +17,7 @@ export const createSessionController = async (req: Request, res: Response) => {
 
 export const getTodayQrController = async (req: Request, res: Response) => {
    try {
-     const qr = await getTodayQrService();
+     const qr = await service.getTodayQrService();
  
      return res.status(200).json({ qr });
    } catch (error: unknown) {
@@ -30,4 +27,4 @@ export const getTodayQrController = async (req: Request, res: Response) => {
        message: err.message || "Server error"
      });
    }
- };
+};

@@ -1,190 +1,301 @@
 import bcrypt from "bcrypt";
-
-import {
-   findActivationByCode,
-   markActivationUsed,
-   verifyOtp,
-   findUserByEmail,
-   createOtp,
-   markOtpUsed,
-} from "./auth.repository";
 import { prisma } from "../../../lib/prisma";
 import { transporter } from "../../../utils/mailer";
+import jwt from "jsonwebtoken";
 
-export const loginUser = async (email: string, password: string) => {
-  const user = await findUserByEmail(email);
-
-  if (!user) {
-    throw new Error("Invalid email or password");
-  }
-
-  // compare password
-  const isMatch = await bcrypt.compare(password, user.hash_pass);
-
-  if (!isMatch) {
-    throw new Error("Invalid email or password");
-  }
-
-  // optional: check if activated
-  if (user.role === "MEMBER") {
-    const member = await prisma.members.findUnique({
-      where: { email: user.email },
-    });
-
-    if (member && !member.is_activated) {
-      throw new Error("Account not activated");
-    }
-  }
-
-  return {
-    id: user.id,
-    email: user.email,
-    role: user.role,
-    username: user.username,
-  };
+export const loginUser = async (
+	email: string,
+	password: string
+ ) => {
+	const user = await prisma.users.findUnique({
+	  where: { email },
+	});
+ 
+	if (!user) {
+	  throw new Error("Invalid email or password");
+	}
+ 
+	const isMatch = await bcrypt.compare(
+	  password,
+	  user.hash_pass
+	);
+ 
+	if (!isMatch) {
+	  throw new Error("Invalid email or password");
+	}
+ 
+ 
+	let memberId: number | null = null;
+ 
+ 
+	// Check activation for members
+	if (user.role === "MEMBER") {
+	  const member = await prisma.members.findUnique({
+		 where: {
+			email: user.email,
+		 },
+		 select: {
+			id: true,
+			is_activated: true,
+		 },
+	  });
+ 
+ 
+	  if (!member) {
+		 throw new Error("Member profile not found");
+	  }
+ 
+ 
+	  if (!member.is_activated) {
+		 throw new Error("Account not activated");
+	  }
+ 
+ 
+	  memberId = member.id;
+	}
+ 
+ 
+	const token = jwt.sign(
+	  {
+		 id: user.id,
+		 email: user.email,
+		 role: user.role,
+	  },
+	  process.env.JWT_SECRET!,
+	  {
+		 expiresIn: "7d",
+	  }
+	);
+ 
+ 
+	return {
+	  message: "Login successful",
+	  token,
+ 
+	  user: {
+		 id: user.id,
+		 memberId,
+		 username: user.username,
+		 email: user.email,
+	  },
+	};
 };
-
+ 
 export const verifyActivationCode = async (code: string) => {
-  const activation = await findActivationByCode(code);
+	const activation = await prisma.member_activations.findFirst({
+		where: {
+			activation_code: code,
+			is_used: false,
+			expires_at: {
+				gt: new Date(),
+			},
+		},
+		include: {
+			members: true,
+		},
+	});
 
-  if (!activation) {
-    throw new Error("Invalid or expired activation code");
-  }
+	if (!activation) {
+		throw new Error("Invalid or expired activation code");
+	}
 
-  return {
-    memberId: activation.member_id,
-    username: activation.members.fullname,
-  };
+	await prisma.member_activations.update({
+		where: {
+			id: activation.id,
+		},
+		data: {
+			is_used: true,
+		},
+	});
+
+	return {
+		memberId: activation.member_id,
+		username: activation.members.fullname,
+	};
 };
 
 export const completeRegistration = async (
   member_id: number,
   password: string
 ) => {
-  // 1. Get member info for the creation of account
   const member = await prisma.members.findUnique({
-    where: { id: member_id },
+    where: {
+      id: member_id,
+    },
   });
 
   if (!member) {
     throw new Error("Member not found");
   }
 
-  // 2. Hash password
   const hashedPassword = await bcrypt.hash(password, 10);
 
-  // 3. Create USER account
-  await prisma.users.create({
+  const user = await prisma.users.create({
     data: {
       username: member.fullname,
       email: member.email,
-      password: password,
-      contact: "", // optional if you add later
+		password: password,
+      contact: "",
       hash_pass: hashedPassword,
       role: "MEMBER",
     },
   });
 
-  // 4. Update member as activated
   await prisma.members.update({
-    where: { id: member_id },
+    where: {
+      id: member_id,
+    },
     data: {
+      user_id: user.id,
       is_activated: true,
       status: "Active",
     },
   });
 
-  // 5. Mark activation as used
-  await markActivationUsed(member_id);
+  await prisma.member_activations.updateMany({
+    where: {
+      member_id,
+    },
+    data: {
+      is_used: true,
+    },
+  });
 
-  return {
-    success: true,
+
+  const token = jwt.sign(
+    {
+      id: user.id,
+      role: user.role,
+    },
+    process.env.JWT_SECRET!,
+    {
+      expiresIn: "7d",
+    }
+  );
+
+	return {
+	  success: true,
     message: "Account created successfully",
+    token,
+    user: {
+		 id: user.id,
+		 memberId: member.id,
+      username: user.username,
+      email: user.email,
+    },
   };
 };
 
 export const sendForgotPasswordOtp = async (email: string) => {
-  const member = await findUserByEmail(email);
+	const member = await prisma.users.findUnique({
+		where: { email },
+	});
 
-  if (!member) {
-    throw new Error("Email not found");
-  }
+	if (!member) {
+		throw new Error("Email not found");
+	}
 
-  const code = Math.floor(100000 + Math.random() * 900000).toString();
+	const code = Math.floor(100000 + Math.random() * 900000).toString();
 
-  await createOtp(member.id, code, "RESET_PASSWORD");
+	// Create OTP inside transaction
+	await prisma.$transaction(async (tx) => {
+		await tx.otp_codes.create({
+			data: {
+				user_id: member.id,
+				code,
+				purpose: "RESET_PASSWORD",
+				expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+				used: false,
+			},
+		});
+	});
 
-  await transporter.sendMail({
-    from: `"Gym System" <no-reply@gym.com>`,
-    to: email,
-    subject: "Password Reset Code",
-    html: `
-      <h2>Password Reset</h2>
-      <p>Your OTP code is:</p>
-      <h1 style="letter-spacing:4px">${code}</h1>
-      <p>This code expires in 10 minutes.</p>
-    `,
-  });
+	// Send email after transaction succeeds
+	await transporter.sendMail({
+		from: `"Gym System" <no-reply@gym.com>`,
+		to: email,
+		subject: "Password Reset Code",
+		html: `
+			<h2>Password Reset</h2>
+			<p>Your OTP code is:</p>
+			<h1 style="letter-spacing:4px">${code}</h1>
+			<p>This code expires in 10 minutes.</p>
+		`,
+	});
 
-  return {
-    success: true,
-    message: "OTP sent to email",
-  };
+	return {
+		success: true,
+		message: "OTP sent to email",
+	};
 };
 
-export const verifyForgotPasswordOtp = async (
-   email: string,
-   code: string
-) => {
-   const otp = await verifyOtp(email, code);
+export const verifyForgotPasswordOtp = async (email: string, code: string) => {
+	const user = await prisma.users.findUnique({
+		where: { email },
+	});
+
+	if (!user) return null;
+
+	// validate otp
+	const otp = await prisma.otp_codes.findFirst({
+		where: {
+			user_id: user.id,
+			code,
+			used: false,
+			expiresAt: {
+				gt: new Date(),
+			},
+		},
+	});
+
+	if (!otp || otp.used === true) {
+		throw new Error("Invalid or expired OTP");
+	}
+		
+	// mark otp as used
+	await prisma.otp_codes.update({
+		where: { id: otp.id },
+		data: { used: true },
+	});
  
-   if (!otp || otp.used === true) {
-     throw new Error("Invalid or expired OTP");
-   }
-   
-   await markOtpUsed(otp.id);
- 
-   return {
-     success: true,
-     message: "OTP verified",
-   };
+	return {
+		success: true,
+		message: "OTP verified",
+	};
 };
 
-export const resetPassword = async (
-  email: string,
-  newPassword: string
-) => {
-  const user = await prisma.users.findUnique({
-    where: { email },
-  });
+export const resetPassword = async (email: string, newPassword: string) => {
+	const user = await prisma.users.findUnique({
+		where: { email },
+	});
 
-  if (!user) {
-    throw new Error("User not found");
-  }
+	if (!user) {
+		throw new Error("User not found");
+	}
 
-  const hashed = await bcrypt.hash(newPassword, 10);
+	const hashed = await bcrypt.hash(newPassword, 10);
 
-  await prisma.users.update({
-    where: { email },
-    data: {
-      password: newPassword,
-      hash_pass: hashed,
-    },
-  });
+	await prisma.users.update({
+		where: { email },
+		data: {
+			password: newPassword,
+			hash_pass: hashed,
+		},
+	});
 
-  // mark OTP as used
-  await prisma.otp_codes.updateMany({
-    where: {
-      user_id: user.id,
-      used: false,
-    },
-    data: {
-      used: true,
-    },
-  });
+	// mark OTP as used
+	await prisma.otp_codes.updateMany({
+		where: {
+			user_id: user.id,
+			used: false,
+		},
+		data: {
+			used: true,
+		},
+	});
 
-  return {
-    success: true,
-    message: "Password reset successful",
-  };
+	return {
+		success: true,
+		message: "Password reset successful",
+	};
 };

@@ -1,90 +1,53 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-
-import {
-  getPlansApi,
-  createPlanApi,
-  getPlanByIdApi,
-  updatePlanApi,
-  deletePlanApi,
-  type CreatePlanDTO,
-  type UpdatePlanDTO,
-} from "@/features/settings/sections/membership_plans/api/plan.api";
-
-/* ---------------- QUERY KEYS ---------------- */
-
-const planKeys = {
-  all: ["plans"] as const,
-  list: () => [...planKeys.all, "list"] as const,
-  detail: (id: number) => [...planKeys.all, "detail", id] as const,
-};
-
-/* ---------------- GET ALL PLANS ---------------- */
+import * as api from "@/features/settings/sections/membership_plans/api/plan.api";
+import type { CreatePlanDTO, UpdatePlanDTO } from "../types/plans.types";
 
 export function usePlans() {
   return useQuery({
-    queryKey: planKeys.all,
-    queryFn: getPlansApi,
+    queryKey: ["plans"],
+    queryFn: api.getPlansApi,
   });
 }
-
-/* ---------------- GET SINGLE PLAN ---------------- */
-
-export function usePlan(id: number) {
-  return useQuery({
-    queryKey: planKeys.detail(id),
-    queryFn: () => getPlanByIdApi(id),
-    enabled: !!id,
-  });
-}
-
-/* ---------------- CREATE PLAN ---------------- */
 
 export function useCreatePlan() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: CreatePlanDTO) => createPlanApi(data),
+    mutationFn: (data: CreatePlanDTO) => api.createPlanApi(data),
 
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: planKeys.all,
+        queryKey: ["plans"],
       });
     },
   });
 }
-
-/* ---------------- UPDATE PLAN ---------------- */
 
 export function useUpdatePlan() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: UpdatePlanDTO }) =>
-      updatePlanApi(id, data),
+    mutationFn: ({ data }: { data: UpdatePlanDTO[] }) =>
+      api.updatePlanApi(data),
 
-    onSuccess: (_, variables) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: planKeys.all,
+        queryKey: ["plans"]
       });
 
-      queryClient.invalidateQueries({
-        queryKey: planKeys.detail(variables.id),
-      });
     },
   });
 }
-
-/* ---------------- DELETE PLAN ---------------- */
 
 export function useDeletePlan() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: number) => deletePlanApi(id),
+    mutationFn: (id: number) => api.deletePlanApi(id),
 
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: planKeys.all,
+        queryKey: ["plans"],
       });
     },
   });

@@ -1,4 +1,4 @@
-import { AttendanceRepository } from "./attendance.repository";
+import { prisma } from "../../../lib/prisma";
 
 export const getAttendanceService = async (filters: {
   year?: number;
@@ -43,5 +43,41 @@ export const getAttendanceService = async (filters: {
     end.setHours(23, 59, 59, 999);
   }
 
-  return AttendanceRepository.getByDateRange(start, end);
+  const result = await prisma.attendance.findMany({
+    where: {
+      check_in_time: {
+        gte: start,
+        lte: end,
+      },
+    },
+    select: {
+      check_in_time: true,
+      status: true,
+      members: {
+        select: {
+          fullname: true,
+          gender: true,
+          membership_plans: {
+            select: {
+              plan_name: true
+            }
+          }
+        },
+      },
+    },
+    orderBy: {
+      check_in_time: "desc",
+    },
+  });
+
+  const newResult = result.map((r) => ({
+    name: r.members.fullname,
+    gender: r.members.gender,
+    status: r.status,
+    plan: r.members.membership_plans.plan_name,
+    checkin_time: r.check_in_time,
+  }));
+  
+  return newResult;
+
 };

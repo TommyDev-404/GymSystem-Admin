@@ -1,34 +1,143 @@
-import { AttendanceRepository } from "./checkin.repository";
+import { prisma } from "../../../lib/prisma";
+import { getIO } from "../../../lib/socket";
 
-export const checkInService = async (memberId: number, sessionId: string) => {
+export const checkInService = async (
+  memberId: number,
+  sessionId: string
+) => {
+
   if (!sessionId) {
     throw { status: 400, message: "sessionId is required" };
   }
 
-  // 1. validate session
-  const session = await AttendanceRepository.findSession(sessionId);
+  const session = await prisma.checkin_sessions.findUnique({
+    where: {
+      id: sessionId
+    }
+  });
 
   if (!session) {
     throw { status: 404, message: "Invalid QR code" };
   }
 
-  // 2. check expiry
   if (session.expires_at < new Date()) {
     throw { status: 400, message: "QR code expired" };
   }
-   
-  // 3. prevent duplicate scan
-  const existing = await AttendanceRepository.findAttendance(memberId, sessionId);
+
+  const existing = await prisma.attendance.findFirst({
+    where: {
+      member_id: memberId,
+      session_id: sessionId
+    }
+  });
 
   if (existing) {
     throw { status: 400, message: "Already checked in" };
   }
 
-  // 4. create attendance
-  const attendance = await AttendanceRepository.create(memberId, sessionId);
+  const member = await prisma.members.findUnique({
+    where: {
+      id: memberId
+    },
+    select: {
+      fullname: true,
+      points: true
+    }
+  });
 
+  if (!member) {
+    throw {
+      status: 404,
+      message: "Member not found"
+    };
+  }
+
+  const result = await prisma.$transaction(async (tx) => {
+
+    // 1. Create attendance
+    const attendance = await tx.attendance.create({
+      data: {
+        member_id: memberId,
+        session_id: sessionId,
+        status: "PRESENT"
+      }
+    });
+
+    // 2. Update member points
+    const updatedMember = await tx.members.update({
+      where: {
+        id: memberId
+      },
+      data: {
+        points: {
+          increment: 10
+        }
+      }
+    });
+
+    // 3. Admin activity
+    await tx.activities.create({
+      data: {
+        type: "CHECK_IN",
+        recepient_type: "ADMIN",
+        title: "Member Check-in",
+        description: `${member.fullname} checked in`,
+        member_id: memberId
+      }
+    });
+
+    // 4. Member activity
+    await tx.activities.create({
+      data: {
+        type: "CHECK_IN",
+        recepient_type: "MEMBER",
+        title: "Checked in",
+        description: "You checked in today",
+        member_id: memberId
+      }
+    });
+
+    // 5. Notification
+    await tx.notifications.create({
+      data: {
+        recepient_id: memberId,
+        recepient_type: "MEMBER",
+        type: "REWARD",
+        reference_type: "CHECK_IN_REWARD",
+        title: "You earned points!",
+        message: "Check-in complete! +10 points earned."
+      }
+    });
+
+    return {
+      attendance,
+      updatedMember
+    };
+
+  });
+
+  // Socket events
+  getIO()
+    .to("admin-room")
+    .emit(
+      "attendance:new",
+      {
+        memberId
+      }
+    );
+
+  /*
+  getIO()
+    .to(`member-${memberId}`)
+    .emit(
+      "notification:new",
+      {
+        memberId
+      }
+    );
+*/
   return {
     message: "Check-in successful",
-    attendance
+    attendance: result.attendance
   };
 };

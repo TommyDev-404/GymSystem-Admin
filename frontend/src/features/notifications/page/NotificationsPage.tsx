@@ -3,6 +3,7 @@ import { useState } from "react";
 import { NotificationsHeader } from "@/features/notifications/components/NotificationsHeader";
 import { NotificationsFilters } from "@/features/notifications/components/NotificationsFilter";
 import { NotificationsList } from "@/features/notifications/components/NotificationsList";
+import { useGetAdminNotifications } from "../hook/useNotifications";
 
 const initialNotifications = [
    {
@@ -100,9 +101,12 @@ export function NotificationsPage() {
   const [notifications, setNotifications] = useState(initialNotifications);
   const [filter, setFilter] = useState("All");
 
+  const { data: notificationsData = [], isLoading } = useGetAdminNotifications({ type: filter });
+  console.log(notificationsData);
+
   const filtered =
     filter === "All"
-      ? notifications
+      ? notificationsData
       : notifications.filter((n) => n.type === filter);
 
   const unreadCount = notifications.filter((n) => !n.read).length;

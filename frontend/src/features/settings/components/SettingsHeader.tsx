@@ -1,13 +1,5 @@
-import { Save } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
-export function SettingsHeader({
-  saved,
-  onSave,
-}: {
-  saved: boolean;
-  onSave: () => void;
-}) {
+export function SettingsHeader() {
   return (
     <div className="flex items-center justify-between">
       <div>
@@ -16,18 +8,6 @@ export function SettingsHeader({
           Manage your gym configuration
         </p>
       </div>
-
-      <Button
-        onClick={onSave}
-        className={`rounded-xl ${
-          saved
-            ? "bg-emerald-100 text-emerald-700 border border-emerald-200"
-            : "bg-emerald-500 hover:bg-emerald-600"
-        }`}
-      >
-        <Save size={14} />
-        {saved ? "Saved!" : "Save Changes"}
-      </Button>
     </div>
   );
 }

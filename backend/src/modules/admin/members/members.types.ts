@@ -4,7 +4,7 @@ export type CreateMemberDTO = {
   fullname: string;
   age: number;
   email: string;
-  gender?: "Male" | "Female";
+  gender: "Male" | "Female" ;
   plan_id: number;
   join_date: string;
 };
@@ -20,9 +20,8 @@ export type UpdateMemberDTO = {
 };
 
 // ==================== QUERY / FILTER ====================
-
-export type MemberQueryDTO = {
-  status?: "Active" | "Inactive" | "Suspended";
-  gender?: "Male" | "Female";
+export type MemberFilters = {
   search?: string;
+  gender?: "Male" | "Female";
+  status?: "Active" | "Inactive" | "Suspended";
 };

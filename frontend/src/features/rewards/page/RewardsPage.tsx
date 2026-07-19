@@ -4,17 +4,13 @@ import { Plus } from "lucide-react";
 import { RewardsStats } from "@/features/rewards/components/RewardsStats";
 import { RewardsList } from "@/features/rewards/components/RewardsList";
 import { RewardsLeaderboard } from "@/features/rewards/components/RewardsLeaderboard";
-import { CreateRewardModal } from "@/features/rewards/components/CreateRewardModal";
-
+import { RewardModal } from "@/features/rewards/components/RewardModal";
+import { useGetAllRewards } from "../hook/useRewards";
 
 export function RewardsPage() {
+  const { data: rewards = [], isLoading } = useGetAllRewards();
+
   const [showForm, setShowForm] = useState(false);
-  const [newReward, setNewReward] = useState({
-    title: "",
-    description: "",
-    points: 100,
-    category: "Fitness",
-  });
 
   return (
     <div className="space-y-5">
@@ -33,7 +29,7 @@ export function RewardsPage() {
           className="flex items-center gap-2 px-4 py-2.5 bg-emerald-500 text-white rounded-xl text-sm font-medium hover:bg-emerald-600"
         >
           <Plus size={15} />
-          Create Reward
+            Create Reward
         </button>
       </div>
 
@@ -43,18 +39,16 @@ export function RewardsPage() {
       {/* CONTENT */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
-        <RewardsList />
+        <RewardsList rewards={rewards}/>
 
         <RewardsLeaderboard />
 
       </div>
 
       {/* MODAL */}
-      <CreateRewardModal
+      <RewardModal
         open={showForm}
-        setOpen={setShowForm}
-        form={newReward}
-        setForm={setNewReward}
+        onClose={() => setShowForm(false)}
       />
 
     </div>

@@ -11,34 +11,44 @@ import {
 import { HOVER_EFFECT } from "@/utils/animations";
 
 interface Props {
-  totalPaid: number;
-  totalPending: number;
-  totalOverdue: number;
+  totalPaid: string;
+  totalPaidAmount:  string;
+  totalPending:  string;
+  totalPendingAmount:  string;
+  totalOverdue:  string;
+  totalOverdueAmount: string;
 }
 
 export function PaymentSummaryCards({
   totalPaid,
+  totalPaidAmount,
   totalPending,
+  totalPendingAmount,
   totalOverdue,
+  totalOverdueAmount
 }: Props) {
+
   const cards = [
     {
       title: "Total Collected",
-      value: `${totalPaid}`,
+      value: totalPaidAmount,
+      count: totalPaid,
       sub: "Paid payments",
       icon: CheckCircle2,
       bg: "bg-emerald-500",
     },
     {
       title: "Pending Amount",
-      value: `₱23400`,
+      value: totalPendingAmount,
+      count: totalPending,
       sub: "Members with pending bills",
       icon: Clock,
       bg: "bg-amber-500",
     },
     {
       title: "Overdue Amount",
-      value: `₱11400`,
+      value: totalOverdueAmount,
+      count: totalOverdue,
       sub: "Members with overdue bills",
       icon: AlertCircle,
       bg: "bg-red-500",
@@ -73,7 +83,7 @@ export function PaymentSummaryCards({
             {/* Subtitle */}
             <div className="flex items-center gap-1">
               <p className="text-xs text-slate-400">
-                {4}
+                {card.count}
               </p>
               <p className="text-xs text-slate-400">
                 {card.sub}

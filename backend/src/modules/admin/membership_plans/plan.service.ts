@@ -1,37 +1,45 @@
-import * as repo from "./plan.repository";
+import { prisma } from "../../../lib/prisma";
 import { CreatePlanDTO, UpdatePlanDTO } from "./plan.types";
 
-export const getPlans = async () => {
-  return repo.getPlans();
+export const getPlansService = async () => {
+  return await prisma.membership_plans.findMany({
+    orderBy: {
+      id: "desc",
+    },
+  });
 };
 
-export const createPlan = async (
-  data: CreatePlanDTO
-) => {
-  return repo.createPlan(data);
+export const createPlanService = async (data: CreatePlanDTO) => {
+  return await prisma.membership_plans.create({
+    data,
+  });
 };
 
-export const updatePlan = async (
-  id: number,
-  data: UpdatePlanDTO
+export const updatePlansService = async (
+  plans: UpdatePlanDTO[]
 ) => {
-  const plan = await repo.findPlanById(id);
+  return await prisma.$transaction(
+    plans.map((plan) =>
+      prisma.membership_plans.update({
+        where: {
+          id: plan.id,
+        },
+        data: plan.data,
+      })
+    )
+  );
+};
+
+export const deletePlanService = async (id: number) => {
+  const plan = await prisma.membership_plans.findUnique({
+    where: { id },
+  });
 
   if (!plan) {
     throw new Error("Plan not found");
   }
 
-  return repo.updatePlan(id, data);
-};
-
-export const deletePlan = async (
-  id: number
-) => {
-  const plan = await repo.findPlanById(id);
-
-  if (!plan) {
-    throw new Error("Plan not found");
-  }
-
-  return repo.deletePlan(id);
+  return await prisma.membership_plans.delete({
+    where: { id },
+  });
 };

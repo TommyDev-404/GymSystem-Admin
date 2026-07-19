@@ -8,11 +8,10 @@ import { MembersPage } from "@/features/members/page/MemberPage";
 import { AttendancePage } from "@/features/attendance/page/AttendancePage";
 import { PaymentsPage } from "@/features/payments/page/PaymentsPage";
 import { RewardsPage } from "@/features/rewards/page/RewardsPage";
-import { AnalyticsPage } from "@/features/analytics/page/AnalyticsPage";
-import { ReportsPage } from "@/features/reports/page/ReportsPage";
 import { NotificationsPage } from "@/features/notifications/page/NotificationsPage";
 import { SettingsPage } from "@/features/settings/page/SettingsPage";
 import { ChangePassword } from "@/features/auth/page/ChangePasswordPage";
+import { TutorialsPage } from "./features/tutorial/screen/TutorialPage";
 
 export default function App() {
   return (
@@ -28,9 +27,8 @@ export default function App() {
             <Route path="/attendance" element={<AttendancePage />} />
             <Route path="/payments" element={<PaymentsPage />} />
             <Route path="/rewards" element={<RewardsPage />} />
-            <Route path="/analytics" element={<AnalyticsPage />} />
+            <Route path="/tutorials" element={<TutorialsPage />} />
             <Route path="/notifications" element={<NotificationsPage />} />
-            <Route path="/reports" element={<ReportsPage />} />
             <Route path="/settings" element={<SettingsPage />} />
           </Route>
         </Routes>
