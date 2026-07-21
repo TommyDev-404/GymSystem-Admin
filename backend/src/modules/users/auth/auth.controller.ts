@@ -2,6 +2,8 @@ import { Request, Response } from "express";
 import * as service from "./auth.service";
 
 export const loginController = async (req: Request, res: Response) => {
+	console.log("reach here...");
+	
 	try {
 		const { email, password } = req.body;
 

@@ -3,7 +3,6 @@ import dotenv from "dotenv";
 dotenv.config();
 
 // ==================== ENV VALIDATION ====================
-
 const requiredEnv = (key: string, fallback?: string) => {
   const value = process.env[key] || fallback;
 
@@ -15,7 +14,6 @@ const requiredEnv = (key: string, fallback?: string) => {
 };
 
 // ==================== EXPORT ENV ====================
-
 export const env = {
   NODE_ENV: requiredEnv("NODE_ENV", "development"),
   PORT: parseInt(requiredEnv("PORT", "5000")),

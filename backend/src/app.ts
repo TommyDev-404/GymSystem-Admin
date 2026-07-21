@@ -70,6 +70,13 @@ app.use("/workout", workoutRoutes);
 app.use("/home", homeRoutes);
 app.use("/notifications", notif2Routes);
 
+// ==================== Health Check ====================
+app.get("/health", (_req, res) => {
+  res.json({
+    status: "ok",
+    message: "Gym API is running",
+  });
+});
 
 // ==================== 404 ====================
 app.use((_req, res) => {
