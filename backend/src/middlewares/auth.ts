@@ -1,6 +1,5 @@
 import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
-import { env } from "../lib/env";
 import { AppError } from "./errorHandler";
 
 declare global {
@@ -23,7 +22,7 @@ export const authMiddleware = (
       throw new AppError("No token provided", 401);
     }
 
-    const decoded = jwt.verify(token, env.JWT_SECRET) as {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as {
       id: number;
       email: string;
     };

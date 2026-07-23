@@ -15,6 +15,8 @@ import { TopClaimedRewards } from "@/features/dashboard/components/TopRewards";
 import { RecentActivity } from "@/features/dashboard/components/RecentActivity";
 import { useGenderDistribution, useGetDashboardSummaryData, useGetMemberStatus, useGetMonthlyRevenueTrend, useGetRecentActivity, useGetTopClaimedRewards, useGetWeeklyAttendance } from "../hooks/useDashboard";
 import type { SummaryData } from "../types/DashboardTypes";
+import { PageLoader } from "@/components/shared/PageLoader";
+
 
 export function DashboardPage() {
   const { data: summaryData = {} as SummaryData, isLoading: summaryDataLoading } = useGetDashboardSummaryData();
@@ -24,6 +26,17 @@ export function DashboardPage() {
   const { data: genderDistribution = [], isLoading: genderDistributionLoading } = useGenderDistribution();
   const { data: topClaimedRewards = [], isLoading: topClaimedRewardsLoading } = useGetTopClaimedRewards();
   const { data: recentActivity = [], isLoading: recentActivityLoading } = useGetRecentActivity();
+
+  const dataFetching =
+    summaryDataLoading ||
+    recentActivityLoading ||
+    revenueTrendLoading ||
+    weeklyAttendanceLoading ||
+    memberStatusLoading ||
+    genderDistributionLoading ||
+    topClaimedRewardsLoading;
+  
+  if (dataFetching) return <PageLoader />;
 
   return (
     <div className="space-y-6">
@@ -89,8 +102,8 @@ export function DashboardPage() {
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
         {/* Main Revenue Chart */}
         <RevenueChart data={revenueTrend} />
-        
-          <TopClaimedRewards data={topClaimedRewards} />
+
+        <TopClaimedRewards data={topClaimedRewards} />
       </div>
 
       {/* Analytics */}

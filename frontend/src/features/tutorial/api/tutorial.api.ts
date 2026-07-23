@@ -2,7 +2,8 @@ import { api } from "@/lib/axios";
 import type { TutorialsFilters } from "../types/TutorialType";
 
 export const createTutorialApi = async (data: FormData) => {
-   const res = await api.post("/tutorial/create", data);
+  const res = await api.post("/tutorial/create", data);
+  console.log(res);
    return res.data;
 };
 

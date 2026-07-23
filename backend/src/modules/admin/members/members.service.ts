@@ -1,6 +1,5 @@
-import { env } from "../../../lib/env";
 import { prisma } from "../../../lib/prisma";
-import { transporter } from "../../../utils/mailer";
+import { sendMail } from "../../../utils/mailer";
 import { generateOTP } from "../../../utils/otp-generator";
 import { CreateMemberDTO, MemberFilters } from "./members.types";
 
@@ -36,7 +35,6 @@ export const createMember = async (data: CreateMemberDTO) => {
 			where: { id: data.plan_id }
 		});
 		
-		const now = new Date();
 		const dueDate = new Date();
 
 		switch (plan?.duration_type) {
@@ -53,6 +51,7 @@ export const createMember = async (data: CreateMemberDTO) => {
 				break;
 		}
 
+		// added automatically the bills
 		await tx.member_bills.create({
 			data: {
 				member_id: member.id,
@@ -62,12 +61,22 @@ export const createMember = async (data: CreateMemberDTO) => {
 			},
 		});
 
+		// create recent activity
+		await prisma.activities.create({
+			data: {
+			  member_id: Number(member.id),
+			  recepient_type: 'ADMIN',
+			  type: 'MEMBER_ADDED',
+				title: 'New Member Added',
+				description: `Admin added ${member?.fullname} as a new member and assigned the ${plan?.plan_name} membership plan.`
+			}
+		});
+
 		return member;
 	});
 
 	// 4. Send email OUTSIDE transaction (important)
-	await transporter.sendMail({
-		from: `"Gym System" <${env.SMTP_USER}>`,
+	await sendMail({
 		to: data.email,
 		subject: "Your Gym Activation Code",
 		html: `
@@ -112,6 +121,17 @@ export const updateMemberInfo = async (id: number, data: Partial<CreateMemberDTO
 		data,
 	});
 
+	// create recent activity
+	await prisma.activities.create({
+		data: {
+		  member_id: Number(member.id),
+		  recepient_type: 'ADMIN',
+		  type: 'MEMBER_UPDATED',
+		  title: 'Member Information Updated',
+		  description: `Admin updated ${member?.fullname}'s information.`
+		}
+	});
+	
 	return {
 		success: true,
 		message: "Member updated successfully",
@@ -236,8 +256,7 @@ export const resendActivationCode = async (email: string) => {
 	});
 	
 	// Send email 
-	await transporter.sendMail({
-		from: `"Gym System" <${process.env.EMAIL_USER}>`,
+	await sendMail({
 		to: email,
 		subject: "Your Activation Code",
 		html: `

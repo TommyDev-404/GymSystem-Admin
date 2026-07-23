@@ -5,12 +5,21 @@ import { RewardsStats } from "@/features/rewards/components/RewardsStats";
 import { RewardsList } from "@/features/rewards/components/RewardsList";
 import { RewardsLeaderboard } from "@/features/rewards/components/RewardsLeaderboard";
 import { RewardModal } from "@/features/rewards/components/RewardModal";
-import { useGetAllRewards } from "../hook/useRewards";
+import { useGetAllRewards, useGetMemberProgress, useGetSummaryData } from "../hook/useRewards";
+import { PageLoader } from "@/components/shared/PageLoader";
 
 export function RewardsPage() {
-  const { data: rewards = [], isLoading } = useGetAllRewards();
+  const { data: rewards = [], isLoading: rewardsLoading } = useGetAllRewards();
+  const { data: memberProgress = [], isLoading: memberProgressLoading } = useGetMemberProgress();
+  const { data: summaryData = {}, isLoading: rewardSummary } = useGetSummaryData();
 
   const [showForm, setShowForm] = useState(false);
+
+  if (
+    rewardsLoading ||
+    memberProgressLoading ||
+    rewardSummary
+  ) return <PageLoader />;
 
   return (
     <div className="space-y-5">
@@ -34,14 +43,14 @@ export function RewardsPage() {
       </div>
 
       {/* STATS */}
-      <RewardsStats />
+      <RewardsStats summaryData={summaryData}/>
 
       {/* CONTENT */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
         <RewardsList rewards={rewards}/>
 
-        <RewardsLeaderboard />
+        <RewardsLeaderboard memberProgress={memberProgress}/>
 
       </div>
 

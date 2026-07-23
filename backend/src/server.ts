@@ -1,12 +1,11 @@
 import app from "./app";
-import { env } from "./lib/env";
 import { prisma } from "./lib/prisma";
 import http from "http";
 import { initSocket } from "./lib/socket";
 
 // ==================== Server Setup ====================
 
-const PORT = Number(env.PORT) || 5000;
+const PORT = 5000;
 
 
 // Create HTTP server
@@ -23,7 +22,7 @@ server.listen(PORT, () => {
 ║        🏋️ Gym System Backend Server        ║
 ╠════════════════════════════════════════════╣
 ║  Server running on: http://localhost:${PORT}     ║
-║  Environment: ${env.NODE_ENV}                     ║
+║  Environment: development                     ║
 ╚════════════════════════════════════════════╝
   `);
 });

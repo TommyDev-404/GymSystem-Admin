@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import { prisma } from "../../../lib/prisma";
-import { transporter } from "../../../utils/mailer";
+import { sendMail } from "../../../utils/mailer";
 import jwt from "jsonwebtoken";
 
 export const loginUser = async (
@@ -24,9 +24,7 @@ export const loginUser = async (
 	  throw new Error("Invalid email or password");
 	}
  
- 
 	let memberId: number | null = null;
- 
  
 	// Check activation for members
 	if (user.role === "MEMBER") {
@@ -211,8 +209,7 @@ export const sendForgotPasswordOtp = async (email: string) => {
 	});
 
 	// Send email after transaction succeeds
-	await transporter.sendMail({
-		from: `"Gym System" <no-reply@gym.com>`,
+	await sendMail({
 		to: email,
 		subject: "Password Reset Code",
 		html: `

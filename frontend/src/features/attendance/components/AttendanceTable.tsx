@@ -1,12 +1,14 @@
 import { Badge } from "@/components/ui/badge";
 import type { Attendance } from "../types/AttendanceTypes";
 import { getInitials } from "@/utils/initials";
+import { TableLoader } from "@/components/shared/TableLoader";
 
 type Props = {
   members: Attendance[];
+  isLoading: boolean;
 };
 
-export function AttendanceTable({ members }: Props) {
+export function AttendanceTable({ members, isLoading }: Props) {
    const TH_CLASS = "text-left text-slate-500 font-medium px-5 py-3.5";
 
    const formatPhilippineTime = (date: string) => {
@@ -32,7 +34,9 @@ export function AttendanceTable({ members }: Props) {
         </thead>
 
         <tbody className="divide-y">
-          {members.length === 0 ? (
+          {isLoading ? (
+            <TableLoader/>
+          ) : members.length === 0 ? (
             <tr>
               <td
                 colSpan={5}

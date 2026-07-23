@@ -29,7 +29,7 @@ export async function getAllNotificationsService(data: { type?: any }) {
       recepient_type: "ADMIN",
       ...(data.type && data.type !== "All" && {
         type: data.type,
-      }),
+      })
     },
     select: {
       id: true,
@@ -46,4 +46,89 @@ export async function getAllNotificationsService(data: { type?: any }) {
   });
 
   return activities;
+}
+
+export async function getNotificationCountService() {
+  const [unreadCount, allNotifCount, typeCounts] = await Promise.all([
+    // Total unread notifications
+    prisma.notifications.count({
+      where: {
+        recepient_type: "ADMIN",
+        is_read: false,
+      },
+    }),
+
+    // Total notifications
+    prisma.notifications.count({
+      where: {
+        recepient_type: "ADMIN",
+      },
+    }),
+
+    // Notifications grouped by type
+    prisma.notifications.groupBy({
+      by: ["type"],
+      where: {
+        recepient_type: "ADMIN",
+      },
+      _count: {
+        type: true,
+      },
+    }),
+  ]);
+
+  return {
+    unreadCount,
+    allNotifCount,
+    typeCounts: typeCounts.map((item) => ({
+      type: item.type,
+      count: item._count.type,
+    })),
+  };
+}
+
+export async function markNotificationAsReadService(id: number) {
+  const notification = await prisma.notifications.update({
+    where: {
+      id,
+    },
+    data: {
+      is_read: true,
+    },
+    select: {
+      id: true,
+      is_read: true,
+    },
+  });
+
+  return {
+    success: true,
+    message: "Mark as read successfully."
+  };
+}
+
+export async function markAllNotificationsAsReadService() {
+  const result = await prisma.notifications.updateMany({
+    where: {
+      recepient_type: "ADMIN",
+      is_read: false,
+    },
+    data: {
+      is_read: true,
+    },
+  });
+
+  return {
+    updatedCount: result.count,
+  };
+}
+
+export async function deleteNotificationService(id: number) {
+  const result = await prisma.notifications.delete({
+    where: {
+      id,
+    },
+  });
+
+  return result;
 }

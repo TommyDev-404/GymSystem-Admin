@@ -171,6 +171,8 @@ CREATE TABLE activities (
     member_id INT NULL,
     recepient_type ENUM('ADMIN', 'MEMBER') NOT NULL,
     type ENUM(
+        'MEMBER_ADDED',
+        'MEMBER_UPDATED',
         'CHECK_IN',
         'PAYMENT',
         'REWARD_CLAIM',
@@ -196,7 +198,7 @@ CREATE TABLE notifications (
         'CHECK_IN',
         'PAYMENT',
         'REWARD',
-        'WARNING',
+        'EXPIRY',
         'REMINDER'
     ) NOT NULL,
 

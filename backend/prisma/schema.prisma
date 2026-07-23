@@ -9,8 +9,8 @@ datasource db {
 
 model activities {
   id             Int                       @id @default(autoincrement())
-  member_id      Int?
   recepient_type activities_recepient_type
+  member_id      Int?
   type           activities_type
   title          String                    @db.VarChar(255)
   description    String?                   @db.Text
@@ -210,14 +210,6 @@ enum notifications_recepient_type {
   MEMBER
 }
 
-enum activities_type {
-  CHECK_IN
-  PAYMENT
-  REWARD_CLAIM
-  REGISTER
-  RENEWAL
-}
-
 enum tutorials_level {
   Beginner
   Intermediate
@@ -228,14 +220,6 @@ enum otp_codes_purpose {
   LOGIN
   RESET_PASSWORD
   VERIFY_EMAIL
-}
-
-enum notifications_type {
-  CHECK_IN
-  PAYMENT
-  REWARD
-  WARNING
-  REMINDER
 }
 
 enum attendance_status {
@@ -273,4 +257,23 @@ enum members_status {
 enum activities_recepient_type {
   ADMIN
   MEMBER
+}
+
+enum activities_type {
+  CHECK_IN
+  PAYMENT
+  REWARD_CLAIM
+  REGISTER
+  RENEWAL
+  MEMBER_ADDED
+  MEMBER_UPDATED
+}
+
+enum notifications_type {
+  CHECK_IN
+  PAYMENT
+  REWARD
+  REMINDER
+  EXPIRY
+  WARNING
 }

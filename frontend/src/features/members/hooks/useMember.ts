@@ -18,6 +18,18 @@ export function useCreateMember() {
       queryClient.invalidateQueries({
         queryKey: ["members"],
       });
+
+      queryClient.invalidateQueries({
+        queryKey: ["dashboard-recent-activity"],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["dashboard-summary-data"],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["payment-unpaid-members"],
+      });
     },
   });
 }
@@ -41,6 +53,14 @@ export function useUpdateMember() {
 
       queryClient.invalidateQueries({
         queryKey: ["dashboard-gender-distribution"],
+      });
+      
+      queryClient.invalidateQueries({
+        queryKey: ["dashboard-recent-activity"],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["payment-unpaid-members"],
       });
     },
   });

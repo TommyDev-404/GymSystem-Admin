@@ -7,18 +7,21 @@ import {
 } from "@/components/ui/dialog";
 
 import { useForm } from "react-hook-form";
-import { useCreatePayment, useUnpaidMembers } from "../hooks/usePayments";
+import { useCreatePayment } from "../hooks/usePayments";
 import type { CreatePaymentDTO } from "../types/payment";
 import { toast } from "sonner";
 
 type AddPaymentModalProps = {
   open: boolean;
   setOpen: (open: boolean) => void;
+  unpaidMembers: {
+    id: number;
+    name: string;
+  }[];
 };
 
-export function AddPaymentModal({ open, setOpen }: AddPaymentModalProps) {
+export function AddPaymentModal({ open, setOpen, unpaidMembers }: AddPaymentModalProps) {
   const { mutate: createPayment, isPending } = useCreatePayment();
-  const { data: unpaidMembers = [], isLoading } = useUnpaidMembers();
 
   const {
     register,
@@ -65,15 +68,15 @@ export function AddPaymentModal({ open, setOpen }: AddPaymentModalProps) {
             <label className="text-sm font-medium">
               Member
             </label>
-            
-            {isLoading ? (
-                <p className="text-sm text-slate-500">Loading members...</p>
-              ) : unpaidMembers?.length > 0 ? (
+
+            {unpaidMembers?.length > 0 ? (
                 <select
                   {...register("member_id", { required: true })}
-                  className="w-full border rounded-md p-2 mt-1"
+                  className="w-full border rounded-md p-2 mt-1 bg-white"
                 >
-                  <option disabled hidden value="">Select Member</option>
+                  <option disabled hidden value="">
+                    Select Member
+                  </option>
 
                   {unpaidMembers.map((m: { id: number; name: string }) => (
                     <option key={m.id} value={m.id}>
@@ -81,16 +84,11 @@ export function AddPaymentModal({ open, setOpen }: AddPaymentModalProps) {
                     </option>
                   ))}
                 </select>
-              ) : (
-                <select
-                className="w-full border rounded-md p-2 mt-1 bg-white"
-                disabled
-              >
-                <option>
-                  🎉 All members are fully paid
-                </option>
-              </select>
-              )}
+            ) : (
+              <div className="w-full border rounded-md p-2 mt-1 bg-slate-100 text-slate-500 text-sm">
+                🎉 All members are fully paid
+              </div>
+            )}
           </div>
 
           {/* Amount */}

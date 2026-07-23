@@ -16,17 +16,18 @@ import { CreditCard, Loader2, Plus, Save, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { AddPlanModal } from "@/features/settings/components/PlanModal";
-import { ConfirmationDialog } from "@/components/ConfirmationDialog";
+import { ConfirmationDialog } from "@/components/shared/ConfirmationDialog";
 
 import { useDeletePlan, usePlans, useUpdatePlan } from "../hook/usePlan";
 import type { Plan, UpdatePlanDTO } from "../types/plans.types";
+import { Loader } from "@/components/shared/Loader";
 
 type FormValues = {
   plans: Plan[];
 };
 
 export function PricingSection() {
-  const { data: plansData = [] } = usePlans();
+  const { data: plansData = [], isLoading } = usePlans();
   const { mutate: deletePlan, isPending: deleting } = useDeletePlan();
   const { mutate: updatePlan, isPending: updating } = useUpdatePlan();
 
@@ -138,115 +139,120 @@ export function PricingSection() {
 
       {/* Plans */}
       <div className="space-y-4">
-        {fields.length > 0 ? fields.map((field, index) => (
-          <div
-            key={field.id}
-            className="rounded-xl border border-slate-200 p-5"
-          >
-            <div className="mb-5 flex items-center justify-between">
-              <div>
-                <h4 className="font-semibold text-slate-800">
-                  {field.plan_name}
-                </h4>
-
-                <p className="text-sm text-slate-500">
-                  Edit membership details
-                </p>
-              </div>
-
-              <Button
-                type="button"
-                size="icon"
-                variant="ghost"
-                onClick={() => {
-                  setSelectedPlan({ id: field.id, name: field.plan_name });
-                  setOpen("Delete");
-                }}
+        {isLoading ? (
+          <Loader/>
+        ):
+          fields.length > 0 ?
+            fields.map((field, index) => (
+              <div
+                key={field.id}
+                className="rounded-xl border border-slate-200 p-5"
               >
-                <Trash2 className="h-4 w-4 text-red-500" />
-              </Button>
-            </div>
+                <div className="mb-5 flex items-center justify-between">
+                  <div>
+                    <h4 className="font-semibold text-slate-800">
+                      {field.plan_name}
+                    </h4>
 
-            <div className="grid grid-cols-3 gap-4">
-              {/* Price */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-600">
-                  Price (₱)
-                </label>
+                    <p className="text-sm text-slate-500">
+                      Edit membership details
+                    </p>
+                  </div>
 
-                <Input
-                  type="number"
-                  {...register(`plans.${index}.price`, {
-                    valueAsNumber: true,
-                  })}
-                />
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => {
+                      setSelectedPlan({ id: field.id, name: field.plan_name });
+                      setOpen("Delete");
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4 text-red-500" />
+                  </Button>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  {/* Price */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-600">
+                      Price (₱)
+                    </label>
+
+                    <Input
+                      type="number"
+                      {...register(`plans.${index}.price`, {
+                        valueAsNumber: true,
+                      })}
+                    />
+                  </div>
+
+                  {/* Duration */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-600">
+                      Duration
+                    </label>
+
+                    <Input
+                      type="number"
+                      {...register(`plans.${index}.duration`, {
+                        valueAsNumber: true,
+                      })}
+                    />
+                  </div>
+
+                  {/* Duration Type */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-600">
+                      Duration Type
+                    </label>
+
+                    <Controller
+                      control={control}
+                      name={`plans.${index}.duration_type`}
+                      render={({ field }) => (
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+
+                          <SelectContent>
+                            <SelectItem value="Day">
+                              Day
+                            </SelectItem>
+
+                            <SelectItem value="Week">
+                              Week
+                            </SelectItem>
+
+                            <SelectItem value="Month">
+                              Month
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                  </div>
+                </div>
               </div>
-
-              {/* Duration */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-600">
-                  Duration
-                </label>
-
-                <Input
-                  type="number"
-                  {...register(`plans.${index}.duration`, {
-                    valueAsNumber: true,
-                  })}
-                />
-              </div>
-
-              {/* Duration Type */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-600">
-                  Duration Type
-                </label>
-
-                <Controller
-                  control={control}
-                  name={`plans.${index}.duration_type`}
-                  render={({ field }) => (
-                    <Select
-                      value={field.value}
-                      onValueChange={field.onChange}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-
-                      <SelectContent>
-                        <SelectItem value="Day">
-                          Day
-                        </SelectItem>
-
-                        <SelectItem value="Week">
-                          Week
-                        </SelectItem>
-
-                        <SelectItem value="Month">
-                          Month
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-              </div>
-            </div>
-          </div>
-        )) : (
+            ))
+        : (
           <div className="flex min-h-[260px] flex-col items-center justify-center text-center">
-          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-slate-100">
-            <CreditCard className="h-7 w-7 text-slate-400" />
+            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-slate-100">
+              <CreditCard className="h-7 w-7 text-slate-400" />
+            </div>
+          
+            <h3 className="text-sm font-semibold text-slate-700">
+              No pricing plans yet
+            </h3>
+          
+            <p className="mt-1 max-w-xs text-sm text-slate-400">
+              Add membership plans to start managing your gym pricing.
+            </p>
           </div>
-        
-          <h3 className="text-sm font-semibold text-slate-700">
-            No pricing plans yet
-          </h3>
-        
-          <p className="mt-1 max-w-xs text-sm text-slate-400">
-            Add membership plans to start managing your gym pricing.
-          </p>
-        </div>
         )}
       </div>
 

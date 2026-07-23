@@ -3,7 +3,7 @@ import { Dumbbell, Salad, Backpack, Sparkles, Zap, EditIcon, Trash2 } from "luci
 import { useState } from "react";
 import { RewardModal } from "./RewardModal";
 import type { Rewards } from "../types/RewardsType";
-import { ConfirmationDialog } from "../../../components/ConfirmationDialog";
+import { ConfirmationDialog } from "../../../components/shared/ConfirmationDialog";
 import { EmptyReward } from "./EmptyReward";
 import { toast } from "sonner";
 import { useDeleteReward } from "../hook/useRewards";

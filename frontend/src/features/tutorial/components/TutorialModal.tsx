@@ -20,8 +20,9 @@ import type {
 	Workout,
 	WorkoutForm,
 } from "../types/TutorialType";
-
 import { toast } from "sonner";
+import { parseYouTubeId, ytThumb } from "@/utils/ytParser";
+import { CATEGORIES, EQUIPMENT_OPTIONS, LEVELS, MUSCLES_TARGETED } from "../constants/TutorialConstants";
 
 interface ModalType {
 	open:boolean;
@@ -29,54 +30,6 @@ interface ModalType {
 	onClose:()=>void;
 }
 
-const CATEGORIES = [
-	"Muscle Gain",
-	"Weight Loss",
-	"Strength",
-	"Endurance",
-	"Fat Loss",
-	"Flexibility",
-	"General Fitness",
- ];
-
-const LEVELS=[
-	"Beginner",
-	"Intermediate",
-	"Advanced",
-] as const;
-
-const MUSCLES_TARGETED=[
-	"Chest",
-	"Back",
-	"Biceps",
-	"Triceps",
-	"Legs",
-	"Shoulders",
-];
-
-const EQUIPMENT_OPTIONS=[
-	"Dumbbell",
-	"Barbell",
-	"Machine",
-	"Bodyweight",
-	"Cable",
-];
-
-const parseYouTubeId=(value:string)=>{
-	try{
-		const url=new URL(value);
-		return url.hostname.includes("youtu")
-			? url.searchParams.get("v") || ""
-			:value;
-	}catch{
-		return value;
-	}
-};
-
-const ytThumb=(id:string)=>
-	id
-	? `https://img.youtube.com/vi/${id}/hqdefault.jpg`
-	: "";
 
 export function TutorialModal({
 	open,

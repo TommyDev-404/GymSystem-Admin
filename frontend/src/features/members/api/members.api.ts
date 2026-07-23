@@ -1,9 +1,7 @@
 import { api } from "@/lib/axios";
 import type { Member, MemberFilters } from "../types/member";
 
-export const createMemberApi = async (
-  data: Omit<Member, "id">
-) => {
+export const createMemberApi = async (data: Omit<Member, "id">) => {
   try {
     const res = await api.post("/members/add", data);
     return res.data;
@@ -13,10 +11,7 @@ export const createMemberApi = async (
   }
 };
 
-export const updateMemberApi = async (
-  id: number,
-  data: Partial<Member>
-) => {
+export const updateMemberApi = async (id: number, data: Partial<Member>) => {
   try {
     const res = await api.patch(`/members/update/${id}`, data);
     return res.data;
@@ -26,10 +21,7 @@ export const updateMemberApi = async (
   }
 };
 
-export const updateMemberStatusApi = async (
-  id: number,
-  data: { status: string }
-) => {
+export const updateMemberStatusApi = async (id: number, data: { status: string }) => {
   try {
     const res = await api.patch(
       `/members/update-status/${id}`,

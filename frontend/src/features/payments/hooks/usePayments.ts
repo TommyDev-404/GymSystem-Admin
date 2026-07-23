@@ -31,9 +31,24 @@ export function useCreatePayment() {
       api.createPaymentApi(data),
 
     onSuccess: () => {
-      // refresh payments list
       queryClient.invalidateQueries({
         queryKey: ['payments'],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["payment-summary-data"],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["dashboard-summary-data"],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["dashboard-revenue-trend"],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["dashboard-recent-activity"],
       });
     },
   });

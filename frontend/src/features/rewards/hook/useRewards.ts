@@ -2,7 +2,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import * as api from "../api/rewards.api"
 import type { Rewards } from "../types/RewardsType";
 
-
 export function useGetAllRewards() {
    return useQuery({
      queryKey: ["rewards"],

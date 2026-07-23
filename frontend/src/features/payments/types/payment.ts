@@ -2,7 +2,7 @@ export type FilterType = "Paid" | "Pending" | "Overdue" | "All"
 
 export interface Payment {
    id: number;
-   member: string;
+   memberName: string;
    avatar: string;
    plan: string;
    amount: number;

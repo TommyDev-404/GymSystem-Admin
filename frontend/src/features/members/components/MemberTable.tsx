@@ -7,6 +7,7 @@ import { MemberModal } from "./MemberModal"; // 👈 ADD THIS
 import { getInitials } from "@/utils/initials";
 import { useUpdateMemberStatus } from "../hooks/useMember";
 import { toast } from "sonner";
+import { TableLoader } from "@/components/shared/TableLoader";
 
 const planColors: Record<string, string> = {
   Basic: "bg-slate-100 text-slate-600",
@@ -24,8 +25,8 @@ const TH_CLASS = "px-4 py-3 text-slate-500 font-medium text-left";
 const TD_CLASS = "px-4 py-3 text-slate-600 text-left";
 
 
-export function MemberTable({ members }: { members: Member[] }) {
-  const { mutate: updateStatus, isPending } = useUpdateMemberStatus();
+export function MemberTable({ members, isLoading }: { members: Member[], isLoading: boolean }) {
+  const { mutate: updateStatus } = useUpdateMemberStatus();
   const [resendMember, setResendMember] = useState<Member | null>(null);
 
   /* ---------------- MEMBER MODAL STATE ---------------- */
@@ -40,7 +41,6 @@ export function MemberTable({ members }: { members: Member[] }) {
   };
 
   const handleStatusChange = async (id: number, status: string) => {
-    console.log(id, status);
     updateStatus({id, data: { status }}, {
       onSuccess: () => {
         toast.success("Status updated successfully.")
@@ -67,7 +67,9 @@ export function MemberTable({ members }: { members: Member[] }) {
           </thead>
 
           <tbody>
-            {members.length === 0 ? (
+            {isLoading ? (
+              <TableLoader/>
+            ): members.length === 0 ? (
               <tr>
                 <td
                   colSpan={7}

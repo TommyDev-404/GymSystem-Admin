@@ -1,7 +1,7 @@
 import { comparePassword, hashPassword } from "../../../utils/password";
 import { signToken } from "../../../utils/jwt";
 import { generateOTP } from "../../../utils/otp-generator";
-import { transporter } from "../../../utils/mailer";
+import { sendMail } from "../../../utils/mailer";
 import { prisma } from "../../../lib/prisma";
 
 export const login = async (username: string, password: string) => {
@@ -68,10 +68,92 @@ export const sendResetOTP = async (email: string) => {
 	});
 
 	// send email
-	await transporter.sendMail({
+	await sendMail({
 		to: email,
 		subject: "Password Reset OTP",
-		text: `Your OTP is ${code}. It expires in 5 minutes.`,
+		html: `
+			<div style="
+				font-family: Arial, Helvetica, sans-serif;
+				background-color: #f8fafc;
+				padding: 40px 20px;
+			">
+				<div style="
+				max-width: 500px;
+				margin: 0 auto;
+				background-color: #ffffff;
+				border-radius: 12px;
+				padding: 32px;
+				box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+				">
+				<h2 style="
+					color: #16a34a;
+					margin-bottom: 16px;
+					text-align: center;
+				">
+					Password Reset Request
+				</h2>
+
+				<p style="
+					color: #334155;
+					font-size: 15px;
+					line-height: 1.6;
+				">
+					We received a request to reset your password.
+					Use the verification code below to continue.
+				</p>
+
+				<div style="
+					margin: 30px 0;
+					text-align: center;
+					background-color: #f0fdf4;
+					border-radius: 10px;
+					padding: 20px;
+				">
+					<span style="
+						font-size: 32px;
+						font-weight: 700;
+						letter-spacing: 8px;
+						color: #15803d;
+					">
+						${code}
+					</span>
+				</div>
+
+				<p style="
+					color: #64748b;
+					font-size: 14px;
+					line-height: 1.5;
+				">
+					This verification code will expire in 
+					<strong>5 minutes</strong>.
+					For your security, do not share this code with anyone.
+				</p>
+
+				<hr style="
+					border: none;
+					border-top: 1px solid #e2e8f0;
+					margin: 24px 0;
+				" />
+
+				<p style="
+					color: #94a3b8;
+					font-size: 12px;
+					text-align: center;
+				">
+					If you did not request a password reset, you can safely ignore this email.
+				</p>
+
+				<p style="
+					color: #64748b;
+					font-size: 13px;
+					text-align: center;
+					margin-top: 20px;
+				">
+					© JFitness Gym
+				</p>
+				</div>
+			</div>
+		`,
 	});
 
 	return true;

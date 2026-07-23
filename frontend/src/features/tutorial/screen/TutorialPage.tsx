@@ -9,12 +9,25 @@ import type { Workout, WorkoutResponse } from "../types/TutorialType";
 import { useGetAllTutorials, useRemoveTutorial } from "../hook/useTutorial";
 import { toast } from "sonner";
 import { NoTutorialFound } from "../components/NoTutorialFound";
+import { debounce } from "@/lib/debounce";
+import { Loader } from "@/components/shared/Loader";
 
 const LEVELS = ["Beginner", "Intermediate", "Advanced"] as const;
+const CATEGORIES = [
+  "All",
+  "Muscle Gain",
+  "Weight Loss",
+  "Strength",
+  "Endurance",
+  "Fat Loss",
+  "Flexibility",
+  "General Fitness",
+];
 
 export function TutorialsPage() {
-  const { mutate: deleteTutorial, isPending } = useRemoveTutorial();
-
+  const { mutate: deleteTutorial } = useRemoveTutorial();
+  
+	const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [filterCat, setFilterCat] = useState("All");
   const [filterLevel, setFilterLevel] = useState("All");
@@ -22,6 +35,14 @@ export function TutorialsPage() {
   const [editTarget, setEditTarget] = useState<Workout | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Workout | null>(null);
 
+  const debounceSearch = useMemo(
+      () =>
+        debounce((value: string) => {
+          setSearch(value);
+        }),
+      []
+  );
+  
   const params = useMemo(() => ({
     search: search || undefined,
     level: filterLevel !== "All" ? filterLevel : undefined,
@@ -61,17 +82,6 @@ export function TutorialsPage() {
     });
   };
 
-  const CATEGORIES = [
-    "All",
-    "Muscle Gain",
-    "Weight Loss",
-    "Strength",
-    "Endurance",
-    "Fat Loss",
-    "Flexibility",
-    "General Fitness",
-   ];
-
   return (
     <div className="space-y-5">
       {/* HEADER */}
@@ -86,8 +96,11 @@ export function TutorialsPage() {
 
       {/* FILTERS */}
       <TutorialFilters
-        search={search}
-        setSearch={setSearch}
+        search={searchInput}
+				setSearch={(value) => {
+					setSearchInput(value);
+					debounceSearch(value);
+				}}
         filterCat={filterCat}
         setFilterCat={setFilterCat}
         filterLevel={filterLevel}
@@ -97,9 +110,11 @@ export function TutorialsPage() {
       />
 
       {/* GRID */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-        {filtered.length > 0 ?
-          filtered.map((w: Workout) => (
+      {isLoading ? (
+        <Loader/>
+      ) : filtered.length > 0 ?
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+          {filtered.map((w: Workout) => (
             <TutorialCard
               key={w.id}
               workout={w}
@@ -109,11 +124,11 @@ export function TutorialsPage() {
               }}
               onDelete={() => setDeleteTarget(w)}
             />
-          ))
-        :
-          <NoTutorialFound/>
-        }
-      </div>
+          ))}
+        </div>
+      :
+        <NoTutorialFound/>
+      }
 
       {/* MODAL */}
       {modalOpen && (

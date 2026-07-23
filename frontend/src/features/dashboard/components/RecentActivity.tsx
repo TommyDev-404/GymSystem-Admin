@@ -1,6 +1,6 @@
 import { Clock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatDistanceToNowStrict } from "date-fns";
+import { formatTimeAgo } from "@/utils/formatTimeAgo";
 
 interface ActivityItem {
   name: string;
@@ -13,17 +13,6 @@ interface RecentActivityProps {
   data: ActivityItem[];
 }
 
-function formatTimeAgo(date: string | Date) {
-  return formatDistanceToNowStrict(new Date(date), {
-    addSuffix: true,
-  })
-    .replace("minutes", "mins")
-    .replace("minute", "min")
-    .replace("hours", "hrs")
-    .replace("hour", "hr")
-    .replace("seconds", "secs")
-    .replace("second", "sec");
-}
 
 export function RecentActivity({ data }: RecentActivityProps) {
   return (

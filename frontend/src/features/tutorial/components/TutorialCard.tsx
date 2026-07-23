@@ -1,48 +1,7 @@
-import { Dumbbell, Play, Tag, Edit2, Trash2 } from "lucide-react";
+import { Dumbbell, Tag, Edit2, Trash2 } from "lucide-react";
 import type { Workout } from "../types/TutorialType";
-
-
-const levelColors: Record<string, string> = {
-  Beginner: "text-green-600",
-  Intermediate: "text-yellow-600",
-  Advanced: "text-red-600",
-};
-
-const catColors: Record<string, string> = {
-  "Muscle Gain": "bg-blue-100 text-blue-700",
-  "Weight Loss": "bg-green-100 text-green-700",
-  "Strength": "bg-red-100 text-red-700",
-  "Endurance": "bg-purple-100 text-purple-700",
-  "Fat Loss": "bg-orange-100 text-orange-700",
-  "Flexibility": "bg-pink-100 text-pink-700",
-  "General Fitness": "bg-slate-100 text-slate-700",
-};
-
-function getYoutubeVideoId(url: string): string | null {
-  try {
-    const urlObj = new URL(url);
-
-    // youtube.com/watch?v=VIDEO_ID
-    if (urlObj.hostname.includes("youtube.com")) {
-      return urlObj.searchParams.get("v");
-    }
-
-    // youtu.be/VIDEO_ID
-    if (urlObj.hostname.includes("youtu.be")) {
-      return urlObj.pathname.slice(1);
-    }
-
-    return null;
-  } catch {
-    return null;
-  }
-}
-
-function ytThumb(videoId: string) {
-  if (!videoId) return "";
-  return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
-}
-
+import { getYoutubeVideoId, ytThumb } from "@/utils/ytParser";
+import { catColors, levelColors } from "../constants/TutorialConstants";
 
 interface Props {
   workout: Workout;
@@ -67,15 +26,6 @@ export function TutorialCard({ workout, onEdit, onDelete }: Props) {
         ) : (
           <div className="w-full h-full flex items-center justify-center">
             <Dumbbell size={36} className="text-slate-300" />
-          </div>
-        )}
-
-        {/* PLAY OVERLAY */}
-        {workout.video_url && (
-          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-            <div className="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center shadow-lg">
-              <Play size={18} className="text-emerald-600 ml-0.5" />
-            </div>
           </div>
         )}
 

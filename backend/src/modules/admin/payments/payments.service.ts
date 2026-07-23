@@ -90,6 +90,7 @@ export const createPaymentService = async (data: {
     await prisma.activities.create({
       data: {
         member_id: Number(data.member_id),
+        recepient_type: 'ADMIN',
         type: 'PAYMENT',
         title: 'Payment Recorded',
         description: `${member?.fullname} paid ₱${data.amount_paid} for his ${member?.membership_plans.plan_name} plan.`,

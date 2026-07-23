@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { PaymentSummaryCards } from "@/features/payments/components/PaymentSummaryCards";
 import { PaymentFilters } from "@/features/payments/components/PaymentsFilter";
 import { PaymentsTable } from "@/features/payments/components/PaymentTable";
@@ -6,30 +6,40 @@ import { AddPaymentModal } from "@/features/payments/components/AddPaymentModal"
 
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import { usePayments, usePaymentSummaryData } from "../hooks/usePayments";
+import { usePayments, usePaymentSummaryData, useUnpaidMembers } from "../hooks/usePayments";
 import type { FilterType } from "../types/payment";
+import { PageLoader } from "@/components/shared/PageLoader";
+import { debounce } from "@/lib/debounce";
+import { toPHP } from "@/utils/currencyConverter";
 
-function toPHP(value: string) {
-  const num = Number(value);
-  return new Intl.NumberFormat('en-PH', {
-    style: "currency", currency: "PHP"
-  }).format(num);
-}
-      
 export function PaymentsPage() {
+	const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<FilterType>("All");
   const [openAddModal, setOpenAddModal] = useState(false);
 
-  const { data: paymentsData = [], isLoading: loadingPayments } = usePayments({
-    search: search || undefined,
-    status: filterStatus,
-  });
+  const debounceSearch = useMemo(
+      () =>
+        debounce((value: string) => {
+         setSearch(value);
+        }),
+      []
+  );
   
+	const params = useMemo(() => ({
+		search: search || undefined,
+    status: filterStatus,
+	}), [search, status]);
+
+  const { data: paymentsData = [], isLoading: loadingPayments } = usePayments(params);
   const { data: summaryData = [], isLoading: loadingSummaryData } = usePaymentSummaryData();
+  const { data: unpaidMembers = [], isLoading: unpaidMembersLoading } = useUnpaidMembers();
+
+  if (loadingSummaryData || unpaidMembersLoading) return <PageLoader />;
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-bold">
@@ -57,15 +67,22 @@ export function PaymentsPage() {
       />
 
       <PaymentFilters
-        search={search}
-        setSearch={setSearch}
+        search={searchInput}
+				setSearch={(value) => {
+					setSearchInput(value);
+					debounceSearch(value);
+				}}
         filterStatus={filterStatus}
         setFilterStatus={setFilterStatus}
       />
 
-      <PaymentsTable payments={paymentsData} />
+      <PaymentsTable
+        payments={paymentsData}
+        isLoading={loadingPayments}
+      />
 
       <AddPaymentModal
+        unpaidMembers={unpaidMembers}
         open={openAddModal}
         setOpen={setOpenAddModal}
       />

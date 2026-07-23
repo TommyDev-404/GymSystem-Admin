@@ -1,18 +1,27 @@
 import { Button } from "@/components/ui/button";
 import { typeConfig } from "@/features/notifications/constants/typeConfig";
+import type { NotificationCount } from "../types/NotifTypes";
 
-const filterTypes = ["All", "payment", "expiry", "reward", "checkin", "alert"] as const;
+const filterTypes = [
+  "All",
+  "PAYMENT",
+  "EXPIRY",
+  "REWARD",
+  "CHECK_IN",
+] as const;
 
 interface Props {
   filter: string;
   setFilter: (value: string) => void;
-  notifications: any[];
+  typeCounts: NotificationCount["typeCounts"];
+  allCount: number;
 }
 
 export function NotificationsFilters({
   filter,
   setFilter,
-  notifications,
+  typeCounts,
+  allCount
 }: Props) {
   return (
     <div className="flex flex-wrap gap-2">
@@ -24,8 +33,8 @@ export function NotificationsFilters({
 
         const count =
           f === "All"
-            ? notifications.length
-            : notifications.filter((n) => n.type === f).length;
+            ? allCount
+            : typeCounts.find((item) => item.type === f)?.count ?? 0;
 
         return (
           <Button
@@ -33,13 +42,15 @@ export function NotificationsFilters({
             variant={filter === f ? "default" : "outline"}
             onClick={() => setFilter(f)}
             className={
-               filter === f
-                 ? "bg-emerald-500 text-white hover:bg-emerald-600 rounded-xl p-4"
-                 : "rounded-xl p-4"
-             }
+              filter === f
+                ? "bg-emerald-500 text-white hover:bg-emerald-600 rounded-xl p-4"
+                : "rounded-xl p-4"
+            }
           >
             {label}
-            <span className="ml-1.5 text-xs opacity-80">({count})</span>
+            <span className="ml-1.5 text-xs opacity-80">
+              ({count})
+            </span>
           </Button>
         );
       })}

@@ -17,6 +17,7 @@ export const uploadImageToSupabase = async (file: Express.Multer.File) => {
       contentType: file.mimetype,
     });
 
+  console.log(error);
   if (error) throw error;
 
   const { data } = supabase.storage
@@ -34,7 +35,7 @@ export const createTutorialService = async (
   const urls = await Promise.all(
     files.map((file) => uploadImageToSupabase(file))
   );
-
+  
   // 2. save to DB
   const tutorial = await prisma.tutorials.create({
     data: {

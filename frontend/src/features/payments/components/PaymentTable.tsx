@@ -1,12 +1,14 @@
 import type { Payment } from "@/features/payments/types/payment";
-import { statusConfig } from "@/features/payments/constants/statusConfig";
+import { statusConfig } from "@/utils/statusConfig";
 import { getInitials } from "@/utils/initials";
+import { TableLoader } from "@/components/shared/TableLoader";
 
 interface Props {
-  payments: Payment[];
+   payments: Payment[];
+   isLoading: boolean;
 }
 
-export function PaymentsTable({ payments }: Props) {
+export function PaymentsTable({ payments, isLoading }: Props) {
    const TH_CLASS = "text-left text-slate-500 font-medium px-5 py-3.5";
    
    return (
@@ -26,7 +28,9 @@ export function PaymentsTable({ payments }: Props) {
 
          {/* BODY */}
          <tbody className="divide-y divide-slate-50">
-            {payments.length === 0 ? (
+            {isLoading ? (
+               <TableLoader/>
+            ) : payments.length === 0 ? (
                <tr>
                <td
                   colSpan={6}

@@ -12,6 +12,7 @@ interface TopRewardsProps {
 }
 
 export function TopClaimedRewards({ data }: TopRewardsProps) {
+  
   return (
     <Card>
       <CardHeader>

@@ -25,7 +25,7 @@ export function AttendancePage() {
   const { data: memberAttendance = [], isLoading: attendanceLoading } = useGetMemberAttendance(filters);
   
   useEffect(() => {
-    const handleNewAttendance = (data: any) => {
+    const handleNewAttendance = () => {
       queryClient.invalidateQueries({
         queryKey: ["attendance"],
       });
@@ -82,6 +82,7 @@ export function AttendancePage() {
       {/* TABLE */}
       <AttendanceTable
         members={memberAttendance}
+        isLoading={attendanceLoading}
       />
 
       {/* MODAL */}

@@ -1,11 +1,18 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { HOVER_EFFECT } from "@/utils/animations";
 import { Trophy, Gift, Star, Zap } from "lucide-react";
-import { useGetSummaryData } from "../hook/useRewards";
 
-export function RewardsStats() {
-  const { data: summaryData = [], isLoading } = useGetSummaryData();
+interface Props {
+  summaryData: {
+    active: number,
+    averagePoints: number,
+    totalRewards: number,
+    totalClaimed: number
+  };
+}
 
+export function RewardsStats({ summaryData } : Props) {
+  
   const stats = [
     {
       label: "Total Rewards",
