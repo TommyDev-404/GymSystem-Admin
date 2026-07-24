@@ -168,7 +168,7 @@ CREATE TABLE payments (
 
 CREATE TABLE activities (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    member_id INT NULL,
+    member_id INT NOT NULL,
     recepient_type ENUM('ADMIN', 'MEMBER') NOT NULL,
     type ENUM(
         'MEMBER_ADDED',
@@ -180,13 +180,13 @@ CREATE TABLE activities (
         'RENEWAL'
     ) NOT NULL,
     title VARCHAR(255) NOT NULL,
-    description TEXT NULL,
+    description TEXT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_activity_member
         FOREIGN KEY (member_id)
         REFERENCES members(id)
-        ON DELETE SET NULL
+        ON DELETE CASCADE
 );
 
 CREATE TABLE notifications (

@@ -6,13 +6,19 @@ import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useMembers } from "../hooks/useMember";
 import { debounce } from "@/lib/debounce";
+import { useSearchParams } from "react-router-dom";
 
 export function MembersPage() {
+	const [searchParams] = useSearchParams();
+	
+	const urlFilter = searchParams.get("filter");
+	const urlAction = searchParams.get("action");
+
 	const [searchInput, setSearchInput] = useState("");
 	const [search, setSearch] = useState("");
 	const [gender, setGender] = useState("All");
-	const [status, setStatus] = useState("All");
-	const [open, setOpen] = useState(false);
+	const [status, setStatus] = useState(urlFilter || "All");
+	const [open, setOpen] = useState(urlAction  && urlAction === "add"? true : false);
 	
 	const debounceSearch = useMemo(
 		() =>

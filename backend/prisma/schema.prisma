@@ -9,13 +9,13 @@ datasource db {
 
 model activities {
   id             Int                       @id @default(autoincrement())
+  member_id      Int
   recepient_type activities_recepient_type
-  member_id      Int?
   type           activities_type
   title          String                    @db.VarChar(255)
-  description    String?                   @db.Text
+  description    String                    @db.Text
   created_at     DateTime?                 @default(now()) @db.DateTime(0)
-  members        members?                  @relation(fields: [member_id], references: [id], onUpdate: Restrict, map: "fk_activity_member")
+  members        members                   @relation(fields: [member_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_activity_member")
 
   @@index([member_id], map: "fk_activity_member")
 }
@@ -260,20 +260,19 @@ enum activities_recepient_type {
 }
 
 enum activities_type {
+  MEMBER_ADDED
+  MEMBER_UPDATED
   CHECK_IN
   PAYMENT
   REWARD_CLAIM
   REGISTER
   RENEWAL
-  MEMBER_ADDED
-  MEMBER_UPDATED
 }
 
 enum notifications_type {
   CHECK_IN
   PAYMENT
   REWARD
-  REMINDER
   EXPIRY
-  WARNING
+  REMINDER
 }

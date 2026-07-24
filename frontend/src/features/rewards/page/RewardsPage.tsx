@@ -7,13 +7,18 @@ import { RewardsLeaderboard } from "@/features/rewards/components/RewardsLeaderb
 import { RewardModal } from "@/features/rewards/components/RewardModal";
 import { useGetAllRewards, useGetMemberProgress, useGetSummaryData } from "../hook/useRewards";
 import { PageLoader } from "@/components/shared/PageLoader";
+import { useSearchParams } from "react-router-dom";
 
 export function RewardsPage() {
+  const [searchParams] = useSearchParams();
+	
+  const urlAction= searchParams.get("action");
+
   const { data: rewards = [], isLoading: rewardsLoading } = useGetAllRewards();
   const { data: memberProgress = [], isLoading: memberProgressLoading } = useGetMemberProgress();
   const { data: summaryData = {}, isLoading: rewardSummary } = useGetSummaryData();
 
-  const [showForm, setShowForm] = useState(false);
+  const [showForm, setShowForm] = useState(urlAction ? true : false);
 
   if (
     rewardsLoading ||

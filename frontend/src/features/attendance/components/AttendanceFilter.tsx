@@ -10,8 +10,7 @@ type Props = {
 export function AttendanceFilter({ filters, setFilters }: Props) {
   const currentYear = new Date().getFullYear();
 
-  const [disableDayFilter, setDisableDayFilter] =
-    useState(false);
+  const [disableDayFilter, setDisableDayFilter] = useState(filters.day === undefined ? true : false);
 
   const days = Array.from(
     { length: 31 },

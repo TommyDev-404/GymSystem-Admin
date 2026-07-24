@@ -4,18 +4,18 @@ import { PaymentFilterDTO } from "./payments.types";
 
 export const getSummaryDataService = async () => {
   return await prisma.$transaction(async (tx) => {
-    const paid = await prisma.payments.aggregate({
+    const paid = await tx.payments.aggregate({
       _sum: { amount_paid: true },
       _count: { id: true }
     })
 
-    const pending = await prisma.member_bills.aggregate({
+    const pending = await tx.member_bills.aggregate({
       where: { status: 'Pending' },
       _count: { member_id: true },
       _sum: { amount_due: true }
     });
 
-    const overdue = await prisma.member_bills.aggregate({
+    const overdue = await tx.member_bills.aggregate({
       where: { status: 'Overdue' },
       _count: { member_id: true },
       _sum: { amount_due: true }
@@ -29,7 +29,6 @@ export const getSummaryDataService = async () => {
       totalOverdue: overdue._count.member_id ?? 0,
       totalOverdueAmount: overdue._sum.amount_due ?? 0
     }
-    
   });
 };
 
@@ -72,7 +71,7 @@ export const createPaymentService = async (data: {
         `Your payment of ₱${data.amount_paid} for ${new Date(data.paid_on).toLocaleDateString('en-PH', { month: 'short', day: '2-digit', year: '2-digit' })} has been successfully recorded.`
     });
 
-    const member= await prisma.members.findFirst({
+    const member= await tx.members.findFirst({
       where: { 
         id: Number(data.member_id)
       },
@@ -87,7 +86,7 @@ export const createPaymentService = async (data: {
     });
 
     // create recent activity
-    await prisma.activities.create({
+    await tx.activities.create({
       data: {
         member_id: Number(data.member_id),
         recepient_type: 'ADMIN',

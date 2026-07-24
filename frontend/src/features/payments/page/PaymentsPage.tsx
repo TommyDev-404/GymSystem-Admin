@@ -11,12 +11,18 @@ import type { FilterType } from "../types/payment";
 import { PageLoader } from "@/components/shared/PageLoader";
 import { debounce } from "@/lib/debounce";
 import { toPHP } from "@/utils/currencyConverter";
+import { useSearchParams } from "react-router-dom";
 
 export function PaymentsPage() {
-	const [searchInput, setSearchInput] = useState("");
+  const [searchParams] = useSearchParams();
+	
+  const urlFilter = searchParams.get("filter");
+  const urlAction = searchParams.get("action");
+  
+  const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
-  const [filterStatus, setFilterStatus] = useState<FilterType>("All");
-  const [openAddModal, setOpenAddModal] = useState(false);
+  const [filterStatus, setFilterStatus] = useState<FilterType>(urlFilter as FilterType || "All");
+  const [openAddModal, setOpenAddModal] = useState(urlAction === 'add' ? true : false);
 
   const debounceSearch = useMemo(
       () =>
@@ -29,8 +35,9 @@ export function PaymentsPage() {
 	const params = useMemo(() => ({
 		search: search || undefined,
     status: filterStatus,
-	}), [search, status]);
+	}), [search, filterStatus]);
 
+  console.log(params);
   const { data: paymentsData = [], isLoading: loadingPayments } = usePayments(params);
   const { data: summaryData = [], isLoading: loadingSummaryData } = usePaymentSummaryData();
   const { data: unpaidMembers = [], isLoading: unpaidMembersLoading } = useUnpaidMembers();

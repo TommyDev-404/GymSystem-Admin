@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useSearchParams } from "react-router-dom";
 
 import { SettingsHeader } from "@/features/settings/components/SettingsHeader";
 import { SettingsSidebar } from "@/features/settings//components/SettingsSidebar";
@@ -9,14 +9,11 @@ import { AdminProfileSection } from "../sections/admin-info/page/AdminProfileSec
 
 export function SettingsPage() {
   const location = useLocation();
+  const [searchParams] = useSearchParams();
+	
+  const urlFilter = searchParams.get("filter") || location.state?.active;
 
-  const [active, setActive] = useState(location.state?.active || "profile");
-  const [twoFactor, setTwoFactor] = useState(false);
-  const [securityForm, setSecurityForm] = useState({
-    currentPassword: "",
-    newPassword: "",
-    confirmPassword: "",
-  });
+  const [active, setActive] = useState(urlFilter || "profile");
 
   return (
     <div className="space-y-5">
@@ -27,16 +24,8 @@ export function SettingsPage() {
 
         <div className="flex-1 space-y-4">
           {active === "pricing" && <PricingSection/>}
-          {active === "security" &&
-              <SecuritySection
-                twoFactor={twoFactor}
-                setTwoFactor={setTwoFactor}
-                form={securityForm}
-                setForm={setSecurityForm}
-              />
-          }  
+          {active === "security" &&<SecuritySection/>}  
           {active === "profile" &&  <AdminProfileSection />}
-          
         </div>
       </div>
     </div>

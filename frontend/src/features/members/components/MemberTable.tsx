@@ -1,222 +1,335 @@
 import { useState } from "react";
+import {
+  Edit,
+  Mail,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Avatar,
+  AvatarFallback,
+} from "@/components/ui/avatar";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { Member } from "@/features/members/types/member";
-import { Edit, Mail } from "lucide-react";
 import { ResendActivationModal } from "./ResendActivationModal";
-import { MemberModal } from "./MemberModal"; // 👈 ADD THIS
+import { MemberModal } from "./MemberModal";
 import { getInitials } from "@/utils/initials";
 import { useUpdateMemberStatus } from "../hooks/useMember";
 import { toast } from "sonner";
 import { TableLoader } from "@/components/shared/TableLoader";
 
+
 const planColors: Record<string, string> = {
-  Basic: "bg-slate-100 text-slate-600",
-  Premium: "bg-indigo-100 text-indigo-700",
-  Elite: "bg-amber-100 text-amber-700",
+  Basic:"bg-slate-100 text-slate-700 hover:bg-slate-100",
+  Premium:"bg-indigo-100 text-indigo-700 hover:bg-indigo-100",
+  Elite:"bg-amber-100 text-amber-700 hover:bg-amber-100",
 };
 
 const statusColors: Record<string, string> = {
-  Active: "bg-emerald-100 text-emerald-700 border-emerald-200",
-  Inactive: "bg-slate-100 text-slate-600 border-slate-200",
-  Suspended: "bg-red-100 text-red-600 border-red-200",
+  Active:"bg-emerald-100 text-emerald-700 border-emerald-200",
+  Inactive:"bg-slate-100 text-slate-600 border-slate-200",
+  Suspended:"bg-red-100 text-red-600 border-red-200",
 };
 
-const TH_CLASS = "px-4 py-3 text-slate-500 font-medium text-left";
-const TD_CLASS = "px-4 py-3 text-slate-600 text-left";
+interface Props {
+  members: Member[];
+  isLoading: boolean;
+}
 
-
-export function MemberTable({ members, isLoading }: { members: Member[], isLoading: boolean }) {
+export function MemberTable({members, isLoading}: Props) {
   const { mutate: updateStatus } = useUpdateMemberStatus();
-  const [resendMember, setResendMember] = useState<Member | null>(null);
 
-  /* ---------------- MEMBER MODAL STATE ---------------- */
+  const [resendMember, setResendMember] = useState<Member | null>(null);
   const [openMemberModal, setOpenMemberModal] = useState(false);
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
 
-  /* ---------------- EDIT HANDLER ---------------- */
   const handleEdit = (member: Member) => {
     setSelectedMember(member);
-
     setOpenMemberModal(true);
   };
 
-  const handleStatusChange = async (id: number, status: string) => {
-    updateStatus({id, data: { status }}, {
-      onSuccess: () => {
-        toast.success("Status updated successfully.")
+  const handleStatusChange = (id: number, status: string) => {
+    updateStatus(
+      {
+        id,
+        data: {
+          status
+        }
+      },
+      {
+        onSuccess: () => {
+          toast.success(
+            "Status updated successfully."
+          );
+        },
       }
-    })
+    );
   };
 
   return (
     <>
-      {/* TABLE */}
-      <div className="bg-white border rounded-2xl overflow-hidden">
-        <table className="w-full text-sm">
+      <Card className="rounded-xl border shadow-sm overflow-hidden">
+  <Table>
 
-          <thead className="bg-slate-50 border-b">
-            <tr>
-              <th className={TH_CLASS}>Member</th>
-              <th className={TH_CLASS}>Age</th>
-              <th className={TH_CLASS}>Gender</th>
-              <th className={TH_CLASS}>Plan</th>
-              <th className={TH_CLASS}>Joined</th>
-              <th className={TH_CLASS}>Status</th>
-              <th className={TH_CLASS}>Actions</th>
-            </tr>
-          </thead>
+    <TableHeader>
+      <TableRow>
 
-          <tbody>
-            {isLoading ? (
-              <TableLoader/>
-            ): members.length === 0 ? (
-              <tr>
-                <td
-                  colSpan={7}
-                  className="px-4 py-10 text-center text-slate-400"
+        <TableHead className="text-center">
+          Member
+        </TableHead>
+
+        <TableHead className="text-center">
+          Age
+        </TableHead>
+
+        <TableHead className="text-center">
+          Gender
+        </TableHead>
+
+        <TableHead className="text-center">
+          Plan
+        </TableHead>
+
+        <TableHead className="text-center">
+          Joined
+        </TableHead>
+
+        <TableHead className="text-center">
+          Status
+        </TableHead>
+
+        <TableHead className="text-center">
+          Actions
+        </TableHead>
+
+      </TableRow>
+    </TableHeader>
+
+
+    <TableBody>
+
+      {isLoading ? (
+
+        <TableLoader />
+
+      ) : members.length === 0 ? (
+
+        <TableRow>
+          <TableCell
+            colSpan={7}
+            className="h-32 text-center text-slate-400"
+          >
+            No members found.
+          </TableCell>
+        </TableRow>
+
+      ) : (
+
+        members.map((member) => (
+
+          <TableRow
+            key={member.id}
+            className="hover:bg-slate-50 transition"
+          >
+
+
+            {/* MEMBER */}
+            <TableCell>
+
+              <div className="flex items-center justify-center gap-3">
+
+                <Avatar className="h-9 w-9">
+
+                  <AvatarFallback
+                    className="
+                      bg-emerald-100
+                      text-emerald-700
+                      text-xs
+                      font-semibold
+                    "
+                  >
+                    {getInitials(member.fullname)}
+                  </AvatarFallback>
+
+                </Avatar>
+
+
+                <span className="font-medium text-slate-700">
+                  {member.fullname}
+                </span>
+
+              </div>
+
+            </TableCell>
+
+
+
+            {/* AGE */}
+            <TableCell className="text-center text-slate-600">
+              {member.age}
+            </TableCell>
+
+
+
+            {/* GENDER */}
+            <TableCell className="text-center text-slate-600">
+              {member.gender}
+            </TableCell>
+
+
+
+            {/* PLAN */}
+            <TableCell className="text-center">
+
+              <Badge
+                className={`
+                  px-3 py-1
+                  ${planColors[
+                    member.membership_plans.plan_name
+                  ]}
+                `}
+              >
+                {member.membership_plans.plan_name}
+              </Badge>
+
+            </TableCell>
+
+
+
+            {/* JOIN DATE */}
+            <TableCell className="text-center text-slate-500">
+
+              {new Date(
+                member.join_date!
+              ).toLocaleDateString(
+                "en-PH",
+                {
+                  month:"short",
+                  day:"2-digit",
+                  year:"numeric",
+                }
+              )}
+
+            </TableCell>
+
+            {/* STATUS */}
+            <TableCell className="text-center">
+
+              <Select
+                value={member.status}
+                onValueChange={(value) =>
+                  handleStatusChange(
+                    member.id!,
+                    value
+                  )
+                }
+              >
+
+                <SelectTrigger
+                  className={`
+                    mx-auto
+                    h-8
+                    w-[120px]
+                    rounded-md
+                    text-xs
+                    ${statusColors[member.status!]}
+                  `}
                 >
-                  No members found.
-                </td>
-              </tr>
-            ) : (
-              members.map((m) => (
-                <tr
-                  key={m.id}
-                  className="hover:bg-slate-50"
+
+                  <SelectValue />
+
+                </SelectTrigger>
+
+
+                <SelectContent>
+
+                  <SelectItem value="Active">
+                    Active
+                  </SelectItem>
+
+                  <SelectItem value="Inactive">
+                    Inactive
+                  </SelectItem>
+
+                  <SelectItem value="Suspended">
+                    Suspended
+                  </SelectItem>
+
+                </SelectContent>
+
+              </Select>
+
+            </TableCell>
+
+            {/* ACTIONS */}
+            <TableCell>
+              <div className="flex justify-center gap-1">
+
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="hover:bg-emerald-50"
+                  onClick={() =>
+                    setResendMember(member)
+                  }
                 >
-
-                  {/* MEMBER */}
-                  <td className={TD_CLASS}>
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-full bg-emerald-100 flex items-center justify-center">
-                        <span className="text-emerald-700 text-xs font-semibold">
-                          {getInitials(m.fullname)}
-                        </span>
-                      </div>
-
-                      <span className="font-medium">
-                        {m.fullname}
-                      </span>
-                    </div>
-                  </td>
+                  <Mail
+                    size={16}
+                    className="text-emerald-600"
+                  />
+                </Button>
 
 
-                  {/* AGE */}
-                  <td className={TD_CLASS}>
-                    {m.age}
-                  </td>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={() =>
+                    handleEdit(member)
+                  }
+                >
+                  <Edit size={16}/>
+                </Button>
 
 
-                  {/* GENDER */}
-                  <td className={TD_CLASS}>
-                    {m.gender}
-                  </td>
+              </div>
+
+            </TableCell>
 
 
-                  {/* PLAN */}
-                  <td className={TD_CLASS}>
-                    <span
-                      className={`
-                        px-2.5 py-1 rounded-lg text-xs font-medium
-                        ${planColors[m.membership_plans.plan_name]}
-                      `}
-                    >
-                      {m.membership_plans.plan_name}
-                    </span>
-                  </td>
+          </TableRow>
 
-                  {/* JOINED */}
-                  <td className={TD_CLASS}>
-                    {new Date(m.join_date!).toLocaleDateString(
-                      "en-PH",
-                      {
-                        month: "short",
-                        day: "2-digit",
-                        year: "numeric",
-                      }
-                    )}
-                  </td>
+        ))
 
-                  {/* STATUS */}
-                  <td className={TD_CLASS}>
-                    <select
-                      value={m.status}
-                      onChange={(e) =>
-                        handleStatusChange(
-                          m.id!,
-                          e.target.value
-                        )
-                      }
-                      className={`
-                        px-2.5 py-1 rounded-lg text-xs font-medium border
-                        outline-none cursor-pointer
-                        ${statusColors[m.status!]}
-                      `}
-                    >
-                      <option value="Active">
-                        Active
-                      </option>
+      )}
 
-                      <option value="Inactive">
-                        Inactive
-                      </option>
+    </TableBody>
 
-                      <option value="Suspended">
-                        Suspended
-                      </option>
-                    </select>
-                  </td>
+  </Table>
+</Card>
 
-                  {/* ACTIONS */}
-                  <td className="px-2 py-3">
-                    <div className="flex items-center gap-2">
-
-                      {/* RESEND ACTIVATION */}
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() =>
-                          setResendMember(m)
-                        }
-                      >
-                        <Mail
-                          className="h-4 w-4 text-emerald-600"
-                        />
-                      </Button>
-
-
-                      {/* EDIT */}
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() =>
-                          handleEdit(m)
-                        }
-                      >
-                        <Edit
-                          className="h-4 w-4"
-                        />
-                      </Button>
-
-                    </div>
-                  </td>
-
-                </tr>
-              ))
-            )}
-          </tbody>
-
-        </table>
-      </div>
-
-      {/* RESEND MODAL */}
+      {/* RESEND */}
       <ResendActivationModal
         open={!!resendMember}
         member={resendMember!}
-        onClose={() => setResendMember(null)}
+        onClose={() =>setResendMember(null)}
       />
 
-      {/* MEMBER MODAL (ADD + EDIT) */}
+      {/* ADD / EDIT */}
       <MemberModal
         open={openMemberModal}
         setOpen={setOpenMemberModal}

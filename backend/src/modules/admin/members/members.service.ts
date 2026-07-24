@@ -19,7 +19,7 @@ export const createMember = async (data: CreateMemberDTO) => {
 				points: 0
 			},
 		});
-
+		
 		// Create activation record
 		await tx.member_activations.create({
 			data: {
@@ -34,7 +34,7 @@ export const createMember = async (data: CreateMemberDTO) => {
 		const plan = await tx.membership_plans.findFirst({
 			where: { id: data.plan_id }
 		});
-		
+
 		const dueDate = new Date();
 
 		switch (plan?.duration_type) {
@@ -62,11 +62,11 @@ export const createMember = async (data: CreateMemberDTO) => {
 		});
 
 		// create recent activity
-		await prisma.activities.create({
+		await tx.activities.create({
 			data: {
-			  member_id: Number(member.id),
-			  recepient_type: 'ADMIN',
-			  type: 'MEMBER_ADDED',
+				member_id: Number(member.id),
+				recepient_type: 'ADMIN',
+				type: 'MEMBER_ADDED',
 				title: 'New Member Added',
 				description: `Admin added ${member?.fullname} as a new member and assigned the ${plan?.plan_name} membership plan.`
 			}
@@ -76,6 +76,7 @@ export const createMember = async (data: CreateMemberDTO) => {
 	});
 
 	// 4. Send email OUTSIDE transaction (important)
+	
 	await sendMail({
 		to: data.email,
 		subject: "Your Gym Activation Code",
@@ -98,7 +99,7 @@ export const createMember = async (data: CreateMemberDTO) => {
 			</div>
 		`,
 	});
-
+	
 	return {
 		success: true,
 		message: "Member created successfully. Activation code sent.",
@@ -116,20 +117,22 @@ export const updateMemberInfo = async (id: number, data: Partial<CreateMemberDTO
 		
 	if (!member) throw new Error("Member not found");
 		
-	await prisma.members.update({
-		where: { id },
-		data,
-	});
-
-	// create recent activity
-	await prisma.activities.create({
-		data: {
-		  member_id: Number(member.id),
-		  recepient_type: 'ADMIN',
-		  type: 'MEMBER_UPDATED',
-		  title: 'Member Information Updated',
-		  description: `Admin updated ${member?.fullname}'s information.`
-		}
+	await prisma.$transaction(async (tx) => { 
+		await tx.members.update({
+			where: { id },
+			data,
+		});
+	
+		// create recent activity
+		await tx.activities.create({
+			data: {
+			  member_id: Number(member.id),
+			  recepient_type: 'ADMIN',
+			  type: 'MEMBER_UPDATED',
+			  title: 'Member Information Updated',
+			  description: `Admin updated ${member?.fullname}'s information.`
+			}
+		});
 	});
 	
 	return {
@@ -147,7 +150,7 @@ export const updateMemberStatus = async (id: number, data: {
 		
 	if (!member) throw new Error("Member not found");
 	
-	const res = await prisma.members.update({
+	await prisma.members.update({
 		where: { id },
 		data: {
 			status: data.status,

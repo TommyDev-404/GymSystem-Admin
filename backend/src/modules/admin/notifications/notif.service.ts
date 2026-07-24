@@ -23,7 +23,6 @@ export const createPaymentNotifForMemberService = async (data: CreatePaymentNoti
 };
 
 export async function getAllNotificationsService(data: { type?: any }) {
-
   const activities = await prisma.notifications.findMany({
     where: {
       recepient_type: "ADMIN",
@@ -88,7 +87,7 @@ export async function getNotificationCountService() {
 }
 
 export async function markNotificationAsReadService(id: number) {
-  const notification = await prisma.notifications.update({
+  await prisma.notifications.update({
     where: {
       id,
     },

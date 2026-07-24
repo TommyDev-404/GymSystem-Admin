@@ -45,10 +45,12 @@ export function NotificationsList({
           <Loader />
         </div>
       ) : notifications.length === 0 ? (
-        <EmptyState
-          title="No notifications"
-          message="No notifications found in this category."
-        />
+        <div className="flex h-full min-h-[400px] items-center justify-center">
+          <EmptyState
+            title="No notifications"
+            message="No notifications found in this category."
+          />
+        </div>
       ) : (
         notifications.map((n) => {
           const cfg = typeConfig[n.type];

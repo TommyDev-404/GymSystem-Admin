@@ -21,17 +21,22 @@ import { ConfirmationDialog } from "@/components/shared/ConfirmationDialog";
 import { useDeletePlan, usePlans, useUpdatePlan } from "../hook/usePlan";
 import type { Plan, UpdatePlanDTO } from "../types/plans.types";
 import { Loader } from "@/components/shared/Loader";
+import { useSearchParams } from "react-router-dom";
 
 type FormValues = {
   plans: Plan[];
 };
 
 export function PricingSection() {
+  const [searchParams] = useSearchParams();
+
+  const urlAction = searchParams.get("action");
+
   const { data: plansData = [], isLoading } = usePlans();
   const { mutate: deletePlan, isPending: deleting } = useDeletePlan();
   const { mutate: updatePlan, isPending: updating } = useUpdatePlan();
 
-  const [open, setOpen] = useState<"Add" | "Delete" | null>(null);
+  const [open, setOpen] = useState<"Add" | "Delete" | null>(urlAction === 'add' ? "Add" : null);
   const [selectedPlan, setSelectedPlan] = useState<{ id: number, name: string } | null>(null);
 
   const {

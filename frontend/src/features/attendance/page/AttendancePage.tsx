@@ -9,16 +9,22 @@ import { AttendanceFilter } from "../components/AttendanceFilter";
 import type { Filters } from "../types/AttendanceTypes";
 import { useSocket } from "@/context/SocketContext";
 import { useQueryClient } from "@tanstack/react-query";
+import { useSearchParams } from "react-router-dom";
 
 export function AttendancePage() {
   const socket = useSocket();
   const queryClient = useQueryClient();
+  
+	const [searchParams] = useSearchParams();
+	
+	const urlFilter = searchParams.get("filter");
+	const urlAction = searchParams.get("action");
 
-  const [qrOpen, setQrOpen] = useState(false);
+  const [qrOpen, setQrOpen] = useState(urlAction === "generate" ? true : false);
   const [filters, setFilters] = useState<Filters>({
     year: new Date().getFullYear(),
     month: new Date().getMonth() + 1,
-    day: new Date().getDate(),
+    day: urlFilter !== "history" ? new Date().getDate() : undefined,
   });
 
   const { data, isLoading: qrCodeLoading } = useTodayQr();

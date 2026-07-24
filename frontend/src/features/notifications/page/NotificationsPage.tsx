@@ -12,7 +12,6 @@ export function NotificationsPage() {
   const { data: notificationsData = [], isLoading } = useGetAdminNotifications({ type: filter });
   const { data: notifCount = {} as NotificationCount} = useGetNotificationCount();
 
-   console.log(notifCount);
   const unreadCount = notifCount?.unreadCount ?? 0;
 
    return (

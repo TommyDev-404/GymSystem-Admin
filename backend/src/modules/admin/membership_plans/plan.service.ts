@@ -15,9 +15,7 @@ export const createPlanService = async (data: CreatePlanDTO) => {
   });
 };
 
-export const updatePlansService = async (
-  plans: UpdatePlanDTO[]
-) => {
+export const updatePlansService = async (plans: UpdatePlanDTO[]) => {
   return await prisma.$transaction(
     plans.map((plan) =>
       prisma.membership_plans.update({
