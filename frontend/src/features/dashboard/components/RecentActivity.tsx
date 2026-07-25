@@ -13,7 +13,6 @@ interface RecentActivityProps {
   data: ActivityItem[];
 }
 
-
 export function RecentActivity({ data }: RecentActivityProps) {
   return (
     <Card>
@@ -23,7 +22,7 @@ export function RecentActivity({ data }: RecentActivityProps) {
 
       <CardContent className="space-y-3">
 
-        {data.length === 0 ? (
+        {data.length === 1 ? (
           <div className="flex flex-col items-center justify-center py-8 text-center">
             <Clock
               size={32}

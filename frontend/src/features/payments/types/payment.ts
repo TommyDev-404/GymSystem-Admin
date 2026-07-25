@@ -25,4 +25,5 @@ export type PaymentFilters = {
 export type UnpaidMember = {
   id: number;
   name: string;
+  amount: number;
 };

@@ -17,7 +17,6 @@ import { useGenderDistribution, useGetDashboardSummaryData, useGetMemberStatus, 
 import type { SummaryData } from "../types/DashboardTypes";
 import { PageLoader } from "@/components/shared/PageLoader";
 
-
 export function DashboardPage() {
   const { data: summaryData = {} as SummaryData, isLoading: summaryDataLoading } = useGetDashboardSummaryData();
   const { data: revenueTrend = [], isLoading: revenueTrendLoading } = useGetMonthlyRevenueTrend();
@@ -43,15 +42,57 @@ export function DashboardPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-slate-800 font-bold text-xl">Dashboard</h1>
-          <p className="text-slate-500 text-sm mt-0.5">Monday, June 9, 2026</p>
+          <h1 className="
+            text-slate-800 
+            dark:text-slate-100
+            font-bold 
+            text-xl
+          ">
+            Dashboard
+          </h1>
+
+          <p className="
+            text-slate-500 
+            dark:text-slate-400
+            text-sm 
+            mt-0.5
+          ">
+            Monday, June 9, 2026
+          </p>
         </div>
-        <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-2">
-          <Activity size={15} className="text-emerald-600" />
-          <span className="text-emerald-700 text-sm font-medium">Gym Open</span>
+
+        <div className="
+          flex 
+          items-center 
+          gap-2 
+          bg-emerald-50 
+          dark:bg-emerald-900/30
+          border 
+          border-emerald-200
+          dark:border-emerald-800
+          rounded-xl 
+          px-4 
+          py-2
+        ">
+          <Activity 
+            size={15} 
+            className="
+              text-emerald-600
+              dark:text-emerald-400
+            " 
+          />
+
+          <span className="
+            text-emerald-700
+            dark:text-emerald-300
+            text-sm 
+            font-medium
+          ">
+            Gym Open
+          </span>
         </div>
       </div>
-
+      
       {/* Stats */}
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
         <StatCard

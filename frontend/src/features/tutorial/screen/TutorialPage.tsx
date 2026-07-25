@@ -1,7 +1,5 @@
 import { useMemo, useState } from "react";
-import { TutorialHeader } from "@/features/tutorial/components/TutorialHeader";
 import { TutorialFilters } from "@/features/tutorial/components/TutorialFilter";
-import { DeleteTutorialDialog } from "@/features/tutorial/components/DeleteTutorialDialog";
 
 import { TutorialModal } from "@/features/tutorial/components/TutorialModal";
 import { TutorialCard } from "@/features/tutorial/components/TutorialCard";
@@ -11,6 +9,9 @@ import { toast } from "sonner";
 import { NoTutorialFound } from "../components/NoTutorialFound";
 import { debounce } from "@/lib/debounce";
 import { Loader } from "@/components/shared/Loader";
+import { Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ConfirmationDialog } from "@/components/shared/ConfirmationDialog";
 
 const LEVELS = ["Beginner", "Intermediate", "Advanced"] as const;
 const CATEGORIES = [
@@ -25,7 +26,7 @@ const CATEGORIES = [
 ];
 
 export function TutorialsPage() {
-  const { mutate: deleteTutorial } = useRemoveTutorial();
+  const { mutate: deleteTutorial, isPending } = useRemoveTutorial();
   
 	const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
@@ -85,14 +86,46 @@ export function TutorialsPage() {
   return (
     <div className="space-y-5">
       {/* HEADER */}
-      <TutorialHeader
-        total={filtered.length}
-        shown={filtered.length}
-        onAdd={() => {
-          setEditTarget(null);
-          setModalOpen(true);
-        }}
-      />
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="
+            text-slate-800
+            dark:text-slate-100
+            font-bold
+            text-xl
+          ">
+            Tutorials
+          </h1>
+
+          <p className="
+            text-slate-500
+            dark:text-slate-400
+            text-sm
+            mt-0.5
+          ">
+            Manage members workout tutorials
+          </p>
+        </div>
+
+        <Button
+          className="
+            bg-emerald-500
+            dark:bg-emerald-600
+            py-5
+            px-3
+            hover:bg-emerald-600
+            dark:hover:bg-emerald-700
+            text-white
+          "
+          onClick={() => {
+            setEditTarget(null);
+            setModalOpen(true);
+          }}
+        >
+          <Plus size={14} />
+          Add Tutorial
+        </Button>
+      </div>
 
       {/* FILTERS */}
       <TutorialFilters
@@ -142,11 +175,12 @@ export function TutorialsPage() {
         />
       )}
 
-      {/* DELETE DIALOG */}
-      <DeleteTutorialDialog
+      <ConfirmationDialog
         open={!!deleteTarget}
         name={deleteTarget?.name}
         onClose={() => setDeleteTarget(null)}
+        type="Tutorial"
+        isPending={isPending}
         onConfirm={() => handleDelete(deleteTarget!.id)}
       />
     </div>

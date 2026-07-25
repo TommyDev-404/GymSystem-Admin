@@ -1,7 +1,19 @@
-import { Dumbbell, Tag, Edit2, Trash2 } from "lucide-react";
+import {
+  Dumbbell,
+  Tag,
+  Edit2,
+  Trash2,
+} from "lucide-react";
+
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+
 import type { Workout } from "../types/TutorialType";
 import { getYoutubeVideoId, ytThumb } from "@/utils/ytParser";
-import { catColors, levelColors } from "../constants/TutorialConstants";
+import {
+  catColors,
+  levelColors,
+} from "../constants/TutorialConstants";
 
 interface Props {
   workout: Workout;
@@ -9,97 +21,198 @@ interface Props {
   onDelete: () => void;
 }
 
-export function TutorialCard({ workout, onEdit, onDelete }: Props) {
+export function TutorialCard({
+  workout,
+  onEdit,
+  onDelete,
+}: Props) {
   const videoId = getYoutubeVideoId(workout.video_url);
   const thumb = ytThumb(videoId!);
-  
+
   return (
-    <div className="bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-md transition-shadow group">
+    <Card
+      className="
+        overflow-hidden
+        rounded-2xl
+        border-stone-200
+        dark:border-stone-700
+        bg-white
+        dark:bg-stone-900
+        shadow-sm
+        hover:shadow-md
+        transition-shadow
+        group
+      "
+    >
+
       {/* THUMBNAIL */}
-      <div className="relative h-44 bg-slate-100 overflow-hidden">
+      <div className="relative h-44 overflow-hidden bg-slate-100 dark:bg-stone-800">
         {thumb ? (
           <img
             src={thumb}
             alt={workout.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            className="
+              w-full
+              h-full
+              object-cover
+              group-hover:scale-105
+              transition-transform
+              duration-500
+            "
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <Dumbbell size={36} className="text-slate-300" />
+          <div className="flex h-full items-center justify-center">
+            <Dumbbell
+              size={36}
+              className="text-slate-300 dark:text-slate-600"
+            />
           </div>
         )}
 
-        {/* LEVEL BADGE */}
-        <div className="absolute top-2.5 left-2.5">
+        {/* LEVEL */}
+        <div className="absolute top-3 left-3">
           <span
-            className={`px-2.5 py-1 rounded-lg text-xs font-medium border bg-white/90 backdrop-blur-sm ${
-              levelColors[workout.level]
-            }`}
+            className={`
+              px-2.5
+              py-1
+              rounded-lg
+              text-xs
+              font-medium
+              border
+              bg-white/90
+              dark:bg-stone-900/90
+              backdrop-blur-sm
+              ${levelColors[workout.level]}
+            `}
           >
             {workout.level}
           </span>
         </div>
 
         {/* ACTIONS */}
-        <div className="absolute top-2.5 right-2.5 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button
+        <div className="
+          absolute
+          top-3
+          right-3
+          flex
+          gap-1
+          opacity-0
+          group-hover:opacity-100
+          transition-opacity
+        ">
+          <Button
+            size="icon"
+            variant="secondary"
             onClick={onEdit}
-            className="p-1.5 rounded-lg bg-white shadow-md text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+            className="h-8 w-8 rounded-lg"
           >
-            <Edit2 size={13} />
-          </button>
+            <Edit2 size={14} />
+          </Button>
 
-          <button
+          <Button
+            size="icon"
+            variant="secondary"
             onClick={onDelete}
-            className="p-1.5 rounded-lg bg-white shadow-md text-slate-500 hover:text-red-500 hover:bg-red-50 transition-colors"
+            className="
+              h-8
+              w-8
+              rounded-lg
+              hover:text-red-500
+            "
           >
-            <Trash2 size={13} />
-          </button>
+            <Trash2 size={14} />
+          </Button>
         </div>
       </div>
 
       {/* BODY */}
-      <div className="p-4 space-y-2.5">
+      <div className="space-y-3 p-4">
+
         <div className="flex items-start justify-between gap-2">
-          <h3 className="text-slate-800 font-semibold text-sm leading-snug">
+          <h3 className="
+            text-sm
+            font-semibold
+            leading-snug
+            text-slate-800
+            dark:text-slate-100
+          ">
             {workout.name}
           </h3>
 
           <span
-            className={`shrink-0 px-2 py-0.5 rounded-lg text-xs font-medium ${
-              catColors[workout.category] ??
-              "bg-slate-100 text-slate-600"
-            }`}
+            className={`
+              shrink-0
+              rounded-lg
+              px-2
+              py-0.5
+              text-xs
+              font-medium
+              ${catColors[workout.category] ??
+                "bg-slate-100 text-slate-600"}
+            `}
           >
             {workout.category}
           </span>
         </div>
 
         {/* EQUIPMENT */}
-        <div className="flex items-center gap-1.5 text-slate-500 text-xs">
-          <Dumbbell size={11} className="text-slate-400" />
-          {workout.equipment.map((e, index) => (
-              <span key={index}>{index < workout.equipment.length - 1 ? `${e},` : `${e}`}</span>
-          ))}
+        <div className="
+          flex
+          items-center
+          gap-2
+          text-xs
+          text-slate-500
+          dark:text-slate-400
+        ">
+          <Dumbbell size={12} />
+
+          <span>
+            {workout.equipment.join(", ")}
+          </span>
         </div>
 
         {/* MUSCLES */}
         {workout.muscles_targeted.length > 0 && (
-          <div className="flex items-start gap-1.5">
-            <Tag size={11} className="text-slate-400 mt-0.5" />
+          <div className="flex items-start gap-2">
+            <Tag
+              size={12}
+              className="mt-0.5 text-slate-400"
+            />
 
             <div className="flex flex-wrap gap-1">
-              {workout.muscles_targeted.slice(0, 4).map((m) => (
-                <span
-                  key={m}
-                  className="px-1.5 py-0.5 bg-slate-100 text-slate-500 text-xs rounded-md"
-                >
-                  {m}
-                </span>
-              ))}
+              {workout.muscles_targeted
+                .slice(0, 4)
+                .map((m) => (
+                  <span
+                    key={m}
+                    className="
+                      rounded-md
+                      bg-slate-100
+                      dark:bg-stone-800
+                      px-2
+                      py-0.5
+                      text-xs
+                      text-slate-600
+                      dark:text-slate-300
+                    "
+                  >
+                    {m}
+                  </span>
+                ))}
 
               {workout.muscles_targeted.length > 4 && (
-                <span className="px-1.5 py-0.5 bg-slate-100 text-slate-500 text-xs rounded-md">
+                <span
+                  className="
+                    rounded-md
+                    bg-slate-100
+                    dark:bg-stone-800
+                    px-2
+                    py-0.5
+                    text-xs
+                    text-slate-600
+                    dark:text-slate-300
+                  "
+                >
                   +{workout.muscles_targeted.length - 4}
                 </span>
               )}
@@ -108,28 +221,51 @@ export function TutorialCard({ workout, onEdit, onDelete }: Props) {
         )}
 
         {/* FOOTER */}
-        <div className="flex items-center justify-between pt-1 border-t border-slate-50">
-          <span className="text-slate-400 text-xs">
-            {workout.created_at && new Date(workout.created_at).toLocaleDateString()}
+        <div className="
+          flex
+          items-center
+          justify-between
+          border-t
+          border-slate-100
+          dark:border-stone-800
+          pt-3
+        ">
+          <span className="
+            text-xs
+            text-slate-400
+            dark:text-slate-500
+          ">
+            {workout.created_at &&
+              new Date(workout.created_at).toLocaleDateString()}
           </span>
 
-          <div className="flex gap-2">
-            <button
+          <div className="flex gap-1">
+            <Button
+              size="icon"
+              variant="ghost"
               onClick={onEdit}
-              className="p-1.5 rounded-lg hover:bg-indigo-50 text-slate-400 hover:text-indigo-600 transition-colors"
+              className="h-8 w-8"
             >
-              <Edit2 size={13} />
-            </button>
+              <Edit2 size={14} />
+            </Button>
 
-            <button
+            <Button
+              size="icon"
+              variant="ghost"
               onClick={onDelete}
-              className="p-1.5 rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors"
+              className="
+                h-8
+                w-8
+                hover:text-red-500
+              "
             >
-              <Trash2 size={13} />
-            </button>
+              <Trash2 size={14} />
+            </Button>
           </div>
         </div>
+
       </div>
-    </div>
+
+    </Card>
   );
 }

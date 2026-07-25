@@ -4,21 +4,61 @@ interface EmptyStateProps {
   title?: string;
   message?: string;
 }
+
 export function EmptyState({
   title = "No notifications",
   message = "There are no notifications available yet.",
 }: EmptyStateProps) {
   return (
-    <div className="flex flex-col items-center justify-center text-center">
-      <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
-        <BellOff className="w-8 h-8 text-slate-400" />
+    <div className="flex min-h-[300px] flex-col items-center justify-center px-6 text-center">
+      <div
+        className="
+          flex
+          h-20
+          w-20
+          items-center
+          justify-center
+          rounded-full
+          border
+          border-slate-200
+          dark:border-stone-700
+          bg-slate-50
+          dark:bg-stone-800
+          shadow-sm
+        "
+      >
+        <BellOff
+          className="
+            h-9
+            w-9
+            text-slate-400
+            dark:text-slate-500
+          "
+        />
       </div>
 
-      <h3 className="text-slate-700 font-semibold text-base">
+      <h3
+        className="
+          mt-5
+          text-lg
+          font-semibold
+          text-slate-800
+          dark:text-slate-100
+        "
+      >
         {title}
       </h3>
 
-      <p className="text-slate-400 text-sm mt-1 max-w-sm">
+      <p
+        className="
+          mt-2
+          max-w-sm
+          text-sm
+          leading-6
+          text-slate-500
+          dark:text-slate-400
+        "
+      >
         {message}
       </p>
     </div>

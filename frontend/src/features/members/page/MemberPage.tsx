@@ -41,14 +41,35 @@ export function MembersPage() {
 			{/* HEADER */}
 			<div className="flex items-center justify-between">
 				<div>
-					<h1 className="text-slate-800 font-bold text-xl">Members</h1>
-					<p className="text-slate-500 text-sm mt-0.5">
+					<h1 className="
+						text-slate-800
+						dark:text-slate-100
+						font-bold
+						text-xl
+					">
+						Members
+					</h1>
+
+					<p className="
+						text-slate-500
+						dark:text-slate-400
+						text-sm
+						mt-0.5
+					">
 						Manage members registration
 					</p>
 				</div>
 
 				<Button
-					className="bg-emerald-500 py-5 px-3 hover:bg-emerald-600"
+					className="
+						bg-emerald-500
+						dark:bg-emerald-600
+						py-5
+						px-3
+						hover:bg-emerald-600
+						dark:hover:bg-emerald-700
+						text-white
+					"
 					onClick={() => setOpen(true)}
 				>
 					<Plus size={14} />

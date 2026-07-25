@@ -21,7 +21,7 @@ export function PaymentsPage() {
   
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
-  const [filterStatus, setFilterStatus] = useState<FilterType>(urlFilter as FilterType || "All");
+  const [filterStatus, setFilterStatus] = useState<FilterType>(urlFilter as FilterType || "Paid");
   const [openAddModal, setOpenAddModal] = useState(urlAction === 'add' ? true : false);
 
   const debounceSearch = useMemo(
@@ -37,7 +37,6 @@ export function PaymentsPage() {
     status: filterStatus,
 	}), [search, filterStatus]);
 
-  console.log(params);
   const { data: paymentsData = [], isLoading: loadingPayments } = usePayments(params);
   const { data: summaryData = [], isLoading: loadingSummaryData } = usePaymentSummaryData();
   const { data: unpaidMembers = [], isLoading: unpaidMembersLoading } = useUnpaidMembers();
@@ -49,17 +48,38 @@ export function PaymentsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold">
+          <h1 className="
+            text-slate-800
+            dark:text-slate-100
+            font-bold
+            text-xl
+          ">
             Payments
           </h1>
 
-          <p className="text-slate-500 text-sm">
+          <p className="
+            text-slate-500
+            dark:text-slate-400
+            text-sm
+            mt-0.5
+          ">
             Manage billing and payment statuses
           </p>
         </div>
 
-        <Button className={'bg-emerald-500 py-5 px-3 hover:bg-emerald-600'} onClick={() => setOpenAddModal(true)}>
-          <Plus size={10} />
+        <Button
+          className="
+            bg-emerald-500
+            dark:bg-emerald-600
+            py-5
+            px-3
+            hover:bg-emerald-600
+            dark:hover:bg-emerald-700
+            text-white
+          "
+          onClick={() => setOpenAddModal(true)}
+        >
+          <Plus size={14} />
           Add Payment
         </Button>
       </div>

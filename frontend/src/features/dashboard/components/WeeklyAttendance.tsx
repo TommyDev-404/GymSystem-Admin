@@ -38,7 +38,13 @@ export function WeeklyAttendance({ data }: WeeklyAttendanceProps) {
               allowDecimals={false}
             />
 
-            <Tooltip />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: "var(--tooltip-bg)",
+                border: "1px solid var(--tooltip-border)",
+                borderRadius: "10px",
+              }}
+            />
 
             <Bar
               dataKey="presentMembers"

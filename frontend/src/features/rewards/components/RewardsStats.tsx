@@ -54,7 +54,7 @@ export function RewardsStats({ summaryData } : Props) {
               <s.icon size={18} className="text-white" />
             </div>
 
-            <p className="text-2xl font-semibold text-slate-800">
+            <p className="text-2xl font-semibold dark:text-white text-slate-800">
               {s.value}
             </p>
 

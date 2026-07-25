@@ -39,7 +39,14 @@ export function MembershipStatus({ data }: MembershipStatusProps) {
               ))}
             </Pie>
 
-            <Tooltip />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: "var(--tooltip-bg)",
+                border: "1px solid var(--tooltip-border)",
+                borderRadius: "10px",
+              }}
+            />
+            
           </PieChart>
         </ResponsiveContainer>
 

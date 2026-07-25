@@ -170,18 +170,19 @@ export const getUnpaidMembersService = async () => {
       },
     },
     select: {
-      member_id: true,
       members: {
         select: {
           id: true,
           fullname: true,
         },
       },
+      amount_due: true
     },
   });
 
   return data.map((b: any) => ({
     id: b.members.id,
     name: b.members.fullname,
+    amount: b.amount_due
   }));
 };

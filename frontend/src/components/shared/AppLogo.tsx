@@ -1,6 +1,6 @@
 import { Dumbbell } from "lucide-react";
 
-export function AppLogo({ collapsed = false, color = "text-white" }: { collapsed?: boolean, color?: string }) {
+export function AppLogo({ collapsed = false}: { collapsed?: boolean}) {
   return (
     <div className="flex items-center gap-3">
       {/* Icon */}
@@ -14,7 +14,7 @@ export function AppLogo({ collapsed = false, color = "text-white" }: { collapsed
         ${collapsed ? "opacity-0 -translate-x-2" : "opacity-100 translate-x-0"}
         `}
       >
-        <p className={`${color} font-semibold leading-none`}>JFitness Gym</p>
+        <p className={`font-semibold leading-none text-stone-700 dark:text-white`}>JFitness Gym</p>
         <p className="text-slate-400 text-xs mt-0.5">Admin Portal</p>
       </div>
     </div>

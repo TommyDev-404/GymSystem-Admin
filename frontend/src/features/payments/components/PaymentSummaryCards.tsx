@@ -71,7 +71,7 @@ export function PaymentSummaryCards({
             </div>
 
             {/* Amount */}
-            <p className="text-2xl font-semibold text-slate-800">
+            <p className="text-2xl font-semibold text-slate-800 dark:text-white">
               {card.value}
             </p>
 

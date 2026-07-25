@@ -19,7 +19,7 @@ import {
    onConfirm: () => void;
  };
  
- export function ConfirmModal({
+ export function LogoutConfirmationModal({
    open,
    title = "Are you sure?",
    description = "This action cannot be undone.",

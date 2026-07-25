@@ -36,13 +36,28 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
 
   return (
     <aside
-      className={`flex flex-col h-screen bg-[#1e293b] text-slate-200
+      className={`flex flex-col h-screen 
+      bg-white 
+      dark:bg-stone-900
+      text-slate-700
+      dark:text-slate-200
+      border-r
+      border-slate-200
+      dark:border-stone-700
       transition-all duration-300 ease-in-out
       ${collapsed ? "w-16" : "w-60"}`}
     >
       {/* ================= LOGO ================= */}
-      <div className="flex items-center h-18 px-3 border-b border-slate-700 relative">
-        
+      <div className="
+        flex 
+        items-center 
+        h-18 
+        px-3 
+        border-b 
+        border-slate-200
+        dark:border-stone-700
+        relative
+      ">
         <div className="flex items-center gap-3 w-full h-full">
           <AppLogo collapsed={collapsed} />
         </div>
@@ -50,11 +65,27 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
         {/* Toggle */}
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="absolute top-1/2 -translate-y-1/2 -right-3 w-6 h-6 bg-emerald-500 border border-white rounded-full flex items-center justify-center shadow-md"
+          className="
+            absolute 
+            top-1/2 
+            -translate-y-1/2 
+            -right-3 
+            w-6 
+            h-6 
+            bg-emerald-500 
+            border 
+            border-white
+            dark:border-stone-900
+            rounded-full 
+            flex 
+            items-center 
+            justify-center 
+            shadow-md
+          "  
         >
           <ChevronRight
             size={14}
-            className={`transition-transform duration-300 ${
+            className={`transition-transform duration-300 text-white ${
               collapsed ? "" : "rotate-180"
             }`}
           />
@@ -69,22 +100,32 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
               to={path}
               onClick={() => onNavigate(id)}
               className={({ isActive }) =>
-                `w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-opacity duration-200 ${
+                `w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 ${
                   isActive
-                    ? "bg-emerald-500 text-white font-medium"
-                    : "text-slate-400 hover:bg-slate-700 hover:text-slate-100"
+                    ? "bg-emerald-500 text-white font-medium shadow-sm"
+                    : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-stone-800 hover:text-slate-900 dark:hover:text-slate-100"
                 }`
               }
             >
-              <Icon size={18} className="shrink-0" />
+              <Icon 
+                size={18} 
+                className="shrink-0"
+              />
 
               {/* LABEL with smooth fade + collapse */}
               <span
-                className={`whitespace-nowrap transition-all duration-400 ease-in-out will-change-transform
-                ${collapsed
-                  ? "opacity-0 -translate-x-2"
-                  : "opacity-100 translate-x-0"
-                }`}
+                className={`
+                  whitespace-nowrap
+                  transition-all
+                  duration-300
+                  ease-in-out
+                  will-change-transform
+                  ${
+                    collapsed
+                      ? "opacity-0 -translate-x-2"
+                      : "opacity-100 translate-x-0"
+                  }
+                `}
               >
                 {label}
               </span>
@@ -115,7 +156,12 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
       </nav>
 
       {/* ================= FOOTER ================= */}
-      <div className="border-t border-slate-700 p-3">
+      <div className="
+        border-t 
+        border-slate-200
+        dark:border-stone-700
+        p-3
+      ">
 
         {/* Expanded text */}
         <div
@@ -123,10 +169,18 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
           ${collapsed ? "opacity-0 -translate-x-2" : "opacity-100 translate-x-0"}
           `}
         >
-          <div className="text-xs text-slate-400">
+          <div className="
+            text-xs 
+            text-slate-500
+            dark:text-slate-400
+          ">
             Powered by JFitness Gym
           </div>
-          <div className="text-[10px] text-slate-600">
+          <div className="
+            text-[10px]
+            text-slate-400
+            dark:text-slate-500
+          ">
             All systems operational
           </div>
         </div>

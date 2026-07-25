@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ImageIcon, Loader2, Plus, X } from "lucide-react";
+import { ImageIcon, Plus, X } from "lucide-react";
 
 import { useCreateTutorial, useUpdateTutorial } from "../hook/useTutorial";
 
@@ -23,13 +23,13 @@ import type {
 import { toast } from "sonner";
 import { parseYouTubeId, ytThumb } from "@/utils/ytParser";
 import { CATEGORIES, EQUIPMENT_OPTIONS, LEVELS, MUSCLES_TARGETED } from "../constants/TutorialConstants";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface ModalType {
 	open:boolean;
 	initial?:Workout|null;
 	onClose:()=>void;
 }
-
 
 export function TutorialModal({
 	open,
@@ -316,399 +316,830 @@ export function TutorialModal({
 	
 	return (
 		<Dialog open={open} onOpenChange={onClose}>
-			<DialogContent className="p-0 sm:max-w-xl h-[70vh] overflow-hidden rounded-2xl">
-	
-				<DialogHeader className="px-6 py-4 border-b">
-					<DialogTitle>
-						{initial ? "Update Workout" : "Add Workout"}
+			<DialogContent
+				className="
+					p-0
+					sm:max-w-xl
+					h-[70vh]
+					overflow-hidden
+					rounded-2xl
+					bg-white
+					dark:bg-stone-900
+					border-stone-200
+					dark:border-stone-700
+				"
+			>
+				<DialogHeader
+					className="
+					px-6
+					py-4
+					border-b
+					border-stone-200
+					dark:border-stone-700
+					"
+				>
+					<DialogTitle
+					className="
+						text-xl
+						font-semibold
+						text-slate-800
+						dark:text-slate-100
+					"
+					>
+					{initial ? "Update Tutorial" : "Add Tutorial"}
 					</DialogTitle>
-	
-					<p className="text-xs text-slate-400">
+
+					<p className="
+					text-xs
+					text-slate-400
+					dark:text-slate-500
+					">
 						Fill in workout information
 					</p>
 				</DialogHeader>
-	
+
 				<ScrollArea className="flex-1 overflow-y-auto">
 					<form
 						onSubmit={handleSubmit(submit)}
 						className="px-6 py-5 space-y-6"
 					>
-						{/* BASIC INFO */}
-						<section className="space-y-3">
-							<p className="text-sm font-medium">Basic Info</p>
-	
-							<Input
+						{/* BASIC INFORMATION */}
+						<section className="space-y-4">
+							<p className="
+								text-xs
+								font-semibold
+								uppercase
+								tracking-wide
+								text-slate-400
+								dark:text-slate-500
+							">
+								Basic Information
+							</p>
+
+							<div className="space-y-1.5">
+								<label className="
+								text-sm
+								font-medium
+								text-slate-700
+								dark:text-slate-200
+								">
+								Workout Name
+								</label>
+
+								<Input
 								placeholder="Workout name..."
 								{...register("name")}
-							/>
-	
+								className="
+									h-11
+									bg-white
+									dark:bg-stone-800
+									border-slate-200
+									dark:border-stone-700
+									text-slate-700
+									dark:text-slate-200
+								"
+								/>
+							</div>
+
 							<div className="grid grid-cols-2 gap-3">
-								<div className="space-y-2">
-									<select
-										className="w-full border rounded-xl px-3 py-2.5 text-sm"
-										value={customCategory ? "Custom": category}
-										onChange={(e) => {
-											if (e.target.value === "Custom") {
-												setCustomCategory(true);
 
-												setValue("category", "", {
-													shouldDirty:true
-												});
-											} else {
-												setCustomCategory(false);
+								{/* CATEGORY */}
+								<div className="space-y-1.5">
+								<label className="
+									text-sm
+									font-medium
+									text-slate-700
+									dark:text-slate-200
+								">
+									Category
+								</label>
 
-												setValue("category", e.target.value, {
-													shouldDirty:true
-												});
-											}
-										}}
-									>
-										<option disabled hidden value="">Category</option>
+								<Select
+									value={customCategory ? "Custom" : category}
+									onValueChange={(value) => {
+										if (value === "Custom") {
+										setCustomCategory(true);
 
-										{CATEGORIES.map(x => (
-											<option key={x} value={x}> {x}</option>
-										))}
-
-										<option value="Custom">+ Custom</option>
-									</select>
-	
-									{customCategory && (
-										<Input
-											placeholder="Custom category..."
-											value={category}
-											onChange={(e) =>
-												setValue("category", e.target.value,{
-													shouldDirty: true
-												})
-											}
-										/>
-									)}
-								</div>
-								
-								<select
-									className="w-full border rounded-xl px-3 py-2.5 text-sm h-fit"
-									value={watch("level")}
-									onChange={(e) => {
-										setValue("level", e.target.value as  "Beginner" | "Intermediate" | "Advanced" | "", {
+										setValue("category", "", {
 											shouldDirty: true
 										});
+										} else {
+										setCustomCategory(false);
+
+										setValue("category", value, {
+											shouldDirty: true
+										});
+										}
 									}}
 								>
-									<option disabled hidden value="">
-										Level
-									</option>
+									<SelectTrigger
+										className="
+										h-11
+										bg-white
+										dark:bg-stone-800
+										border-slate-200
+										dark:border-stone-700
+										text-slate-700
+										dark:text-slate-200
+										w-full
+										py-5
+										"
+									>
+										<SelectValue placeholder="Category" />
+									</SelectTrigger>
 
-									{LEVELS.map(x => (
-										<option key={x} value={x}>
+									<SelectContent
+										className="
+										bg-white
+										dark:bg-stone-900
+										border-slate-200
+										dark:border-stone-700
+										"
+									>
+										{CATEGORIES.map((x) => (
+										<SelectItem
+											key={x}
+											value={x}
+										>
 											{x}
-										</option>
-									))}
-								</select>
+										</SelectItem>
+										))}
+
+										<SelectItem value="Custom">
+										+ Custom
+										</SelectItem>
+									</SelectContent>
+								</Select>
+
+								{customCategory && (
+									<Input
+										placeholder="Custom category..."
+										value={category}
+										onChange={(e) =>
+										setValue(
+											"category",
+											e.target.value,
+											{
+												shouldDirty: true
+											}
+										)
+										}
+										className="
+										h-11
+										mt-2
+										bg-white
+										dark:bg-stone-800
+										border-slate-200
+										dark:border-stone-700
+										"
+									/>
+								)}
+								</div>
+
+
+								{/* LEVEL */}
+								<div className="space-y-1.5">
+								<label className="
+									text-sm
+									font-medium
+									text-slate-700
+									dark:text-slate-200
+								">
+									Level
+								</label>
+
+								<Select
+									value={watch("level")}
+									onValueChange={(value) =>
+										setValue(
+										"level",
+										value as
+											| "Beginner"
+											| "Intermediate"
+											| "Advanced"
+											| "",
+										{
+											shouldDirty: true
+										}
+										)
+									}
+								>
+									<SelectTrigger
+										className="
+										h-11
+										bg-white
+										dark:bg-stone-800
+										border-slate-200
+										dark:border-stone-700
+										text-slate-700
+										dark:text-slate-200
+										w-full
+										py-5
+										"
+									>
+										<SelectValue placeholder="Level" />
+									</SelectTrigger>
+
+									<SelectContent
+										className="
+										bg-white
+										dark:bg-stone-900
+										border-slate-200
+										dark:border-stone-700
+										"
+									>
+										{LEVELS.map((x) => (
+										<SelectItem
+											key={x}
+											value={x}
+										>
+											{x}
+										</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
+								</div>
+
 							</div>
 						</section>
-	
-						{/* VIDEO */}
-						<section className="space-y-2">
-							<p className="text-sm font-medium">YouTube Video</p>
-	
+
+						{/* YOUTUBE VIDEO */}
+						<section className="space-y-3">
+							<p className="
+								text-xs
+								font-semibold
+								uppercase
+								tracking-wide
+								text-slate-400
+								dark:text-slate-500
+							">
+								YouTube Video
+							</p>
+
 							<Input
 								placeholder="Video URL..."
 								value={videoInput}
 								onChange={(e) => {
-									setVideoInput(e.target.value);
-	
-									setValue("video_url", e.target.value,{
+								setVideoInput(e.target.value);
+
+								setValue(
+									"video_url",
+									e.target.value,
+									{
 										shouldDirty: true
-									});
+									}
+								);
 								}}
+								className="
+								h-11
+								bg-white
+								dark:bg-stone-800
+								border-slate-200
+								dark:border-stone-700
+								"
 							/>
-	
+
 							{thumb && (
 								<img
-									src={thumb}
-									className="h-32 w-full rounded-xl object-cover border"
+								src={thumb}
+								className="
+									h-32
+									w-full
+									rounded-xl
+									object-cover
+									border
+									border-slate-200
+									dark:border-stone-700
+								"
 								/>
 							)}
 						</section>
-	
+						
 						{/* INSTRUCTIONS */}
-						<section className="space-y-2">
-							<p className="text-sm font-medium">Instructions</p>
-	
+						<section className="space-y-3">
+							<p className="
+								text-xs
+								font-semibold
+								uppercase
+								tracking-wide
+								text-slate-400
+								dark:text-slate-500
+							">
+								Instructions
+							</p>
+
 							<Textarea
 								rows={5}
 								placeholder="Workout instructions..."
 								{...register("instructions")}
+								className="
+								bg-white
+								dark:bg-stone-800
+								border-slate-200
+								dark:border-stone-700
+								text-slate-700
+								dark:text-slate-200
+								h-30
+								"
 							/>
 						</section>
-	
+
 						{/* EQUIPMENT */}
-						<section className="space-y-2">
-							<p className="text-sm font-medium">Equipment</p>
-	
+						<section className="space-y-3">
+							<p className="
+								text-xs
+								font-semibold
+								uppercase
+								tracking-wide
+								text-slate-400
+								dark:text-slate-500
+							">
+								Equipment
+							</p>
+
 							<div className="flex flex-wrap gap-2">
-								{EQUIPMENT_OPTIONS.map(x => (
-									<button
-										key={x}
-										type="button"
-										onClick={() =>
-											toggleArray("equipment", x)
-										}
-										className={`
-											px-3 py-1.5 rounded-full text-xs border
-											${equipment.includes(x)
-												? "bg-amber-500 text-white"
-												: "hover:bg-slate-100"
-											}
-										`}
-									>
-										{x}
-									</button>
-								))}
-	
+
+								{EQUIPMENT_OPTIONS.map((x) => (
 								<button
+									key={x}
 									type="button"
-									onClick={() => setShowEquipment(!showEquipment)}
-									className="px-3 py-1.5 rounded-full text-xs border border-dashed flex items-center gap-1"
+									onClick={() =>
+										toggleArray("equipment", x)
+									}
+									className={`
+										px-3
+										py-1.5
+										rounded-full
+										text-xs
+										border
+										transition
+
+										${
+										equipment.includes(x)
+											? "bg-amber-500 text-white border-amber-500"
+											: `
+												bg-white
+												dark:bg-stone-800
+												text-slate-600
+												dark:text-slate-300
+												border-slate-200
+												dark:border-stone-700
+												hover:bg-slate-100
+												dark:hover:bg-stone-700
+											`
+										}
+									`}
 								>
-									<Plus size={14} />
-									Custom
+									{x}
 								</button>
-	
+								))}
+
+
+								<button
+								type="button"
+								onClick={() => setShowEquipment(!showEquipment)}
+								className="
+									px-3
+									py-1.5
+									rounded-full
+									text-xs
+									border
+									border-dashed
+									flex
+									items-center
+									gap-1
+									text-slate-600
+									dark:text-slate-300
+								"
+								>
+								<Plus size={14} />
+								Custom
+								</button>
+
 							</div>
-	
+
+
 							{showEquipment && (
 								<div className="space-y-3">
-									<div className="flex flex-wrap gap-2">
-										{customEquipments.map(item => (
-											<div
-												key={item}
-												className="flex items-center gap-1 px-3 py-1 rounded-full bg-slate-100 text-xs"
-											>
-												{item}
 
-												<button
-													type="button"
-													onClick={()=>removeCustomEquipment(item)}
-												>
-													<X size={13}/>
-												</button>
-											</div>
-										))}
-									</div>
+								<div className="flex flex-wrap gap-2">
 
-									<div className="flex gap-2">
+									{customEquipments.map((item) => (
+										<div
+										key={item}
+										className="
+											flex
+											items-center
+											gap-1
+											px-3
+											py-1
+											rounded-full
+											bg-slate-100
+											dark:bg-stone-800
+											text-xs
+											text-slate-700
+											dark:text-slate-300
+										"
+										>
+										{item}
+
+										<button
+											type="button"
+											onClick={() =>
+												removeCustomEquipment(item)
+											}
+										>
+											<X size={13} />
+										</button>
+										</div>
+									))}
+
+								</div>
+
+
+								<div className="flex gap-2">
 
 									<Input
 										placeholder="Equipment name..."
 										value={customEquipment}
-										onChange={(e)=>
-											setCustomEquipment(e.target.value)
+										onChange={(e) =>
+										setCustomEquipment(e.target.value)
 										}
+										className="
+										h-10
+										bg-white
+										dark:bg-stone-800
+										border-slate-200
+										dark:border-stone-700
+										"
 									/>
 
 									<Button
 										type="button"
 										size="icon"
-										onClick={()=>addCustom("equipment")}
+										onClick={() =>
+										addCustom("equipment")
+										}
+										className="
+										bg-emerald-500
+										hover:bg-emerald-600
+										"
 									>
-										<Plus size={16}/>
+										<Plus size={16} />
 									</Button>
 
-									</div>
 								</div>
 
-							)}
-						</section>
-	
-						{/* MUSCLES */}
-						<section className="space-y-2">
-							<p className="text-sm font-medium"> Muscles Targeted</p>
-	
-							<div className="flex flex-wrap gap-2">
-								{MUSCLES_TARGETED.map(x => (
-									<button
-										key={x}
-										type="button"
-										onClick={() =>
-											toggleArray("muscles_targeted", x)
-										}
-										className={`
-											px-3 py-1.5 rounded-full text-xs border
-											${muscles.includes(x)
-												? "bg-indigo-500 text-white"
-												: "hover:bg-slate-100"
-											}
-										`}
-									>
-										{x}
-									</button>
-								))}
-	
-								<button
-									type="button"
-									onClick={() => setShowMuscle(!showMuscle)}
-									className="px-3 py-1.5 rounded-full text-xs border border-dashed flex items-center gap-1"
-								>
-									<Plus size={14} />
-									Custom
-								</button>
-	
-							</div>
-	
-							{showMuscle && (
-								<div className="space-y-3">
-									<div className="flex flex-wrap gap-2">
-										{customMuscles.map(item => (
-											<div
-												key={item}
-												className="flex items-center gap-1 px-3 py-1 rounded-full bg-slate-100 text-xs"
-											>	
-												{item}
-
-												<button
-													type="button"
-													onClick={()=>removeCustomMuscle(item)}
-												>
-													<X size={13}/>
-												</button>
-											</div>
-										))}
-									</div>
-
-									<div className="flex gap-2">
-
-										<Input
-											placeholder="Muscle name..."
-											value={customMuscle}
-											onChange={(e)=>
-												setCustomMuscle(e.target.value)
-											}
-										/>
-
-										<Button
-											type="button"
-											size="icon"
-											onClick={()=>addCustom("muscles_targeted")}
-										>
-											<Plus size={16}/>
-										</Button>
-
-									</div>
 								</div>
-
 							)}
+
 						</section>
-	
-						{/* IMAGES */}
-						<section className="space-y-2">
-							<p className="text-sm font-medium">Demonstration Images</p>
-	
+						
+						{/* MUSCLES TARGETED */}
+						<section className="space-y-3">
+							<p className="
+								text-xs
+								font-semibold
+								uppercase
+								tracking-wide
+								text-slate-400
+								dark:text-slate-500
+							">
+								Muscles Targeted
+							</p>
+
 							<div className="flex flex-wrap gap-2">
-								{existingImages.map((src, i) => (
-									<div
-										key={i}
-										className="relative w-20 h-20 rounded-xl overflow-hidden border"
-									>
-										<img
-											src={src}
-											className="w-full h-full object-cover"
-										/>
-	
-										<button
-											type="button"
-											onClick={() =>
-												setExistingImages(
-													prev => prev.filter(
-														(_, index) => index !== i
-													)
-												)
-											}
-											className="absolute top-1 right-1 bg-black/50 text-white rounded-full"
-										>
-											<X size={14} />
-										</button>
-	
-									</div>
-								))}
-	
-								{files.map((file, i) => (
-									<div
-										key={i}
-										className="relative w-20 h-20 rounded-xl overflow-hidden border"
-									>
-										<img
-											src={URL.createObjectURL(file)}
-											className="w-full h-full object-cover"
-										/>
-	
-										<button
-											type="button"
-											onClick={() =>
-												removeFile(i)
-											}
-											className="absolute top-1 right-1 bg-black/50 text-white rounded-full"
-										>
-											<X size={14} />
-										</button>
-	
-									</div>
-								))}
-	
+
+								{MUSCLES_TARGETED.map((x) => (
 								<button
+									key={x}
 									type="button"
 									onClick={() =>
-										fileRef.current?.click()
+										toggleArray("muscles_targeted", x)
 									}
-									className="w-20 h-20 border-2 border-dashed rounded-xl flex flex-col items-center justify-center text-xs"
+									className={`
+										px-3
+										py-1.5
+										rounded-full
+										text-xs
+										border
+										transition
+
+										${
+										muscles.includes(x)
+											? "bg-indigo-500 text-white border-indigo-500"
+											: `
+												bg-white
+												dark:bg-stone-800
+												text-slate-600
+												dark:text-slate-300
+												border-slate-200
+												dark:border-stone-700
+												hover:bg-slate-100
+												dark:hover:bg-stone-700
+											`
+										}
+									`}
 								>
-									<ImageIcon size={16} />
-									Add
+									{x}
+								</button>
+								))}
+
+
+								<button
+								type="button"
+								onClick={() => setShowMuscle(!showMuscle)}
+								className="
+									px-3
+									py-1.5
+									rounded-full
+									text-xs
+									border
+									border-dashed
+									flex
+									items-center
+									gap-1
+									text-slate-600
+									dark:text-slate-300
+								"
+								>
+								<Plus size={14} />
+								Custom
 								</button>
 
-								<input
-									ref={fileRef}
-									type="file"
-									hidden
-									multiple
-									accept="image/*"
-									onChange={(e) =>
-										handleFiles(e.target.files)
-									}
-								/>
 							</div>
+
+
+							{showMuscle && (
+								<div className="space-y-3">
+
+								<div className="flex flex-wrap gap-2">
+
+									{customMuscles.map((item) => (
+										<div
+										key={item}
+										className="
+											flex
+											items-center
+											gap-1
+											px-3
+											py-1
+											rounded-full
+											bg-slate-100
+											dark:bg-stone-800
+											text-xs
+											text-slate-700
+											dark:text-slate-300
+										"
+										>
+										{item}
+
+										<button
+											type="button"
+											onClick={() =>
+												removeCustomMuscle(item)
+											}
+										>
+											<X size={13} />
+										</button>
+										</div>
+									))}
+
+								</div>
+
+
+								<div className="flex gap-2">
+
+									<Input
+										placeholder="Muscle name..."
+										value={customMuscle}
+										onChange={(e) =>
+										setCustomMuscle(e.target.value)
+										}
+										className="
+										h-10
+										bg-white
+										dark:bg-stone-800
+										border-slate-200
+										dark:border-stone-700
+										"
+									/>
+
+									<Button
+										type="button"
+										size="icon"
+										onClick={() =>
+										addCustom("muscles_targeted")
+										}
+										className="
+										bg-emerald-500
+										hover:bg-emerald-600
+										"
+									>
+										<Plus size={16} />
+									</Button>
+
+								</div>
+
+								</div>
+							)}
+
+						</section>
+
+						{/* DEMONSTRATION IMAGES */}
+						<section className="space-y-3">
+							<p className="
+								text-xs
+								font-semibold
+								uppercase
+								tracking-wide
+								text-slate-400
+								dark:text-slate-500
+							">
+								Demonstration Images
+							</p>
+
+
+							<div className="flex flex-wrap gap-2">
+
+								{existingImages.map((src, i) => (
+								<div
+									key={i}
+									className="
+										relative
+										w-20
+										h-20
+										rounded-xl
+										overflow-hidden
+										border
+										border-slate-200
+										dark:border-stone-700
+									"
+								>
+									<img
+										src={src}
+										className="
+										w-full
+										h-full
+										object-cover
+										"
+									/>
+
+									<button
+										type="button"
+										onClick={() =>
+										setExistingImages((prev) =>
+											prev.filter(
+												(_, index) => index !== i
+											)
+										)
+										}
+										className="
+										absolute
+										top-1
+										right-1
+										bg-black/50
+										text-white
+										rounded-full
+										"
+									>
+										<X size={14} />
+									</button>
+
+								</div>
+								))}
+
+
+								{files.map((file, i) => (
+								<div
+									key={i}
+									className="
+										relative
+										w-20
+										h-20
+										rounded-xl
+										overflow-hidden
+										border
+									"
+								>
+									<img
+										src={URL.createObjectURL(file)}
+										className="
+										w-full
+										h-full
+										object-cover
+										"
+									/>
+
+									<button
+										type="button"
+										onClick={() =>
+										removeFile(i)
+										}
+										className="
+										absolute
+										top-1
+										right-1
+										bg-black/50
+										text-white
+										rounded-full
+										"
+									>
+										<X size={14} />
+									</button>
+
+								</div>
+								))}
+
+
+								<button
+								type="button"
+								onClick={() =>
+									fileRef.current?.click()
+								}
+								className="
+									w-20
+									h-20
+									border-2
+									border-dashed
+									rounded-xl
+									flex
+									flex-col
+									items-center
+									justify-center
+									text-xs
+									text-slate-500
+									dark:text-slate-400
+								"
+								>
+								<ImageIcon size={16} />
+								Add
+								</button>
+
+
+								<input
+								ref={fileRef}
+								type="file"
+								hidden
+								multiple
+								accept="image/*"
+								onChange={(e) =>
+									handleFiles(e.target.files)
+								}
+								/>
+
+							</div>
+
 						</section>
 					</form>
 				</ScrollArea>
-	
-				<div className="px-6 py-4 border-t flex gap-3">
+
+				{/* ACTIONS */}
+				<div className="
+					px-6
+					py-4
+					border-t
+					border-stone-200
+					dark:border-stone-700
+					flex
+					gap-3
+				">
+
 					<Button
 						variant="outline"
-						className="flex-1"
+						className="
+							flex-1
+							h-11
+							border-slate-200
+							dark:border-stone-700
+							dark:text-slate-200
+							dark:hover:bg-stone-800
+						"
 						onClick={onClose}
 					>
 						Cancel
 					</Button>
-	
+
 					<Button
-						className="flex-1 bg-emerald-500 hover:bg-emerald-600"
+						className="
+							flex-1
+							h-11
+							bg-emerald-500
+							hover:bg-emerald-600
+							text-white
+						"
 						disabled={isPending}
 						onClick={handleSubmit(submit)}
 					>
-	
-						{isPending && (
-							<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-						)}
-	
-						{isPending
-							? "Saving..."
-							: initial
-								? "Update Workout"
-								: "Save Workout"
-						}
-	
+					{isPending
+						? "Saving..."
+						: initial
+						? "Update"
+						: "Save"
+					}
+
 					</Button>
-	
+
 				</div>
 
 			</DialogContent>

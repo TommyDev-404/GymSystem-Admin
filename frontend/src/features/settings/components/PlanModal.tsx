@@ -1,15 +1,12 @@
 import { useForm, Controller } from "react-hook-form";
-
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-
 import {
   Select,
   SelectContent,
@@ -28,7 +25,7 @@ interface Props {
 
 export function AddPlanModal({
   open,
-  onClose
+  onClose,
 }: Props) {
   const { mutate: createPlan, isPending } = useCreatePlan();
 
@@ -50,11 +47,10 @@ export function AddPlanModal({
     createPlan(data, {
       onSuccess: () => {
         toast.success("Plan created successfully.");
+        reset();
         onClose();
-      }
+      },
     });
-    reset();
-    onClose();
   };
 
   const closeModal = () => {
@@ -64,126 +60,282 @@ export function AddPlanModal({
 
   return (
     <Dialog open={open} onOpenChange={closeModal}>
-      <DialogContent className="sm:max-w-md rounded-2xl">
-        {/* HEADER */}
+      <DialogContent
+        className="
+          sm:max-w-md
+          rounded-2xl
+          bg-white
+          dark:bg-stone-900
+          border-stone-200
+          dark:border-stone-700
+        "
+      >
+
         <DialogHeader>
-          <DialogTitle className="text-lg font-semibold text-slate-800">
+          <DialogTitle
+            className="
+              text-xl
+              font-semibold
+              text-slate-800
+              dark:text-slate-100
+            "
+          >
             Create New Plan
           </DialogTitle>
         </DialogHeader>
 
+
         <form
           onSubmit={handleSubmit(submit)}
-          className="flex flex-col gap-4 mt-2"
+          className="
+            flex
+            flex-col
+            gap-5
+            mt-3
+          "
         >
-          {/* PLAN NAME */}
-          <div className="flex flex-col gap-1">
 
-            <label className="text-sm text-slate-600">
-              Plan Name
-            </label>
+          {/* PLAN INFORMATION */}
+          <div className="space-y-4">
 
-            <Input
-              placeholder="e.g. Premium Plan"
-              {...register("plan_name")}
-            />
+            <p
+              className="
+                text-xs
+                font-semibold
+                uppercase
+                tracking-wide
+                text-slate-400
+                dark:text-slate-500
+              "
+            >
+              Membership Information
+            </p>
 
-          </div>
 
-          {/* PRICE */}
-          <div className="flex flex-col gap-1">
+            {/* PLAN NAME */}
+            <div className="space-y-1.5">
 
-            <label className="text-sm text-slate-600">
-              Price
-            </label>
+              <label
+                className="
+                  text-sm
+                  font-medium
+                  text-slate-700
+                  dark:text-slate-200
+                "
+              >
+                Plan Name
+              </label>
 
-            <Input
-              type="number"
-              placeholder="Enter price"
-              {...register("price", {
-                valueAsNumber: true,
-              })}
-            />
+              <Input
+                placeholder="e.g. Premium Plan"
+                {...register("plan_name")}
+                className="
+                  h-11
+                  bg-white
+                  dark:bg-stone-800
+                  border-slate-200
+                  dark:border-stone-700
+                  text-slate-700
+                  dark:text-slate-200
+                "
+              />
 
-          </div>
+            </div>
 
-          {/* DURATION + TYPE */}
-          <div className="grid grid-cols-2 gap-3">
 
-            {/* DURATION */}
-            <div className="flex flex-col gap-1">
+            {/* PRICE */}
+            <div className="space-y-1.5">
 
-              <label className="text-sm text-slate-600">
-                Duration
+              <label
+                className="
+                  text-sm
+                  font-medium
+                  text-slate-700
+                  dark:text-slate-200
+                "
+              >
+                Price (₱)
               </label>
 
               <Input
                 type="number"
-                placeholder="e.g. 2"
-                {...register("duration", {
+                placeholder="Enter price"
+                {...register("price", {
                   valueAsNumber: true,
                 })}
+                className="
+                  h-11
+                  bg-white
+                  dark:bg-stone-800
+                  border-slate-200
+                  dark:border-stone-700
+                  text-slate-700
+                  dark:text-slate-200
+                "
               />
 
             </div>
 
-            {/* TYPE */}
-            <div className="flex flex-col gap-1">
 
-              <label className="text-sm text-slate-600">
-                Type
-              </label>
+            {/* DURATION */}
+            <div className="grid grid-cols-2 gap-3">
 
-              <Controller
-                name="duration_type"
-                control={control}
-                render={({ field }) => (
-                  <Select
-                    value={field.value}
-                    onValueChange={field.onChange}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select" />
-                    </SelectTrigger>
+              <div className="space-y-1.5">
 
-                    <SelectContent>
-                      <SelectItem value="Day">
-                        Day
-                      </SelectItem>
+                <label
+                  className="
+                    text-sm
+                    font-medium
+                    text-slate-700
+                    dark:text-slate-200
+                  "
+                >
+                  Duration
+                </label>
 
-                      <SelectItem value="Week">
-                        Week
-                      </SelectItem>
+                <Input
+                  type="number"
+                  placeholder="e.g. 2"
+                  {...register("duration", {
+                    valueAsNumber: true,
+                  })}
+                  className="
+                    h-11
+                    bg-white
+                    dark:bg-stone-800
+                    border-slate-200
+                    dark:border-stone-700
+                    text-slate-700
+                    dark:text-slate-200
+                  "
+                />
 
-                      <SelectItem value="Month">
-                        Month
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                )}
-              />
+              </div>
+
+
+              {/* TYPE */}
+              <div className="space-y-1.5">
+
+                <label
+                  className="
+                    text-sm
+                    font-medium
+                    text-slate-700
+                    dark:text-slate-200
+                  "
+                >
+                  Duration Type
+                </label>
+
+
+                <Controller
+                  name="duration_type"
+                  control={control}
+                  render={({ field }) => (
+
+                    <Select
+                      value={field.value}
+                      onValueChange={field.onChange}
+                    >
+
+                      <SelectTrigger
+                        className="
+                          h-11
+                          bg-white
+                          dark:bg-stone-800
+                          border-slate-200
+                          dark:border-stone-700
+                          text-slate-700
+                          dark:text-slate-200
+                          w-full
+                          py-5
+                        "
+                      >
+                        <SelectValue placeholder="Select" />
+                      </SelectTrigger>
+
+
+                      <SelectContent
+                        className="
+                          bg-white
+                          dark:bg-stone-900
+                          border-slate-200
+                          dark:border-stone-700
+                        "
+                      >
+
+                        <SelectItem value="Day">
+                          Day
+                        </SelectItem>
+
+                        <SelectItem value="Week">
+                          Week
+                        </SelectItem>
+
+                        <SelectItem value="Month">
+                          Month
+                        </SelectItem>
+
+                      </SelectContent>
+
+                    </Select>
+
+                  )}
+                />
+
+              </div>
+
             </div>
+
           </div>
 
+
           {/* ACTIONS */}
-          <div className="flex gap-3 mt-6">
+          <div
+            className="
+              flex
+              gap-3
+              mt-3
+            "
+          >
+
             <Button
               type="button"
               variant="outline"
-              className="flex-1"
               onClick={closeModal}
+              className="
+                flex-1
+                h-11
+                border-slate-200
+                dark:border-stone-700
+                dark:text-slate-200
+                dark:hover:bg-stone-800
+              "
             >
               Cancel
             </Button>
 
+
             <Button
               type="submit"
-              className="flex-1 bg-emerald-500 hover:bg-emerald-600"
+              disabled={isPending}
+              className="
+                flex-1
+                h-11
+                bg-emerald-500
+                hover:bg-emerald-600
+                text-white
+              "
             >
-              {isPending ? "Creating..." : "Create"}
+              {isPending
+                ? "Creating..."
+                : "Create"}
             </Button>
+
           </div>
+
         </form>
+
       </DialogContent>
     </Dialog>
   );

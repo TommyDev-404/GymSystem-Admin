@@ -22,6 +22,7 @@ import { useDeletePlan, usePlans, useUpdatePlan } from "../hook/usePlan";
 import type { Plan, UpdatePlanDTO } from "../types/plans.types";
 import { Loader } from "@/components/shared/Loader";
 import { useSearchParams } from "react-router-dom";
+import { Card } from "@/components/ui/card";
 
 type FormValues = {
   plans: Plan[];
@@ -96,135 +97,295 @@ export function PricingSection() {
   };
 
   return (
-    <form
-      onSubmit={handleSubmit(onSubmit)}
-      className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm space-y-6"
+    <Card
+      className="
+        rounded-2xl
+        border-stone-200
+        dark:border-stone-700
+        bg-white
+        dark:bg-stone-900
+        shadow-sm
+      "
     >
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-lg font-semibold text-slate-800">
-            Membership Pricing
-          </h3>
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="space-y-6 p-6"
+      >
 
-          <p className="text-sm text-slate-500">
-            Manage membership plans and pricing.
-          </p>
+        {/* HEADER */}
+        <div className="
+          flex
+          items-center
+          justify-between
+        ">
+          <div>
+            <h3 className="
+              text-lg
+              font-semibold
+              text-slate-800
+              dark:text-slate-100
+            ">
+              Membership Pricing
+            </h3>
+
+            <p className="
+              text-sm
+              text-slate-500
+              dark:text-slate-400
+            ">
+              Manage membership plans and pricing.
+            </p>
+          </div>
+
+
+          <div className="flex items-center gap-2">
+
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleAdd}
+              className="
+                border-slate-200
+                dark:border-stone-700
+                dark:text-slate-200
+              "
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Add Plan
+            </Button>
+
+
+            <Button
+              type="submit"
+              disabled={updating}
+              className="
+                bg-emerald-500
+                hover:bg-emerald-600
+                text-white
+              "
+            >
+              {updating ? (
+                <>
+                  <Loader2 className="
+                    mr-2
+                    h-4
+                    w-4
+                    animate-spin
+                  "/>
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="mr-2 h-4 w-4" />
+                  Save Changes
+                </>
+              )}
+            </Button>
+
+          </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleAdd}
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Add Plan
-          </Button>
 
-          <Button
-            type="submit"
-            className="bg-emerald-500 hover:bg-emerald-600"
-            disabled={updating}
-          >
-            {updating ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              <>
-                <Save className="mr-2 h-4 w-4" />
-                Save Changes
-              </>
-            )}
-          </Button>
-        </div>
-      </div>
 
-      {/* Plans */}
-      <div className="space-y-4">
-        {isLoading ? (
-          <Loader/>
-        ):
-          fields.length > 0 ?
+        {/* PLANS */}
+        <div className="space-y-4">
+
+          {isLoading ? (
+            <Loader />
+          ) : fields.length > 0 ? (
+
             fields.map((field, index) => (
+
               <div
                 key={field.id}
-                className="rounded-xl border border-slate-200 p-5"
+                className="
+                  rounded-xl
+                  border
+                  border-slate-200
+                  dark:border-stone-700
+                  p-5
+                  bg-white
+                  dark:bg-stone-800/50
+                "
               >
-                <div className="mb-5 flex items-center justify-between">
+
+                <div className="
+                  mb-5
+                  flex
+                  items-center
+                  justify-between
+                ">
+
                   <div>
-                    <h4 className="font-semibold text-slate-800">
+
+                    <h4 className="
+                      font-semibold
+                      text-slate-800
+                      dark:text-slate-100
+                    ">
                       {field.plan_name}
                     </h4>
 
-                    <p className="text-sm text-slate-500">
+                    <p className="
+                      text-sm
+                      text-slate-500
+                      dark:text-slate-400
+                    ">
                       Edit membership details
                     </p>
+
                   </div>
+
 
                   <Button
                     type="button"
                     size="icon"
                     variant="ghost"
                     onClick={() => {
-                      setSelectedPlan({ id: field.id, name: field.plan_name });
+                      setSelectedPlan({
+                        id: field.id,
+                        name: field.plan_name
+                      });
+
                       setOpen("Delete");
                     }}
+                    className="
+                      hover:bg-red-50
+                      dark:hover:bg-red-950/30
+                    "
                   >
-                    <Trash2 className="h-4 w-4 text-red-500" />
+                    <Trash2
+                      className="
+                        h-4
+                        w-4
+                        text-red-500
+                      "
+                    />
                   </Button>
+
                 </div>
 
-                <div className="grid grid-cols-3 gap-4">
-                  {/* Price */}
+
+
+                <div className="
+                  grid
+                  grid-cols-3
+                  gap-4
+                ">
+
+                  {/* PRICE */}
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-600">
+
+                    <label className="
+                      text-sm
+                      font-medium
+                      text-slate-700
+                      dark:text-slate-200
+                    ">
                       Price (₱)
                     </label>
 
                     <Input
                       type="number"
-                      {...register(`plans.${index}.price`, {
-                        valueAsNumber: true,
-                      })}
+                      {...register(
+                        `plans.${index}.price`,
+                        {
+                          valueAsNumber:true
+                        }
+                      )}
+                      className="
+                        h-11
+                        bg-white
+                        dark:bg-stone-800
+                        border-slate-200
+                        dark:border-stone-700
+                      "
                     />
+
                   </div>
 
-                  {/* Duration */}
+
+
+                  {/* DURATION */}
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-600">
+
+                    <label className="
+                      text-sm
+                      font-medium
+                      text-slate-700
+                      dark:text-slate-200
+                    ">
                       Duration
                     </label>
 
                     <Input
                       type="number"
-                      {...register(`plans.${index}.duration`, {
-                        valueAsNumber: true,
-                      })}
+                      {...register(
+                        `plans.${index}.duration`,
+                        {
+                          valueAsNumber:true
+                        }
+                      )}
+                      className="
+                        h-11
+                        bg-white
+                        dark:bg-stone-800
+                        border-slate-200
+                        dark:border-stone-700
+                      "
                     />
+
                   </div>
 
-                  {/* Duration Type */}
+
+
+                  {/* DURATION TYPE */}
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-600">
+
+                    <label className="
+                      text-sm
+                      font-medium
+                      text-slate-700
+                      dark:text-slate-200
+                    ">
                       Duration Type
                     </label>
+
 
                     <Controller
                       control={control}
                       name={`plans.${index}.duration_type`}
-                      render={({ field }) => (
+                      render={({field}) => (
+
                         <Select
                           value={field.value}
                           onValueChange={field.onChange}
                         >
-                          <SelectTrigger>
+
+                          <SelectTrigger
+                            className="
+                              h-11
+                              bg-white
+                              dark:bg-stone-800
+                              border-slate-200
+                              dark:border-stone-700
+                              text-slate-700
+                              dark:text-slate-200
+                            "
+                          >
                             <SelectValue />
                           </SelectTrigger>
 
-                          <SelectContent>
+
+                          <SelectContent
+                            className="
+                              bg-white
+                              dark:bg-stone-900
+                              border-slate-200
+                              dark:border-stone-700
+                            "
+                          >
+
                             <SelectItem value="Day">
                               Day
                             </SelectItem>
@@ -236,55 +397,110 @@ export function PricingSection() {
                             <SelectItem value="Month">
                               Month
                             </SelectItem>
+
                           </SelectContent>
+
                         </Select>
+
                       )}
                     />
+
                   </div>
+
                 </div>
+
               </div>
+
             ))
-        : (
-          <div className="flex min-h-[260px] flex-col items-center justify-center text-center">
-            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-slate-100">
-              <CreditCard className="h-7 w-7 text-slate-400" />
+
+          ) : (
+
+            <div className="
+              flex
+              min-h-[260px]
+              flex-col
+              items-center
+              justify-center
+              text-center
+            ">
+
+              <div className="
+                mb-4
+                flex
+                h-16
+                w-16
+                items-center
+                justify-center
+                rounded-full
+                bg-slate-100
+                dark:bg-stone-800
+              ">
+                <CreditCard
+                  className="
+                    h-8
+                    w-8
+                    text-slate-400
+                  "
+                />
+              </div>
+
+
+              <h3 className="
+                text-sm
+                font-semibold
+                text-slate-700
+                dark:text-slate-200
+              ">
+                No pricing plans yet
+              </h3>
+
+
+              <p className="
+                mt-1
+                max-w-xs
+                text-sm
+                text-slate-400
+                dark:text-slate-500
+              ">
+                Add membership plans to start managing your gym pricing.
+              </p>
+
             </div>
-          
-            <h3 className="text-sm font-semibold text-slate-700">
-              No pricing plans yet
-            </h3>
-          
-            <p className="mt-1 max-w-xs text-sm text-slate-400">
-              Add membership plans to start managing your gym pricing.
-            </p>
-          </div>
-        )}
-      </div>
 
-      {/* Add Plan */}
-      <AddPlanModal
-        open={open === "Add"}
-        onClose={() => setOpen(null)}
-      />
+          )}
 
-      {/* Delete */}
-      <ConfirmationDialog
-        open={open === "Delete"}
-        name={selectedPlan?.name}
-        type="Plan"
-        onClose={() => setOpen(null)}
-        isPending={deleting}
-        onConfirm={() => {
-          if (!selectedPlan) return;
+        </div>
 
-          deletePlan(selectedPlan.id, {
-            onSuccess: () => {
-              toast.success("Plan removed successfully!");
-              setOpen(null);
-            },
-          });
-        }}
-      />
-    </form>
+
+        {/* MODALS */}
+        <AddPlanModal
+          open={open === "Add"}
+          onClose={() => setOpen(null)}
+        />
+
+
+        <ConfirmationDialog
+          open={open === "Delete"}
+          name={selectedPlan?.name}
+          type="Plan"
+          onClose={() => setOpen(null)}
+          isPending={deleting}
+          onConfirm={() => {
+            if (!selectedPlan) return;
+
+            deletePlan(selectedPlan.id,{
+              onSuccess:()=>{
+                toast.success(
+                  "Plan removed successfully!"
+                );
+
+                setOpen(null);
+              }
+            });
+          }}
+        />
+
+      </form>
+    </Card>
   );
 }

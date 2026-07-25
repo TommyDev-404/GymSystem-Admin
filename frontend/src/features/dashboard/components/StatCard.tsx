@@ -28,48 +28,92 @@ export function StatCard({
     <Card className={HOVER_EFFECT}>
       <CardContent>
         <div className="flex items-start justify-between">
-          <div>
-            <p className="text-slate-500 text-sm">{title}</p>
 
-            <p className="text-2xl font-semibold text-slate-800 mt-1">
+          <div>
+            <p className="
+              text-slate-500
+              dark:text-slate-400
+              text-sm
+            ">
+              {title}
+            </p>
+
+            <p className="
+              text-2xl
+              font-semibold
+              text-slate-800
+              dark:text-slate-100
+              mt-1
+            ">
               {value}
             </p>
 
             {sub && (
-              <p className="text-slate-400 text-xs mt-0.5">
+              <p className="
+                text-slate-400
+                dark:text-slate-500
+                text-xs
+                mt-0.5
+              ">
                 {sub}
               </p>
             )}
           </div>
 
+
           <div className={`p-2.5 rounded-xl ${color}`}>
-            <Icon size={20} className="text-white" />
+            <Icon 
+              size={20} 
+              className="text-white" 
+            />
           </div>
+
         </div>
+
 
         {trend && (
           <div
-            className={`flex items-center gap-1 mt-3 text-xs font-medium ${
-              trendUp
-                ? "text-emerald-600"
-                : "text-red-500"
-            }`}
+            className={`
+              flex 
+              items-center 
+              gap-1 
+              mt-3 
+              text-xs 
+              font-medium
+              ${
+                trendUp
+                  ? "text-emerald-600 dark:text-emerald-400"
+                  : "text-red-500 dark:text-red-400"
+              }
+            `}
           >
+
             {trendUp ? (
               <ArrowUpRight size={14} />
             ) : (
               <ArrowDownRight size={14} />
             )}
 
-            <span>{trend}</span>
+
+            <span>
+              {trend}
+            </span>
+
 
             {trendLabel && (
-              <span className="text-slate-400 font-normal ml-1">
+              <span className="
+                text-slate-400
+                dark:text-slate-500
+                font-normal
+                ml-1
+              ">
                 {trendLabel}
               </span>
             )}
+
           </div>
         )}
+
       </CardContent>
     </Card>
   );

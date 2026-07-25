@@ -2,6 +2,17 @@ import { CalendarDays } from "lucide-react";
 import { useState } from "react";
 import type { Filters } from "../types/AttendanceTypes";
 
+import { Card, CardContent } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
 type Props = {
   filters: Filters;
   setFilters: React.Dispatch<React.SetStateAction<Filters>>;
@@ -10,12 +21,11 @@ type Props = {
 export function AttendanceFilter({ filters, setFilters }: Props) {
   const currentYear = new Date().getFullYear();
 
-  const [disableDayFilter, setDisableDayFilter] = useState(filters.day === undefined ? true : false);
-
-  const days = Array.from(
-    { length: 31 },
-    (_, i) => i + 1
+  const [disableDayFilter, setDisableDayFilter] = useState(
+    filters.day === undefined ? true : false
   );
+
+  const days = Array.from({ length: 31 }, (_, i) => i + 1);
 
   const months = [
     "January",
@@ -32,118 +42,79 @@ export function AttendanceFilter({ filters, setFilters }: Props) {
     "December",
   ];
 
-  const years = Array.from(
-    { length: 5 },
-    (_, i) => currentYear - i
-  );
+  const years = Array.from({ length: 5 }, (_, i) => currentYear - i);
 
-  const updateFilter = (
-    key: keyof Filters,
-    value: number
-  ) => {
+  const updateFilter = (key: keyof Filters, value: number) => {
     setFilters((prev) => ({
       ...prev,
       [key]: value,
     }));
   };
 
+  const handleToggle = (checked: boolean) => {
+    // checked = true means "All days" is ON, so day filter is disabled
+    setDisableDayFilter(checked);
+
+    setFilters((prev) => ({
+      ...prev,
+      day: checked ? undefined : new Date().getDate(),
+    }));
+  };
+
   return (
-    <div className="bg-white border rounded-2xl p-5 shadow-sm">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {/* MONTH */}
-        <FilterSelect
-          label="Month"
-          value={filters.month}
-          options={months.map((m, i) => ({
-            value: i + 1,
-            label: m,
-          }))}
-          onChange={(v) =>
-            updateFilter("month", v)
-          }
-           />
-           
-        {/* YEAR */}
-        <FilterSelect
-          label="Year"
-          value={filters.year}
-          options={years.map((y) => ({
-            value: y,
-            label: y.toString(),
-          }))}
-          onChange={(v) =>
-            updateFilter("year", v)
-          }
-        />
+    <Card className="rounded-2xl shadow-sm">
+      <CardContent className="px-5 py-2">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {/* MONTH */}
+          <FilterSelect
+            label="Month"
+            value={filters.month}
+            options={months.map((m, i) => ({
+              value: i + 1,
+              label: m,
+            }))}
+            onChange={(v) => updateFilter("month", v)}
+          />
 
-        {/* DAY */}
-        <FilterSelect
-          label="Day"
-          value={filters.day}
-          disabled={disableDayFilter}
-          options={days.map((d) => ({
-            value: d,
-            label: d.toString(),
-          }))}
-          onChange={(v) =>
-            updateFilter("day", v)
-          }
-        />
+          {/* YEAR */}
+          <FilterSelect
+            label="Year"
+            value={filters.year}
+            options={years.map((y) => ({
+              value: y,
+              label: y.toString(),
+            }))}
+            onChange={(v) => updateFilter("year", v)}
+          />
 
-        {/* TOGGLE */}
-        <div className="flex items-end">
-          <button
-            type="button"
-            onClick={() => {
-              const checked =
-                !disableDayFilter;
+          {/* DAY */}
+          <FilterSelect
+            label="Day"
+            value={filters.day}
+            disabled={disableDayFilter}
+            options={days.map((d) => ({
+              value: d,
+              label: d.toString(),
+            }))}
+            onChange={(v) => updateFilter("day", v)}
+          />
 
-              setDisableDayFilter(checked);
-
-              setFilters((prev) => ({
-                ...prev,
-                day: checked
-                  ? undefined
-                  : new Date().getDate(),
-              }));
-            }}
-            className="flex items-center gap-3"
-          >
-
-            <div
-              className={`
-                w-11 h-6 rounded-full transition
-                ${
-                  disableDayFilter
-                    ? "bg-slate-300"
-                    : "bg-emerald-500"
-                }
-              `}
-            >
-
-              <div
-                className={`
-                  w-5 h-5 bg-white rounded-full mt-0.5 transition
-                  ${
-                    disableDayFilter
-                      ? "translate-x-0.5"
-                      : "translate-x-5"
-                  }
-                `}
+          {/* TOGGLE */}
+          <div className="flex items-end">
+            <div className="flex items-center gap-3">
+              <Switch
+                checked={disableDayFilter}
+                onCheckedChange={handleToggle}
+                className="data-[state=checked]:bg-emerald-500 data-[state=unchecked]:bg-slate-300"
               />
-
+              <Label className="text-sm text-slate-600 font-normal cursor-pointer">
+                All days
+              </Label>
             </div>
-
-
-            <span className="text-sm text-slate-600">
-              All days
-            </span>
-
-          </button>
-
+          </div>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -165,42 +136,27 @@ function FilterSelect({
 }) {
   return (
     <div className="space-y-2">
-
-      <label className="text-xs font-medium text-slate-500 flex items-center gap-1">
+      <Label className="text-xs font-medium text-slate-500 flex items-center gap-1">
         <CalendarDays size={13} />
         {label}
-      </label>
+      </Label>
 
-
-      <select
+      <Select
         disabled={disabled}
-        value={value}
-        onChange={(e) =>
-          onChange(Number(e.target.value))
-        }
-        className="
-          w-full rounded-xl border
-          px-3 py-2.5
-          text-sm text-slate-700
-          bg-slate-50
-          outline-none
-          transition
-          focus:ring-2
-          focus:ring-emerald-200
-          disabled:opacity-50
-        "
+        value={value !== undefined ? String(value) : undefined}
+        onValueChange={(v) => onChange(Number(v))}
       >
-        {options.map((item) => (
-          <option
-            key={item.value}
-            value={item.value}
-          >
-            {item.label}
-          </option>
-        ))}
-
-      </select>
-
+        <SelectTrigger className="w-full rounded-xl bg-slate-50 text-sm text-slate-700 focus:ring-2 focus:ring-emerald-200">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {options.map((item) => (
+            <SelectItem key={item.value} value={String(item.value)}>
+              {item.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
   );
 }

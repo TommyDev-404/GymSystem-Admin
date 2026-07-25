@@ -9,6 +9,7 @@ import { VerifyCodeModal } from "@/features/settings/components/VerifyCodeModal"
 import { useAuth } from "@/context/AuthContext";
 import { sentCodeApi } from "@/features/auth/api/auth.api";
 import { toast } from "sonner";
+import { Card } from "@/components/ui/card";
 
 type PasswordForm = {
   newPassword: string;
@@ -69,118 +70,218 @@ export function SecuritySection() {
   };
 
   return (
-    <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 space-y-5">
-      <h3 className="text-slate-800 font-medium">
-        Security Settings
-      </h3>
+    <Card
+      className="
+        rounded-2xl
+        border-stone-200
+        dark:border-stone-700
+        bg-white
+        dark:bg-stone-900
+        shadow-sm
+      "
+    >
+      <div className="p-6 space-y-5">
 
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="space-y-4"
-      >
-        {/* New Password */}
-        <div>
-          <label className="text-slate-600 text-sm mb-1 block">
-            New Password
-          </label>
+        <h3
+          className="
+            text-lg
+            font-semibold
+            text-slate-800
+            dark:text-slate-100
+          "
+        >
+          Security Settings
+        </h3>
 
-          <Input
-            type={showPassword ? "text" : "password"}
-            placeholder="••••••••"
-            className="rounded-xl py-2.5"
-            {...register("newPassword", {
-              required: "New password is required",
-              minLength: {
-                value: 8,
-                message: "Password must be at least 8 characters",
-              },
-            })}
-          />
 
-          {errors.newPassword && (
-            <p className="text-sm text-red-500 mt-1">
-              {errors.newPassword.message}
-            </p>
-          )}
-        </div>
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="space-y-4"
+        >
 
-        {/* Confirm Password */}
-        <div>
-          <label className="text-slate-600 text-sm mb-1 block">
-            Confirm New Password
-          </label>
+          {/* NEW PASSWORD */}
+          <div className="space-y-1.5">
 
-          <Input
-            type={showPassword ? "text" : "password"}
-            placeholder="••••••••"
-            className="rounded-xl py-2.5"
-            {...register("confirmPassword", {
-              required: "Please confirm your password",
-              validate: (value) =>
-                value === newPassword ||
-                "Passwords do not match",
-            })}
-          />
+            <label
+              className="
+                text-sm
+                font-medium
+                text-slate-700
+                dark:text-slate-200
+              "
+            >
+              New Password
+            </label>
 
-          {errors.confirmPassword && (
-            <p className="text-sm text-red-500 mt-1">
-              {errors.confirmPassword.message}
-            </p>
-          )}
-        </div>
 
-        {/* Show Password Checkbox */}
-        <div className="flex items-center gap-2">
-          <Checkbox
-            id="show-password"
-            checked={showPassword}
-            onCheckedChange={(checked) =>
-              setShowPassword(checked === true)
-            }
-          />
+            <Input
+              type={showPassword ? "text" : "password"}
+              placeholder="••••••••"
+              {...register("newPassword", {
+                required: "New password is required",
+                minLength: {
+                  value: 8,
+                  message: "Password must be at least 8 characters",
+                },
+              })}
+              className="
+                h-11
+                rounded-xl
+                bg-white
+                dark:bg-stone-800
+                border-slate-200
+                dark:border-stone-700
+                text-slate-700
+                dark:text-slate-200
+              "
+            />
 
-          <label
-            htmlFor="show-password"
-            className="text-sm text-slate-600 cursor-pointer"
+
+            {errors.newPassword && (
+              <p className="text-sm text-red-500 mt-1">
+                {errors.newPassword.message}
+              </p>
+            )}
+
+          </div>
+
+
+
+          {/* CONFIRM PASSWORD */}
+          <div className="space-y-1.5">
+
+            <label
+              className="
+                text-sm
+                font-medium
+                text-slate-700
+                dark:text-slate-200
+              "
+            >
+              Confirm New Password
+            </label>
+
+
+            <Input
+              type={showPassword ? "text" : "password"}
+              placeholder="••••••••"
+              {...register("confirmPassword", {
+                required: "Please confirm your password",
+                validate: (value) =>
+                  value === newPassword ||
+                  "Passwords do not match",
+              })}
+              className="
+                h-11
+                rounded-xl
+                bg-white
+                dark:bg-stone-800
+                border-slate-200
+                dark:border-stone-700
+                text-slate-700
+                dark:text-slate-200
+              "
+            />
+
+
+            {errors.confirmPassword && (
+              <p className="text-sm text-red-500 mt-1">
+                {errors.confirmPassword.message}
+              </p>
+            )}
+
+          </div>
+
+
+
+          {/* SHOW PASSWORD */}
+          <div className="
+            flex
+            items-center
+            gap-2
+          ">
+
+            <Checkbox
+              id="show-password"
+              checked={showPassword}
+              onCheckedChange={(checked) =>
+                setShowPassword(checked === true)
+              }
+            />
+
+
+            <label
+              htmlFor="show-password"
+              className="
+                text-sm
+                text-slate-600
+                dark:text-slate-300
+                cursor-pointer
+              "
+            >
+              Show password
+            </label>
+
+          </div>
+
+
+
+          {/* ACTIONS */}
+          <div
+            className="
+              flex
+              justify-end
+              gap-3
+              pt-3
+            "
           >
-            Show password
-          </label>
-        </div>
 
-        {/* Buttons */}
-        <div className="flex gap-4 justify-end pt-2">
-          <Button
-            type="button"
-            variant="outline"
-            className="p-4"
-            onClick={() => reset()}
-          >
-            <p className="text-slate-500">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => reset()}
+              className="
+                h-11
+                border-slate-200
+                dark:border-stone-700
+                dark:text-slate-200
+                dark:hover:bg-stone-800
+              "
+            >
               Cancel
-            </p>
-          </Button>
+            </Button>
 
-          <Button
-            type="submit"
-            disabled={loading}
-            className="bg-emerald-500 p-4 hover:bg-emerald-600"
-          >
-            <p>
-              {loading ? "Sending..." : "Change password"}
-            </p>
-          </Button>
-        </div>
-      </form>
 
-      <VerifyCodeModal
-        open={verifyModalOpen}
-        onClose={() => setVerifyModalOpen(false)}
-        email={admin!.email}
-        newPassword={newPassword}
-        code={code}
-        setCode={setCode}
-        reset={reset}
-      />
-    </div>
+            <Button
+              type="submit"
+              disabled={loading}
+              className="
+                h-11
+                bg-emerald-500
+                hover:bg-emerald-600
+                text-white
+              "
+            >
+              {loading
+                ? "Sending..."
+                : "Change Password"}
+            </Button>
+
+          </div>
+
+        </form>
+
+        <VerifyCodeModal
+          open={verifyModalOpen}
+          onClose={() => setVerifyModalOpen(false)}
+          email={admin!.email}
+          newPassword={newPassword}
+          code={code}
+          setCode={setCode}
+          reset={reset}
+        />
+
+      </div>
+    </Card>
   );
 }

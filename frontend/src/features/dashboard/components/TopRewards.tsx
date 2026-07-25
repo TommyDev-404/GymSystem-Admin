@@ -71,11 +71,11 @@ export function TopClaimedRewards({ data }: TopRewardsProps) {
               <Gift className="h-6 w-6 text-slate-400" />
             </div>
 
-            <h3 className="text-sm font-semibold text-slate-700">
+            <h3 className="text-sm font-semibold">
               No rewards claimed yet
             </h3>
 
-            <p className="mt-1 max-w-xs text-sm text-slate-400">
+            <p className="mt-1 max-w-xs text-sm text-muted-foreground">
               Claimed rewards will appear here once members redeem their points.
             </p>
           </div>

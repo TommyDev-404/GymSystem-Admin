@@ -49,6 +49,8 @@
 }
 
 :root {
+    --tooltip-bg: white;
+    --tooltip-border: #e2e8f0;
     --background: oklch(1 0 0);
     --foreground: oklch(0.145 0 0);
     --card: oklch(1 0 0);
@@ -115,6 +117,8 @@
     --sidebar-accent-foreground: oklch(0.985 0 0);
     --sidebar-border: oklch(1 0 0 / 10%);
     --sidebar-ring: oklch(0.556 0 0);
+    --tooltip-bg: #1c1917; /* stone-900 */
+    --tooltip-border: #44403c; /* stone-700 */
 }
 
 @layer base {

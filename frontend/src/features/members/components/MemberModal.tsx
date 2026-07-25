@@ -126,10 +126,25 @@ export function MemberModal({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-md rounded-2xl">
-
+      <DialogContent
+        className="
+          sm:max-w-md
+          rounded-2xl
+          bg-white
+          dark:bg-stone-900
+          border-stone-200
+          dark:border-stone-700
+        "
+      >
         <DialogHeader>
-          <DialogTitle>
+          <DialogTitle
+            className="
+              text-xl
+              font-semibold
+              text-slate-800
+              dark:text-slate-100
+            "
+          >
             {member ? "Edit Member" : "Add Member"}
           </DialogTitle>
         </DialogHeader>
@@ -137,88 +152,291 @@ export function MemberModal({
         {/* FORM */}
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="flex flex-col gap-4 mt-2"
+          className="
+            flex
+            flex-col
+            gap-5
+            mt-3
+          "
         >
+          {/* PERSONAL INFORMATION */}
+          <div className="space-y-4">
+            <p className="
+              text-xs
+              font-semibold
+              uppercase
+              tracking-wide
+              text-slate-400
+              dark:text-slate-500
+            ">
+              Personal Information
+            </p>
 
-          {/* NAME */}
-          <div>
-            <label className="text-sm text-slate-600">Full Name</label>
-            <Input {...register("fullname")} />
-          </div>
+            {/* NAME */}
+            <div className="space-y-1.5">
+              <label
+                className="
+                  text-sm
+                  font-medium
+                  text-slate-700
+                  dark:text-slate-200
+                "
+              >
+                Full Name
+              </label>
 
-          {/* EMAIL */}
-          <div>
-            <label className="text-sm text-slate-600">Email</label>
-            <Input {...register("email")} />
-          </div>
+              <Input
+                {...register("fullname")}
+                placeholder="Enter full name"
+                className="
+                  h-11
+                  bg-white
+                  dark:bg-stone-800
+                  border-slate-200
+                  dark:border-stone-700
+                  text-slate-700
+                  dark:text-slate-200
+                "
+              />
+            </div>
 
-          {/* AGE */}
-          <div>
-            <label className="text-sm text-slate-600">Age</label>
-            <Input
-              type="number"
-              {...register("age", { valueAsNumber: true })}
-            />
-          </div>
+            {/* EMAIL */}
+            <div className="space-y-1.5">
+              <label
+                className="
+                  text-sm
+                  font-medium
+                  text-slate-700
+                  dark:text-slate-200
+                "
+              >
+                Email Address
+              </label>
 
-          {/* GENDER */}
-          <div>
-            <label className="text-sm text-slate-600">Gender</label>
+              <Input
+                {...register("email")}
+                placeholder="example@email.com"
+                className="
+                  h-11
+                  bg-white
+                  dark:bg-stone-800
+                  border-slate-200
+                  dark:border-stone-700
+                  text-slate-700
+                  dark:text-slate-200
+                "
+              />
+            </div>
 
-            <Controller
-              control={control}
-              name="gender"
-              render={({ field }) => (
-                <Select
-                  value={field.value}
-                  onValueChange={field.onChange}
+            {/* AGE + GENDER */}
+            <div className="grid grid-cols-2 gap-3">
+              {/* AGE */}
+              <div className="space-y-1.5">
+                <label
+                  className="
+                    text-sm
+                    font-medium
+                    text-slate-700
+                    dark:text-slate-200
+                  "
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Gender" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Male">Male</SelectItem>
-                    <SelectItem value="Female">Female</SelectItem>
-                  </SelectContent>
-                </Select>
-              )}
-            />
+                  Age
+                </label>
+
+                <Input
+                  type="number"
+                  placeholder="Age"
+                  {...register("age", {
+                    valueAsNumber: true
+                  })}
+                  className="
+                    h-11
+                    bg-white
+                    dark:bg-stone-800
+                    border-slate-200
+                    dark:border-stone-700
+                    text-slate-700
+                    dark:text-slate-200
+                  "
+                />
+
+              </div>
+
+              {/* GENDER */}
+              <div className="space-y-1.5">
+                <label
+                  className="
+                    text-sm
+                    font-medium
+                    text-slate-700
+                    dark:text-slate-200
+                  "
+                >
+                  Gender
+                </label>
+
+                <Controller
+                  control={control}
+                  name="gender"
+                  render={({ field }) => (
+                    <Select
+                      value={field.value}
+                      onValueChange={field.onChange}
+                    >
+
+                      <SelectTrigger
+                        className="
+                          bg-white
+                          dark:bg-stone-800
+                          border-slate-200
+                          dark:border-stone-700
+                          text-slate-700
+                          dark:text-slate-200
+                          w-full
+                          py-5.5
+                        "
+                      >
+                        <SelectValue placeholder="Select gender" />
+                      </SelectTrigger>
+
+                      <SelectContent
+                        className="
+                          bg-white
+                          dark:bg-stone-900
+                          border-slate-200
+                          dark:border-stone-700
+                        "
+                      >
+                        <SelectItem value="Male">
+                          Male
+                        </SelectItem>
+
+                        <SelectItem value="Female">
+                          Female
+                        </SelectItem>
+
+                      </SelectContent>
+
+                    </Select>
+                  )}
+                />
+
+              </div>
+            </div>
           </div>
 
-          {/* PLAN */}
-          <div>
-            <label className="text-sm text-slate-600">Plan</label>
+          {/* MEMBERSHIP */}
+          <div className="space-y-4">
+            <p className="
+              text-xs
+              font-semibold
+              uppercase
+              tracking-wide
+              text-slate-400
+              dark:text-slate-500
+            ">
+              Membership
+            </p>
 
-            <Controller
-              control={control}
-              name="plan_id"
-              render={({ field }) => (
-                <Select
-                  value={field.value ? String(field.value) : ""}
-                  onValueChange={(val) => field.onChange(Number(val))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select Plan" />
-                  </SelectTrigger>
+            {/* PLAN */}
+            <div className="space-y-1.5">
+              <label
+                className="
+                  text-sm
+                  font-medium
+                  text-slate-700
+                  dark:text-slate-200
+                "
+              >
+                Membership Plan
+              </label>
 
-                  <SelectContent>
-                    {plans.map((p: { id:number, plan_name: string, duration: number, duration_type: string}) => (
-                      <SelectItem key={p.id} value={String(p.id)}>
-                        {`${p.plan_name} (${p.duration} ${p.duration_type.toLocaleLowerCase()})`}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            />
+              <Controller
+                control={control}
+                name="plan_id"
+                render={({ field }) => (
+                  <Select
+                    value={
+                      field.value
+                        ? String(field.value)
+                        : ""
+                    }
+                    onValueChange={(val) =>
+                      field.onChange(Number(val))
+                    }
+                  >
+
+                    <SelectTrigger
+                      className="
+                        bg-white
+                        dark:bg-stone-800
+                        border-slate-200
+                        dark:border-stone-700
+                        text-slate-700
+                        dark:text-slate-200
+                        w-full
+                        py-5.5
+                      "
+                    >
+                      <SelectValue placeholder={plans.length > 0 ? "Select membership plan" : "No available membership plan."}/>
+                    </SelectTrigger>
+
+                    <SelectContent
+                      className="
+                        bg-white
+                        dark:bg-stone-900
+                        border-slate-200
+                        dark:border-stone-700
+                        py-2
+                      "
+                    >
+                      {plans.length !== 0 &&
+                        plans.map(
+                          (
+                            p: {
+                              id: number;
+                              plan_name: string;
+                              duration: number;
+                              duration_type: string;
+                            }
+                          ) => (
+                            <SelectItem
+                              key={p.id}
+                              value={String(p.id)}
+                            >
+                              {`${p.plan_name} (${p.duration} ${p.duration_type.toLowerCase()})`}
+                            </SelectItem>
+                          )
+                        )
+                      }
+                    </SelectContent>
+
+                  </Select>
+                )}
+              />
+
+            </div>
+
           </div>
 
           {/* ACTIONS */}
-          <div className="flex gap-3 mt-6">
+          <div className="
+            flex
+            gap-3
+            mt-3
+          ">
+
             <Button
               type="button"
               variant="outline"
-              className="flex-1"
+              className="
+                flex-1
+                h-11
+                border-slate-200
+                dark:border-stone-700
+                dark:text-slate-200
+                dark:hover:bg-stone-800
+              "
               onClick={() => setOpen(false)}
             >
               Cancel
@@ -226,7 +444,13 @@ export function MemberModal({
 
             <Button
               type="submit"
-              className="flex-1 bg-emerald-500 hover:bg-emerald-600"
+              className="
+                flex-1
+                h-11
+                bg-emerald-500
+                hover:bg-emerald-600
+                text-white
+              "
               disabled={isLoading}
             >
               {isLoading
@@ -235,11 +459,12 @@ export function MemberModal({
                   : "Adding..."
                 : member
                 ? "Save Changes"
-                : "Add Member"}
+                : "Add"}
             </Button>
-          </div>
 
+          </div>
         </form>
+
       </DialogContent>
     </Dialog>
   );

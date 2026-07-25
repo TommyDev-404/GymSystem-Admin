@@ -50,8 +50,13 @@ export function RevenueChart({ data }: Props) {
                 `₱${value.toLocaleString()}`
               }
             />
-            
+
             <Tooltip
+              contentStyle={{
+                backgroundColor: "var(--tooltip-bg)",
+                border: "1px solid var(--tooltip-border)",
+                borderRadius: "10px",
+              }}
               formatter={(value) =>
                 new Intl.NumberFormat("en-PH", {
                   style: "currency",

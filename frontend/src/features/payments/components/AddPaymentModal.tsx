@@ -5,19 +5,24 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { useCreatePayment } from "../hooks/usePayments";
-import type { CreatePaymentDTO } from "../types/payment";
+import type { CreatePaymentDTO, UnpaidMember } from "../types/payment";
 import { toast } from "sonner";
 
 type AddPaymentModalProps = {
   open: boolean;
   setOpen: (open: boolean) => void;
-  unpaidMembers: {
-    id: number;
-    name: string;
-  }[];
+  unpaidMembers: UnpaidMember[];
 };
 
 export function AddPaymentModal({ open, setOpen, unpaidMembers }: AddPaymentModalProps) {
@@ -27,10 +32,12 @@ export function AddPaymentModal({ open, setOpen, unpaidMembers }: AddPaymentModa
     register,
     handleSubmit,
     reset,
+    control,
+    setValue,
   } = useForm<CreatePaymentDTO>({
     defaultValues: {
-      member_id: 9,
-      amount_paid: 0,
+      member_id: undefined,
+      amount_paid: undefined,
       paid_on: "",
     },
   });
@@ -54,88 +61,219 @@ export function AddPaymentModal({ open, setOpen, unpaidMembers }: AddPaymentModa
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent
+        className="
+          sm:max-w-md
+          rounded-2xl
+          bg-white
+          dark:bg-stone-900
+          border-stone-200
+          dark:border-stone-700
+        "
+      >
         <DialogHeader>
-          <DialogTitle>Add Payment</DialogTitle>
+          <DialogTitle
+            className="
+              text-xl
+              font-semibold
+              text-slate-800
+              dark:text-slate-100
+            "
+          >
+            Add Payment
+          </DialogTitle>
         </DialogHeader>
 
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="space-y-4"
+          className="
+            flex
+            flex-col
+            gap-5
+            mt-3
+          "
         >
           {/* Member */}
-          <div>
-            <label className="text-sm font-medium">
+          <div className="space-y-1.5">
+            <label
+              className="
+                text-sm
+                font-medium
+                text-slate-700
+                dark:text-slate-200
+              "
+            >
               Member
             </label>
 
             {unpaidMembers?.length > 0 ? (
-                <select
-                  {...register("member_id", { required: true })}
-                  className="w-full border rounded-md p-2 mt-1 bg-white"
-                >
-                  <option disabled hidden value="">
-                    Select Member
-                  </option>
+              <Controller
+                control={control}
+                name="member_id"
+                rules={{ required: true }}
+                render={({ field }) => (
+                  <Select
+                    value={field.value ? String(field.value) : ""}
+                    onValueChange={(val) => {
+                      const id = Number(val);
+                      field.onChange(id);
 
-                  {unpaidMembers.map((m: { id: number; name: string }) => (
-                    <option key={m.id} value={m.id}>
-                      {m.name}
-                    </option>
-                  ))}
-                </select>
+                      const selected = unpaidMembers.find((m) => m.id === id);
+                      if (selected) {
+                        setValue("amount_paid", selected.amount, {
+                          shouldValidate: true,
+                          shouldDirty: true,
+                        });
+                      }
+                    }}
+                  >
+                    <SelectTrigger
+                      className="
+                        bg-white
+                        dark:bg-stone-800
+                        border-slate-200
+                        dark:border-stone-700
+                        text-slate-700
+                        dark:text-slate-200
+                        w-full
+                        py-5.5
+                      "
+                    >
+                      <SelectValue placeholder="Select member" />
+                    </SelectTrigger>
+
+                    <SelectContent
+                      className="
+                        bg-white
+                        dark:bg-stone-900
+                        border-slate-200
+                        dark:border-stone-700
+                      "
+                    >
+                      {unpaidMembers.map((m) => (
+                        <SelectItem key={m.id} value={String(m.id)}>
+                          {m.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
             ) : (
-              <div className="w-full border rounded-md p-2 mt-1 bg-slate-100 text-slate-500 text-sm">
-                🎉 All members are fully paid
+              <div
+                className="
+                  w-full
+                  h-11
+                  flex
+                  items-center
+                  rounded-md
+                  border
+                  border-slate-200
+                  dark:border-stone-700
+                  px-3
+                  bg-slate-100
+                  dark:bg-stone-800
+                  text-slate-500
+                  dark:text-slate-400
+                  text-sm
+                "
+              >
+                All members are fully paid
               </div>
             )}
           </div>
 
           {/* Amount */}
-          <div>
-            <label className="text-sm font-medium">
-              Amount(₱)
+          <div className="space-y-1.5">
+            <label
+              className="
+                text-sm
+                font-medium
+                text-slate-700
+                dark:text-slate-200
+              "
+            >
+              Amount (₱)
             </label>
 
-            <input
+            <Input
               type="number"
+              readOnly
+              placeholder="Amount to pay (read only)"
               {...register("amount_paid", {
                 required: true,
                 valueAsNumber: true,
               })}
-              className="w-full border rounded-md p-2 mt-1"
-              placeholder="Enter amount"
+              className="
+                h-11
+                bg-white
+                dark:bg-stone-800
+                border-slate-200
+                dark:border-stone-700
+                text-slate-700
+                dark:text-slate-200
+              "
             />
           </div>
 
           {/* Paid Date */}
-          <div>
-            <label className="text-sm font-medium">
+          <div className="space-y-1.5">
+            <label
+              className="
+                text-sm
+                font-medium
+                text-slate-700
+                dark:text-slate-200
+              "
+            >
               Paid On
             </label>
 
-            <input
+            <Input
               type="date"
               {...register("paid_on", {
                 required: true,
               })}
-              className="w-full border rounded-md p-2 mt-1"
+              className="
+                h-11
+                bg-white
+                dark:bg-stone-800
+                border-slate-200
+                dark:border-stone-700
+                text-slate-700
+                dark:text-slate-200
+              "
             />
           </div>
 
-          <div className="flex justify-end gap-2">
+          {/* ACTIONS */}
+          <div className="flex gap-3 mt-3">
             <Button
               type="button"
               variant="outline"
               onClick={() => setOpen(false)}
+              className="
+                flex-1
+                h-11
+                border-slate-200
+                dark:border-stone-700
+                dark:text-slate-200
+                dark:hover:bg-stone-800
+              "
             >
               Cancel
             </Button>
 
             <Button
               type="submit"
-              className="bg-emerald-500 hover:bg-emerald-600"
               disabled={isPending}
+              className="
+                flex-1
+                h-11
+                bg-emerald-500
+                hover:bg-emerald-600
+                text-white
+              "
             >
               {isPending ? "Saving..." : "Save Payment"}
             </Button>

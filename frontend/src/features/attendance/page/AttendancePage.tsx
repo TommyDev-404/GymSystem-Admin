@@ -10,6 +10,7 @@ import type { Filters } from "../types/AttendanceTypes";
 import { useSocket } from "@/context/SocketContext";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
+import { QrCodeIcon } from "lucide-react";
 
 export function AttendancePage() {
   const socket = useSocket();
@@ -75,7 +76,19 @@ export function AttendancePage() {
         </div>
 
         {/* BUTTON */}
-        <Button onClick={() => setQrOpen(true)}>
+        <Button
+					className="
+						bg-emerald-500
+						dark:bg-emerald-600
+						py-5
+						px-3
+						hover:bg-emerald-600
+						dark:hover:bg-emerald-700
+						text-white
+					"
+          onClick={() => setQrOpen(true)}
+        >
+          <QrCodeIcon />
           Generate QR Code
         </Button>
       </div>
