@@ -93,7 +93,7 @@ export function VerifyCodeModal({
             onChange={(e) =>
               setCode(e.target.value.replace(/\D/g, ""))
             }
-            placeholder="123456"
+            placeholder="------"
             className="
               text-center
               text-lg

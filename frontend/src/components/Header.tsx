@@ -337,23 +337,31 @@ export function Header() {
                 );
               })}
 
-            {searchItems.filter((item) =>
-              item.name
-                .toLowerCase()
-                .includes(search.toLowerCase())
-            ).length === 0 && (
-              <p
+              {searchItems.filter((item) =>
+                item.name
+                  .toLowerCase()
+                  .includes(search.toLowerCase())
+              ).length === 0 && (
+                <div
                 className="
-                  px-4 
-                  py-3 
-                  text-sm 
-                  text-slate-400
-                  dark:text-slate-500
-                "
-              >
-                No matching function found.
-              </p>
-            )}
+                    h-full
+                    flex
+                    items-center
+                    justify-center
+                    py-8
+                  "
+                >
+                  <p
+                    className="
+                      text-sm
+                      text-slate-400
+                      dark:text-slate-500
+                    "
+                  >
+                    No matching function found.
+                  </p>
+                </div>
+              )}
           </div>
         )}
       </div>
