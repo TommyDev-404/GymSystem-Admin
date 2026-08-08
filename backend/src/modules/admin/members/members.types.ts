@@ -4,7 +4,8 @@ export type CreateMemberDTO = {
   fullname: string;
   age: number;
   email: string;
-  gender: "Male" | "Female" ;
+  gender: "Male" | "Female";
+  referral_code?: string;
   plan_id: number;
   join_date: string;
 };

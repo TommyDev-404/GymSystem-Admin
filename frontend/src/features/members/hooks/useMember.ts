@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import * as api from "@/features/members/api/members.api";
-import type { Member, MemberFilters } from "../types/member";
+import type { Member, MemberFilters, RenewMembershipDTO } from "../types/member";
 
 export function useMembers(params?: MemberFilters) {
    return useQuery({
@@ -120,4 +120,34 @@ export function useResendActivationCode() {
       });
     },
   });
+}
+
+export function useRenewMembership() {
+
+  const queryClient = useQueryClient();
+
+
+  return useMutation({
+
+    mutationFn: (
+      data: RenewMembershipDTO
+    ) =>
+      api.renewMembershipApi(data),
+
+
+    onSuccess: () => {
+
+      queryClient.invalidateQueries({
+        queryKey:["members"],
+      });
+
+
+      queryClient.invalidateQueries({
+        queryKey:["payments"],
+      });
+
+    },
+
+  });
+
 }

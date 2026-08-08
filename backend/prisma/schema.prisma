@@ -9,15 +9,15 @@ datasource db {
 
 model activities {
   id             Int                       @id @default(autoincrement())
-  member_id      Int
-  recepient_type activities_recepient_type
+  recipient_id   Int?
+  recipient_type activities_recipient_type
   type           activities_type
   title          String                    @db.VarChar(255)
   description    String                    @db.Text
   created_at     DateTime?                 @default(now()) @db.DateTime(0)
-  members        members                   @relation(fields: [member_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_activity_member")
+  members        members?                  @relation(fields: [recipient_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_member_activities")
 
-  @@index([member_id], map: "fk_activity_member")
+  @@index([recipient_id], map: "fk_member_activities")
 }
 
 model attendance {
@@ -54,20 +54,6 @@ model member_activations {
   @@index([member_id], map: "fk_member_activations")
 }
 
-model member_bills {
-  id         Int                  @id @default(autoincrement())
-  member_id  Int
-  amount_due Int
-  due_date   DateTime             @db.Date
-  status     member_bills_status? @default(Pending)
-  created_at DateTime?            @default(now()) @db.Timestamp(0)
-  updated_at DateTime?            @default(now()) @db.Timestamp(0)
-  members    members              @relation(fields: [member_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_member_bills_member")
-  payments   payments[]
-
-  @@index([member_id], map: "fk_member_bills_member")
-}
-
 model member_workout_exercises {
   id              Int             @id @default(autoincrement())
   workout_id      Int
@@ -94,51 +80,64 @@ model member_workouts {
 }
 
 model members {
-  id                 Int                  @id @default(autoincrement())
-  user_id            Int?                 @unique(map: "user_id")
-  fullname           String               @db.VarChar(100)
-  email              String               @unique(map: "email") @db.VarChar(255)
-  age                Int
-  gender             members_gender
-  plan_id            Int
-  status             members_status       @default(Active)
-  is_activated       Boolean              @default(false)
-  points             Int
-  join_date          DateTime?            @default(now()) @db.Timestamp(0)
-  updated_at         DateTime?            @default(now()) @db.Timestamp(0)
-  activities         activities[]
-  attendance         attendance[]
-  member_activations member_activations[]
-  member_bills       member_bills[]
-  member_workouts    member_workouts[]
-  membership_plans   membership_plans     @relation(fields: [plan_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_members")
-  users              users?               @relation(fields: [user_id], references: [id], onUpdate: Restrict, map: "fk_members_user")
+  id                                       Int                  @id @default(autoincrement())
+  user_id                                  Int?                 @unique(map: "user_id")
+  fullname                                 String               @db.VarChar(100)
+  email                                    String               @unique(map: "email") @db.VarChar(255)
+  age                                      Int
+  gender                                   members_gender
+  plan_id                                  Int
+  status                                   members_status       @default(Active)
+  is_activated                             Boolean              @default(false)
+  points                                   Int
+  referral_code                            String               @unique(map: "referral_code") @db.VarChar(255)
+  join_date                                DateTime?            @default(now()) @db.Timestamp(0)
+  updated_at                               DateTime?            @default(now()) @db.Timestamp(0)
+  activities                               activities[]
+  attendance                               attendance[]
+  body_progress                            body_progress[]
+  fitness_goals                            fitness_goals[]
+  member_activations                       member_activations[]
+  member_memberships                       member_memberships[]
+  member_workouts                          member_workouts[]
+  membership_plans                         membership_plans     @relation(fields: [plan_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_members_plan")
+  users                                    users?               @relation(fields: [user_id], references: [id], onUpdate: Restrict, map: "fk_members_user")
+  notifications                            notifications[]
+  payments                                 payments[]
+  post_comments                            post_comments[]
+  post_likes                               post_likes[]
+  posts                                    posts[]
+  referrals_referrals_referee_idTomembers  referrals?           @relation("referrals_referee_idTomembers")
+  referrals_referrals_referrer_idTomembers referrals[]          @relation("referrals_referrer_idTomembers")
+  reward_redemptions                       reward_redemptions[]
 
   @@index([plan_id], map: "fk_members_plan")
 }
 
 model membership_plans {
-  id            Int                            @id @default(autoincrement())
-  plan_name     String                         @db.VarChar(100)
-  price         Decimal                        @db.Decimal(10, 2)
-  duration      Int
-  duration_type membership_plans_duration_type
-  created_at    DateTime?                      @default(now()) @db.Timestamp(0)
-  updated_at    DateTime?                      @default(now()) @db.Timestamp(0)
-  members       members[]
+  id                 Int                            @id @default(autoincrement())
+  plan_name          String                         @db.VarChar(100)
+  price              Decimal                        @db.Decimal(10, 2)
+  duration           Int
+  duration_type      membership_plans_duration_type
+  created_at         DateTime?                      @default(now()) @db.Timestamp(0)
+  updated_at         DateTime?                      @default(now()) @db.Timestamp(0)
+  member_memberships member_memberships[]
+  members            members[]
 }
 
 model notifications {
   id             Int                          @id @default(autoincrement())
-  recepient_type notifications_recepient_type
-  recepient_id   Int
+  recipient_id   Int?
+  recipient_type notifications_recipient_type
   type           notifications_type
   title          String                       @db.VarChar(255)
-  message        String?                      @db.Text
-  reference_id   Int?
-  reference_type String?                      @db.VarChar(100)
+  description    String?                      @db.Text
   is_read        Boolean?                     @default(false)
   created_at     DateTime?                    @default(now()) @db.DateTime(0)
+  members        members?                     @relation(fields: [recipient_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_member_notifications")
+
+  @@index([recipient_id], map: "fk_member_notifications")
 }
 
 model otp_codes {
@@ -155,26 +154,82 @@ model otp_codes {
 }
 
 model payments {
-  id           Int          @id @default(autoincrement())
-  bill_id      Int
-  amount_paid  Decimal      @db.Decimal(10, 2)
-  paid_on      DateTime     @db.Date
-  created_at   DateTime?    @default(now()) @db.Timestamp(0)
-  updated_at   DateTime?    @default(now()) @db.Timestamp(0)
-  member_bills member_bills @relation(fields: [bill_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_payments_bill")
+  id                 Int                      @id @default(autoincrement())
+  member_id          Int
+  membership_id      Int
+  amount             Decimal                  @db.Decimal(10, 2)
+  payment_method     payments_payment_method?
+  status             payments_status?         @default(Pending)
+  paid_at            DateTime?                @db.DateTime(0)
+  created_at         DateTime?                @default(now()) @db.Timestamp(0)
+  updated_at         DateTime?                @default(now()) @db.Timestamp(0)
+  members            members                  @relation(fields: [member_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_payment_member")
+  member_memberships member_memberships       @relation(fields: [membership_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_payment_membership")
 
-  @@index([bill_id], map: "fk_payments_bill")
+  @@index([member_id], map: "fk_payment_member")
+  @@index([membership_id], map: "fk_payment_membership")
+}
+
+model post_comments {
+  id         Int       @id @default(autoincrement())
+  post_id    Int
+  member_id  Int
+  comment    String    @db.Text
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+  updated_at DateTime? @default(now()) @db.Timestamp(0)
+  members    members   @relation(fields: [member_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_post_comments_member")
+  posts      posts     @relation(fields: [post_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_post_comments_post")
+
+  @@index([member_id], map: "fk_post_comments_member")
+  @@index([post_id], map: "fk_post_comments_post")
+}
+
+model post_images {
+  id         Int       @id @default(autoincrement())
+  post_id    Int
+  image_url  String    @db.Text
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+  posts      posts     @relation(fields: [post_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_post_images_post")
+
+  @@index([post_id], map: "fk_post_images_post")
+}
+
+model post_likes {
+  id         Int       @id @default(autoincrement())
+  post_id    Int
+  member_id  Int
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+  members    members   @relation(fields: [member_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_post_likes_member")
+  posts      posts     @relation(fields: [post_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_post_likes_post")
+
+  @@unique([post_id, member_id], map: "uq_post_likes_member_post")
+  @@index([member_id], map: "fk_post_likes_member")
+}
+
+model posts {
+  id            Int             @id @default(autoincrement())
+  member_id     Int
+  content       String?         @db.Text
+  created_at    DateTime?       @default(now()) @db.Timestamp(0)
+  updated_at    DateTime?       @default(now()) @db.Timestamp(0)
+  post_comments post_comments[]
+  post_images   post_images[]
+  post_likes    post_likes[]
+  members       members         @relation(fields: [member_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_posts_member")
+
+  @@index([member_id], map: "fk_posts_member")
 }
 
 model rewards {
-  id              Int       @id @default(autoincrement())
-  name            String    @db.VarChar(255)
-  description     String    @db.Text
-  points_required Int
-  category        String    @db.VarChar(255)
-  total_claim     Int
-  createdAt       DateTime? @default(now()) @db.Timestamp(0)
-  updatedAt       DateTime? @default(now()) @db.Timestamp(0)
+  id                 Int                  @id @default(autoincrement())
+  name               String               @db.VarChar(255)
+  description        String               @db.Text
+  points_required    Int
+  category           String               @db.VarChar(255)
+  total_claim        Int
+  createdAt          DateTime?            @default(now()) @db.Timestamp(0)
+  updatedAt          DateTime?            @default(now()) @db.Timestamp(0)
+  reward_redemptions reward_redemptions[]
 }
 
 model tutorials {
@@ -195,9 +250,10 @@ model users {
   id        Int         @id @default(autoincrement())
   username  String      @db.VarChar(255)
   email     String      @unique(map: "email") @db.VarChar(255)
-  contact   String      @db.VarChar(11)
   password  String      @db.VarChar(255)
+  contact   String?     @db.VarChar(11)
   hash_pass String      @db.Text
+  profile   String?     @db.VarChar(255)
   role      users_role  @default(MEMBER)
   createdAt DateTime?   @default(now()) @db.Timestamp(0)
   updatedAt DateTime?   @default(now()) @db.Timestamp(0)
@@ -205,9 +261,82 @@ model users {
   otp_codes otp_codes[]
 }
 
-enum notifications_recepient_type {
-  ADMIN
-  MEMBER
+model member_memberships {
+  id               Int                        @id @default(autoincrement())
+  member_id        Int
+  plan_id          Int
+  start_date       DateTime                   @db.Date
+  end_date         DateTime                   @db.Date
+  status           member_memberships_status? @default(Active)
+  created_at       DateTime?                  @default(now()) @db.Timestamp(0)
+  updated_at       DateTime?                  @default(now()) @db.Timestamp(0)
+  members          members                    @relation(fields: [member_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_member_membership_member")
+  membership_plans membership_plans           @relation(fields: [plan_id], references: [id], onUpdate: Restrict, map: "fk_member_membership_plan")
+  payments         payments[]
+
+  @@index([member_id], map: "fk_member_membership_member")
+  @@index([plan_id], map: "fk_member_membership_plan")
+}
+
+model reward_redemptions {
+  id          Int                        @id @default(autoincrement())
+  member_id   Int
+  reward_id   Int
+  points_used Int
+  status      reward_redemptions_status? @default(Pending)
+  redeemed_at DateTime?                  @default(now()) @db.Timestamp(0)
+  members     members                    @relation(fields: [member_id], references: [id], onUpdate: Restrict, map: "1")
+  rewards     rewards                    @relation(fields: [reward_id], references: [id], onUpdate: Restrict, map: "2")
+
+  @@index([member_id], map: "fk_reward_member_redeemed")
+  @@index([reward_id], map: "fk_reward_redeemed")
+}
+
+model body_progress {
+  id                  Int           @id @default(autoincrement())
+  goal_id             Int
+  member_id           Int
+  previous_weight     Decimal       @db.Decimal(5, 2)
+  current_weight      Decimal       @db.Decimal(5, 2)
+  target_weight       Decimal       @db.Decimal(5, 2)
+  progress_percentage Decimal       @default(0.00) @db.Decimal(5, 2)
+  weight_change       Decimal       @default(0.00) @db.Decimal(5, 2)
+  recorded_at         DateTime?     @default(now()) @db.DateTime(0)
+  fitness_goals       fitness_goals @relation(fields: [goal_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_progress_goal")
+  members             members       @relation(fields: [member_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_progress_member")
+
+  @@index([goal_id], map: "fk_progress_goal")
+  @@index([member_id], map: "fk_progress_member")
+}
+
+model fitness_goals {
+  id             Int                     @id @default(autoincrement())
+  member_id      Int
+  goal_type      fitness_goals_goal_type
+  status         fitness_goals_status    @default(ACTIVE)
+  start_weight   Decimal                 @db.Decimal(5, 2)
+  current_weight Decimal                 @db.Decimal(5, 2)
+  target_weight  Decimal                 @db.Decimal(5, 2)
+  completed_at   DateTime?               @db.DateTime(0)
+  created_at     DateTime?               @default(now()) @db.DateTime(0)
+  updated_at     DateTime?               @default(now()) @db.DateTime(0)
+  body_progress  body_progress[]
+  members        members                 @relation(fields: [member_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_goal_member")
+
+  @@index([member_id], map: "fk_goal_member")
+}
+
+model referrals {
+  id                                     Int       @id @default(autoincrement())
+  referrer_id                            Int
+  referee_id                             Int       @unique(map: "referee_id")
+  referrer_points                        Int
+  referee_points                         Int
+  referred_at                            DateTime? @default(now()) @db.Timestamp(0)
+  members_referrals_referee_idTomembers  members   @relation("referrals_referee_idTomembers", fields: [referee_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_referee")
+  members_referrals_referrer_idTomembers members   @relation("referrals_referrer_idTomembers", fields: [referrer_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_referrer")
+
+  @@index([referrer_id], map: "fk_referrer")
 }
 
 enum tutorials_level {
@@ -237,12 +366,6 @@ enum members_gender {
   Female
 }
 
-enum member_bills_status {
-  Pending
-  Paid
-  Overdue
-}
-
 enum users_role {
   ADMIN
   MEMBER
@@ -254,19 +377,47 @@ enum members_status {
   Suspended
 }
 
-enum activities_recepient_type {
+enum payments_payment_method {
+  Cash
+  GCash
+  Bank_Transfer @map("Bank Transfer")
+}
+
+enum member_memberships_status {
+  Active
+  Expired
+  Cancelled
+}
+
+enum payments_status {
+  Pending
+  Paid
+  Cancelled
+  Refunded
+}
+
+enum reward_redemptions_status {
+  Pending
+  Claimed
+  Cancelled
+}
+
+enum activities_recipient_type {
+  ADMIN
+  MEMBER
+}
+
+enum notifications_recipient_type {
   ADMIN
   MEMBER
 }
 
 enum activities_type {
-  MEMBER_ADDED
-  MEMBER_UPDATED
+  MEMBER
   CHECK_IN
   PAYMENT
-  REWARD_CLAIM
+  REWARD
   REGISTER
-  RENEWAL
 }
 
 enum notifications_type {
@@ -275,4 +426,14 @@ enum notifications_type {
   REWARD
   EXPIRY
   REMINDER
+}
+
+enum fitness_goals_goal_type {
+  LOSE_WEIGHT
+  GAIN_WEIGHT
+}
+
+enum fitness_goals_status {
+  ACHIEVED
+  ACTIVE
 }

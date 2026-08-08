@@ -22,6 +22,13 @@ export function useGetSummaryData() {
      queryFn: api.getSummaryDataApi,
    });
 }
+
+export function useGetRedeemedRewards() {
+  return useQuery({
+    queryKey: ["rewards-redemptions"],
+    queryFn: api.getRewardRedemptionsApi,
+  });
+}
  
 export function useCreateReward() {
    const queryClient = useQueryClient();
@@ -59,4 +66,16 @@ export function useDeleteReward() {
        queryClient.invalidateQueries({ queryKey: ['rewards-summary-data'] });
      },
    });
+}
+
+export function useUpdateRewardRedemptionsStatus() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ redemption_id, status }: { redemption_id: number, status: string }) => api.updateRewardRedemptionStatusApi(redemption_id, status),
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['rewards-redemptions'] });
+    },
+  });
 }

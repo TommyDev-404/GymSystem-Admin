@@ -5,8 +5,8 @@ const router = Router();
 
 router.get('/', controller.getAllNotificationsController)
 router.get("/count", controller.getNotificationCountController);
-router.patch("/:id/read", controller.markNotifAsReadController);
+router.patch("/:notif_id/read", controller.markNotifAsReadController);
 router.patch("/read-all", controller.markAllNotifAsReadController);
-router.delete("/:id", controller.deleteNotificationController);
+router.delete("/:notif_id", controller.deleteNotificationController);
  
 export default router;

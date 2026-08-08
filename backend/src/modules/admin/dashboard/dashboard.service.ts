@@ -133,8 +133,9 @@ export const getSummaryDataService = async () => {
 
       // Payments by this month
       const totalPaidThisMonth = await tx.payments.aggregate({
-         _sum: { amount_paid: true }, 
+         _sum: { amount: true }, 
          where: {
+            status: "Paid",
             created_at: {
                gte: startOfCurrentMonth
             }
@@ -142,8 +143,9 @@ export const getSummaryDataService = async () => {
       })
 
       const totalPaidPreviousMonth = await tx.payments.aggregate({
-         _sum: { amount_paid: true }, 
+         _sum: { amount: true }, 
          where: {
+            status: "Paid",
             created_at: {
                gte: startOfPreviousMonth,
                lt: startOfCurrentMonth
@@ -152,16 +154,17 @@ export const getSummaryDataService = async () => {
       })
 
       const paymentTrendThisMonth = getTrend(
-         Number(totalPaidThisMonth._sum.amount_paid ?? 0),
-         Number(totalPaidPreviousMonth._sum.amount_paid ?? 0)
+         Number(totalPaidThisMonth._sum.amount ?? 0),
+         Number(totalPaidPreviousMonth._sum.amount ?? 0)
       );
       
       // Total paid this year
       const totalPaidThisYear = await tx.payments.aggregate({
          _sum: {
-            amount_paid: true
+            amount: true
          },
          where: {
+            status: "Paid",
             created_at: {
                gte: startOfCurrentYear
             }
@@ -170,9 +173,10 @@ export const getSummaryDataService = async () => {
       
       const totalPaidPreviousYear = await tx.payments.aggregate({
          _sum: {
-            amount_paid: true
+            amount: true
          },
          where: {
+            status: "Paid",
             created_at: {
                gte: startOfPreviousYear,
                lt: startOfCurrentYear
@@ -181,8 +185,8 @@ export const getSummaryDataService = async () => {
       });
       
       const paymentTrendThisYear = getTrend(
-         Number(totalPaidThisYear._sum.amount_paid ?? 0),
-         Number(totalPaidPreviousYear._sum.amount_paid ?? 0)
+         Number(totalPaidThisYear._sum.amount ?? 0),
+         Number(totalPaidPreviousYear._sum.amount ?? 0)
       );
 
       return {
@@ -193,9 +197,9 @@ export const getSummaryDataService = async () => {
          presentTrend,
          totalMalePresent,
          totalFemalePresent,
-         totalPaidThisMonth: totalPaidThisMonth._sum.amount_paid ?? 0,
+         totalPaidThisMonth: totalPaidThisMonth._sum.amount ?? 0,
          paymentTrendThisMonth,
-         totalPaidThisYear: totalPaidThisYear._sum.amount_paid ?? 0,
+         totalPaidThisYear: totalPaidThisYear._sum.amount ?? 0,
          paymentTrendThisYear
       };
    });
@@ -203,41 +207,39 @@ export const getSummaryDataService = async () => {
 };
 
 export async function getMonthlyRevenueTrendService() {
-   const data = await prisma.$queryRaw<
-     { month: string; revenue: number }[]
+   return await prisma.$queryRaw<
+      { month: string; revenue: number }[]
    >`
       WITH RECURSIVE months AS (
          SELECT DATE_FORMAT(CURDATE(), '%Y-01-01') AS month_start
-     
+      
          UNION ALL
-     
+      
          SELECT DATE_ADD(month_start, INTERVAL 1 MONTH)
          FROM months
          WHERE month_start < DATE_FORMAT(CURDATE(), '%Y-%m-01')
-     )
-     
-     SELECT
+      )
+      
+      SELECT
          DATE_FORMAT(m.month_start, '%b') AS month,
-         COALESCE(SUM(p.amount_paid), 0) AS revenue
-     FROM months m
-     LEFT JOIN payments p
-         ON YEAR(p.paid_on) = YEAR(m.month_start)
-        AND MONTH(p.paid_on) = MONTH(m.month_start)
-     GROUP BY m.month_start
-     ORDER BY m.month_start;
+         COALESCE(SUM(p.amount), 0) AS revenue
+      FROM months m
+      LEFT JOIN payments p
+         ON YEAR(p.paid_at) = YEAR(m.month_start)
+         AND MONTH(p.paid_at) = MONTH(m.month_start)
+      GROUP BY m.month_start
+      ORDER BY m.month_start;
    `;
- 
-   return data;
 }
 
 export async function getWeeklyGuestAttendanceService() {
-  const data = await prisma.$queryRaw<
-    {
+   const data = await prisma.$queryRaw<
+      {
       day: string;
       count: number;
-    }[]
-  >`
-    WITH RECURSIVE days AS (
+      }[]
+   >`
+      WITH RECURSIVE days AS (
       SELECT DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY) AS attendance_date
 
       UNION ALL
@@ -245,130 +247,127 @@ export async function getWeeklyGuestAttendanceService() {
       SELECT DATE_ADD(attendance_date, INTERVAL 1 DAY)
       FROM days
       WHERE attendance_date < DATE_ADD(
-        DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY),
-        INTERVAL 6 DAY
+         DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY),
+         INTERVAL 6 DAY
       )
-    )
+      )
 
-    SELECT
+      SELECT
       DAYNAME(d.attendance_date) AS day,
       COALESCE(COUNT(a.id), 0) AS count
-    FROM days d
-    LEFT JOIN attendance a
+      FROM days d
+      LEFT JOIN attendance a
       ON DATE(a.check_in_time) = d.attendance_date
       AND a.member_id IS NOT NULL
-    GROUP BY d.attendance_date
-    ORDER BY d.attendance_date;
-  `;
+      GROUP BY d.attendance_date
+      ORDER BY d.attendance_date;
+   `;
 
-  return data.map(item => ({
-    day: item.day,
-    presentMembers: Number(item.count),
-  }));
+   return data.map(item => ({
+      day: item.day,
+      presentMembers: Number(item.count),
+   }));
 }
 
 export async function getMembershipStatusService() {
    const data = await prisma.members.groupBy({
-     by: ["status"],
-     _count: {
-       status: true,
-     },
+      by: ["status"],
+      _count: {
+         status: true,
+      },
    });
  
    const statusMap = new Map(
-     data.map((item) => [
-       item.status,
-       item._count.status,
-     ])
+      data.map((item) => [
+         item.status,
+         item._count.status,
+      ])
    );
  
    return [
-     {
-       name: "Active",
-       value: statusMap.get("Active") ?? 0,
-     },
-     {
-       name: "Inactive",
-       value: statusMap.get("Inactive") ?? 0,
-     },
-     {
-       name: "Suspended",
-       value: statusMap.get("Suspended") ?? 0,
-     },
+      {
+         name: "Active",
+         value: statusMap.get("Active") ?? 0,
+      },
+      {
+         name: "Inactive",
+         value: statusMap.get("Inactive") ?? 0,
+      },
+      {
+         name: "Suspended",
+         value: statusMap.get("Suspended") ?? 0,
+      },
    ];
 }
 
 export async function getGenderDistributionService() {
    const data = await prisma.members.groupBy({
-     by: ["gender"],
-     _count: {
-       gender: true,
-     },
+      by: ["gender"],
+      _count: {
+         gender: true,
+      },
    });
  
    const genderMap = new Map(
-     data.map((item) => [
-       item.gender,
-       item._count.gender,
-     ])
+      data.map((item) => [
+         item.gender,
+         item._count.gender,
+      ])
    );
  
    return [
-     {
-       name: "Male",
-       value: genderMap.get("Male") ?? 0,
-     },
-     {
-       name: "Female",
-       value: genderMap.get("Female") ?? 0,
-     },
+      {
+         name: "Male",
+         value: genderMap.get("Male") ?? 0,
+      },
+      {
+         name: "Female",
+         value: genderMap.get("Female") ?? 0,
+      },
    ];
 }
 
 export async function getTopClaimedRewardsService() {
    const rewards = await prisma.rewards.findMany({
-     select: {
-       name: true,
-       total_claim: true,
-     },
-     orderBy: {
-       total_claim: "desc",
-     },
-     take: 5,
+      select: {
+         name: true,
+         total_claim: true,
+      },
+      orderBy: {
+         total_claim: "desc",
+      },
+      take: 5,
    });
  
    return rewards.map((reward) => ({
-     name: reward.name,
-     claimed: reward.total_claim,
+      name: reward.name,
+      claimed: reward.total_claim,
    }));
 }
  
 export async function getRecentActivityService(){
    const activities = await prisma.activities.findMany({
       where: {
-         recepient_type: 'ADMIN'
+         recipient_type: 'ADMIN'
       },
-     take:5,
-     orderBy:{
-       created_at:"desc"
-     },
-     include:{
-       members:{
-         select:{
-           fullname:true
-         }
-       },
-     }
+      take:5,
+      orderBy:{ created_at:"desc"},
+      include:{
+         members:{
+            select:{
+               fullname:true
+            }
+         },
+      }
    });
- 
+
    return activities.map(activity => ({
-     name: activity.title,
-     
-     action: activity.description,
-     time: activity.created_at?.toISOString(),
-     avatar: activity.members?.fullname
-       ?.split(" ")
-       .map(x => x[0])
-       .join("")
+      name: activity.title,
+      action: activity.description,
+      time: activity.created_at?.toISOString(),
+      avatar: activity.members?.fullname
+         ?.split(" ")
+         .map(x => x[0])
+         .join("")
    }));
 }

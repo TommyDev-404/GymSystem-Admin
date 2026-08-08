@@ -2,10 +2,10 @@ import type { typeConfig } from "../constants/typeConfig";
 
 export type Notifications = {
    id: number;
-   recepient_id: number;
+   recipient_id: number;
    type: keyof typeof typeConfig;
    title: string;
-   message: string;
+   description: string;
    is_read: boolean;
    created_at: Date;
 };

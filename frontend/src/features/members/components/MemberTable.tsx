@@ -2,6 +2,7 @@ import { useState } from "react";
 import {
   Edit,
   Mail,
+  RefreshCcw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -32,6 +33,7 @@ import { getInitials } from "@/utils/initials";
 import { useUpdateMemberStatus } from "../hooks/useMember";
 import { toast } from "sonner";
 import { TableLoader } from "@/components/shared/TableLoader";
+import RenewMembershipDialog from "./RenewMembershipDialog";
 
 
 const planColors: Record<string, string> = {
@@ -56,6 +58,8 @@ export function MemberTable({members, isLoading}: Props) {
 
   const [resendMember, setResendMember] = useState<Member | null>(null);
   const [openMemberModal, setOpenMemberModal] = useState(false);
+  const [renewMember, setRenewMember] = useState(null);
+  const [renewOpen, setRenewOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
 
   const handleEdit = (member: Member) => {
@@ -89,6 +93,7 @@ export function MemberTable({members, isLoading}: Props) {
         <CardContent className="p-0">
           <Table>
 
+            {/* HEADER */}
             <TableHeader>
               <TableRow>
                 <TableHead className={TH_CLASS}>
@@ -108,7 +113,7 @@ export function MemberTable({members, isLoading}: Props) {
                 </TableHead>
 
                 <TableHead className={TH_CLASS}>
-                  Joined
+                  Membership Ends
                 </TableHead>
 
                 <TableHead className={TH_CLASS}>
@@ -183,7 +188,7 @@ export function MemberTable({members, isLoading}: Props) {
                           ]}
                         `}
                       >
-                        {member.membership_plans.plan_name}
+                        {`${member.membership_plans.plan_name} (${member.membership_plans.duration} ${member.membership_plans.duration_type})`}
                       </Badge>
                     </TableCell>
 
@@ -243,29 +248,68 @@ export function MemberTable({members, isLoading}: Props) {
                     {/* ACTIONS */}
                     <TableCell>
                       <div className="flex justify-left gap-1">
+
+                        {/* RENEW */}
                         <Button
                           size="icon"
                           variant="ghost"
-                          className="hover:bg-emerald-50 dark:hover:bg-emerald-900/30"
+                          className="
+                            hover:bg-emerald-50
+                            dark:hover:bg-emerald-900/30
+                          "
+                          onClick={() => {
+                            setRenewMember(member);
+                            setRenewOpen(true);
+                          }}
+                        >
+                          <RefreshCcw
+                            size={16}
+                            className="
+                              text-emerald-600
+                              dark:text-emerald-400
+                            "
+                          />
+                        </Button>
+                        
+                        {/* RESEND ACTIVATION CODE */}
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="
+                            hover:bg-emerald-50
+                            dark:hover:bg-emerald-900/30
+                          "
                           onClick={() => setResendMember(member)}
                         >
                           <Mail
                             size={16}
-                            className="text-emerald-600 dark:text-emerald-400"
+                            className="
+                              text-blue-600
+                              dark:text-blue-400
+                            "
                           />
                         </Button>
 
+                        {/* EDIT */}
                         <Button
                           size="icon"
                           variant="ghost"
-                          className="hover:bg-slate-100 dark:hover:bg-slate-800"
+                          className="
+                            hover:bg-slate-100
+                            dark:hover:bg-slate-800
+                          "
                           onClick={() => handleEdit(member)}
                         >
                           <Edit
                             size={16}
-                            className="text-slate-700 dark:text-slate-300"
+                            className="
+                              text-slate-700
+                              dark:text-slate-300
+                            "
                           />
                         </Button>
+
+
                       </div>
                     </TableCell>
 
@@ -289,11 +333,21 @@ export function MemberTable({members, isLoading}: Props) {
         onClose={() =>setResendMember(null)}
       />
 
-      {/* ADD / EDIT */}
+      {/* ADD */}
       <MemberModal
         open={openMemberModal}
         setOpen={setOpenMemberModal}
         member={selectedMember}
+      />
+
+      {/* RENEW MEMBERSHIP*/}
+      <RenewMembershipDialog
+        open={renewOpen}
+        setOpen={setRenewOpen}
+        member={renewMember}
+        onRenew={() => {
+          console.log("renew membership");
+        }}
       />
     </>
   );

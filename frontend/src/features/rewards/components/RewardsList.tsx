@@ -50,9 +50,6 @@ export function RewardsList({ rewards }: { rewards: Rewards[] }) {
   return (
     <>
       <div className="lg:col-span-2 space-y-3">
-        <h3 className="text-slate-700 dark:text-slate-200 font-medium">
-          Available Rewards
-        </h3>
 
         {rewards.length > 0 ? (
           rewards.map((r) => {
@@ -129,7 +126,9 @@ export function RewardsList({ rewards }: { rewards: Rewards[] }) {
             );
           })
         ) : (
-          <EmptyReward />
+            <div className="flex min-h-[400px] items-center justify-center">
+              <EmptyReward />
+            </div>
         )}
       </div>
 

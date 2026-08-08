@@ -13,5 +13,5 @@ export type WorkoutType = {
 export type WorkoutFilters = {
    search?: string | undefined;
    level?: "Beginner" | 'Intermediate' | 'Advanced' | undefined;
-   //category?: "Inactive" | "Active" | "Suspended" | undefined;
+   category?: string | undefined;
 };

@@ -117,7 +117,7 @@ export function DashboardPage() {
         />
 
         <StatCard
-          title="Total Paid"
+          title="Monthly Revenue"
           value={new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP'}).format(summaryData?.totalPaidThisMonth ?? 0)}
           sub="This month"
           icon={DollarSign}
@@ -128,7 +128,7 @@ export function DashboardPage() {
         />
 
         <StatCard
-          title="Overall Income"
+          title="Yearly Income"
           value={new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP'}).format(summaryData?.totalPaidThisYear ?? 0)}
           sub="This year"
           icon={TrendingUp}

@@ -12,16 +12,15 @@ export const uploadImageToSupabase = async (file: Express.Multer.File) => {
   const fileName = `${Date.now()}-${file.originalname}`;
 
   const { error } = await supabase.storage
-    .from("demo_workout_images")
+    .from("gym_images")
     .upload(fileName, file.buffer, {
       contentType: file.mimetype,
     });
 
-  console.log(error);
   if (error) throw error;
 
   const { data } = supabase.storage
-    .from("demo_workout_images")
+    .from("gym_images")
     .getPublicUrl(fileName);
 
   return data.publicUrl;
@@ -49,7 +48,7 @@ export const createTutorialService = async (
       muscles_targeted: JSON.stringify(normalizeArray(body.muscles_targeted)),
 
       demo_images: JSON.stringify(urls),
-    },
+    }
   });
 
   return {
@@ -60,7 +59,9 @@ export const createTutorialService = async (
 };
 
 export const getAllTutorialsService = async (filters: WorkoutFilters) => {
-  const { search, level } = filters;
+  const { search, level, category } = filters;
+  
+  const trimmedCategory = category?.trim();
 
   return await prisma.tutorials.findMany({
     where: {
@@ -71,6 +72,8 @@ export const getAllTutorialsService = async (filters: WorkoutFilters) => {
           contains: search,
         },
       }),
+
+      ...(category && { category: trimmedCategory })
     },
     select: {
       id: true,
@@ -116,7 +119,6 @@ export const updateTutorialService = async (
 
   // Array fields
   if (body.equipment !== undefined) {
-    console.log('Equipment is array...');
     updateData.equipment = JSON.stringify(
       normalizeArray(body.equipment)
     );
@@ -150,13 +152,11 @@ export const updateTutorialService = async (
       existingTutorial.demo_images
     );
 
-
     const uploadedImages = await Promise.all(
       files.map((file) =>
         uploadImageToSupabase(file)
       )
     );
-
 
     updateData.demo_images = JSON.stringify([
       ...oldImages,

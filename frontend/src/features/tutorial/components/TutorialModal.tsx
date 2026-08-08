@@ -301,8 +301,6 @@ export function TutorialModal({
 		files.forEach(file =>
 			formData.append("demo_images", file)
 		);
-
-		console.log("Data: ", formData);
 		
 		createTutorial(formData, {
 			onSuccess() {

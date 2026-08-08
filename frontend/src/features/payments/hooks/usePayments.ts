@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import * as api from "@/features/payments/api/payments.api";
-import type { CreatePaymentDTO, PaymentFilters, UnpaidMember } from "../types/payment";
+import type { CreatePaymentDTO, PaymentFilters, UnpaidMember } from "../types/PaymentTypes";
 
 export function usePayments(params?: PaymentFilters) {
   return useQuery({

@@ -6,6 +6,6 @@ const router = Router();
 router.get("/", controller.getPlansController);
 router.post("/create", controller.createPlanController);
 router.patch("/update", controller.updatePlanController);
-router.delete("/delete/:id", controller.deletePlanController);
+router.delete("/delete/:plan_id", controller.deletePlanController);
 
 export default router;

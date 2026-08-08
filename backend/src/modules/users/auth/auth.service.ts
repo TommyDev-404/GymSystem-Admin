@@ -3,6 +3,7 @@ import { prisma } from "../../../lib/prisma";
 import { sendMail } from "../../../utils/mailer";
 import jwt from "jsonwebtoken";
 
+
 export const loginUser = async (
 	email: string,
 	password: string
@@ -69,12 +70,14 @@ export const loginUser = async (
 	return {
 	  message: "Login successful",
 	  token,
- 
+
 	  user: {
 		 id: user.id,
 		 memberId,
 		 username: user.username,
 		 email: user.email,
+		 profile: user.profile,
+		 pass_last_changed: user.updatedAt
 	  },
 	};
 };
@@ -93,6 +96,7 @@ export const verifyActivationCode = async (code: string) => {
 		},
 	});
 
+	console.log(activation);
 	if (!activation) {
 		throw new Error("Invalid or expired activation code");
 	}
@@ -133,7 +137,6 @@ export const completeRegistration = async (
       username: member.fullname,
       email: member.email,
 		password: password,
-      contact: "",
       hash_pass: hashedPassword,
       role: "MEMBER",
     },
@@ -272,7 +275,7 @@ export const resetPassword = async (email: string, newPassword: string) => {
 
 	const hashed = await bcrypt.hash(newPassword, 10);
 
-	await prisma.users.update({
+	const res = await prisma.users.update({
 		where: { email },
 		data: {
 			password: newPassword,
@@ -294,5 +297,8 @@ export const resetPassword = async (email: string, newPassword: string) => {
 	return {
 		success: true,
 		message: "Password reset successful",
+		data: { 
+			updated_at: res.updatedAt
+		}
 	};
 };

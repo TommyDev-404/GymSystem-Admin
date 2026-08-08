@@ -89,7 +89,7 @@ export function NotificationsList({
                       </p>
   
                       <p className="text-slate-500 text-xs mt-0.5">
-                        {n.message}
+                        {n.description}
                       </p>
                     </div>
   
@@ -116,7 +116,7 @@ export function NotificationsList({
                   </div>
   
                   <p className="text-slate-400 text-xs mt-1.5">
-                    {formatTimeAgo(n.created_at)} ago
+                    {formatTimeAgo(n.created_at)}
                   </p>
                 </div>
   

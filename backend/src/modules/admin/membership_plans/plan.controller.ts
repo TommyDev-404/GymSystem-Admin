@@ -1,49 +1,50 @@
 import { Request, Response } from "express";
 import * as service from "./plan.service";
 
-export const getPlansController = async (
-  req: Request,
-  res: Response
-) => {
-  const plans = await service.getPlansService();
+export const getPlansController = async (req: Request, res: Response) => {
+	try {
+		const plans = await service.getPlansService();
 
-  return res.json(plans);
+		return res.status(200).json(plans);
+	} catch (error: any) {
+		return res.status(500).json({
+			message: error.message
+		})
+	}
 };
 
-export const createPlanController = async (
-  req: Request,
-  res: Response
-) => {
-  const plan = await service.createPlanService(req.body);
+export const createPlanController = async (req: Request, res: Response) => {
+	try {
+		const result = await service.createPlanService(req.body);
 
-  return res.status(201).json({
-    success: true,
-    message: "Plan created successfully"
-  });
+		return res.status(200).json(result);
+	} catch (error: any) {
+		return res.status(500).json({
+			message: error.message
+		})
+	}
 };
 
-export const updatePlanController = async (
-  req: Request,
-  res: Response
-) => {
-  const plan = await service.updatePlansService(req.body);
+export const updatePlanController = async (req: Request, res: Response) => {
+	try {
+		const result = await service.updatePlansService(req.body);
 
-  return res.json({
-    success: true,
-    message: "Plan updated successfully"
-  });
+		return res.status(200).json(result);
+	} catch (error: any) {
+		return res.status(500).json({
+			message: error.message
+		})
+	}
 };
 
-export const deletePlanController = async (
-  req: Request,
-  res: Response
-) => {
-  const id = Number(req.params.id);; // Log the ID for debugging
+export const deletePlanController = async (req: Request, res: Response) => {
+	try {
+		const result = await service.deletePlanService(Number(req.params.plan_id));
 
-  await service.deletePlanService(id);
-
-  return res.json({
-    success: true,
-    message: "Plan deleted successfully",
-  });
+		return res.json(result);
+	} catch (error: any) {
+		return res.status(500).json({
+			message: error.message
+		})
+	}
 };

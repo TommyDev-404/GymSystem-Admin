@@ -27,7 +27,7 @@ export function NotificationsPage() {
     });
   };
 
-  const unreadCount = notifCount?.unreadCount ?? 0;
+   const unreadCount = notifCount?.unreadCount ?? 0;
 
    return (
       <div className="space-y-5">
@@ -52,14 +52,9 @@ export function NotificationsPage() {
                   {unreadCount === 0 ? "You have no new notifications" : `${unreadCount} unread notification${unreadCount > 1 ? "s" : ""}`}
                </p>
                
-               {unreadCount > 0 && (
-                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-500 text-white text-xs font-medium">
-                     {unreadCount}
-                  </span>
-               )}
             </div>
 
-            {unreadCount === 0 && (
+            {unreadCount > 0  && (
                <Button
                   className="
                      bg-emerald-500

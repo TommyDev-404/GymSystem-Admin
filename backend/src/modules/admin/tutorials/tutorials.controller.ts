@@ -2,13 +2,12 @@ import { Request, Response } from "express";
 import * as service from "./tutorials.service";
 
 export const createTutorial = async (req: Request, res: Response) => {
-  console.log(req.body, req.files)
   try {
     const body = req.body;
-     const files = req.files as Express.Multer.File[];
+    const files = req.files as Express.Multer.File[];
      
     const result = await service.createTutorialService(body, files);
-    console.log(result)
+    
     res.json(result);
   } catch (err) {
     res.status(500).json({ error: "Upload failed" });

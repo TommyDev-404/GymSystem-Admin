@@ -72,7 +72,7 @@ export function RewardsLeaderboard({ memberProgress }: { memberProgress: Member[
               );
             })
           ) : (
-            <div className="flex min-h-[300px] flex-col items-center justify-center text-center">
+            <div className="flex min-h-[350px] flex-col items-center justify-center text-center">
               <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 dark:bg-stone-800">
                 <Trophy className="h-7 w-7 text-muted-foreground" />
               </div>

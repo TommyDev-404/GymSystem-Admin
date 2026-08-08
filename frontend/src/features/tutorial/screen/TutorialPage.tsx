@@ -47,7 +47,8 @@ export function TutorialsPage() {
   const params = useMemo(() => ({
     search: search || undefined,
     level: filterLevel !== "All" ? filterLevel : undefined,
-  }), [search, filterLevel]);
+    category: filterCat !== "All" ? filterCat : undefined,
+  }), [search, filterLevel, filterCat]);
 
   const { data: tutorialsData = [], isLoading } = useGetAllTutorials(params);
   
@@ -57,22 +58,6 @@ export function TutorialsPage() {
     muscles_targeted: JSON.parse(tutorial.muscles_targeted),
     demo_images: JSON.parse(tutorial.demo_images),
   })) ?? [];
-
-  const filtered = tutorials.filter((w: Workout) => {
-    const matchSearch =
-      w.name.toLowerCase().includes(search.toLowerCase()) ||
-      w.muscles_targeted.some((m) =>
-        m.toLowerCase().includes(search.toLowerCase())
-      );
-
-    const matchCat =
-      filterCat === "All" || w.category === filterCat;
-
-    const matchLevel =
-      filterLevel === "All" || w.level === filterLevel;
-
-    return matchSearch && matchCat && matchLevel;
-  });
 
   const handleDelete = (id: number) => {
     deleteTutorial(id, {
@@ -145,9 +130,9 @@ export function TutorialsPage() {
       {/* GRID */}
       {isLoading ? (
         <Loader/>
-      ) : filtered.length > 0 ?
+      ) : tutorials.length > 0 ?
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-          {filtered.map((w: Workout) => (
+          {tutorials.map((w: Workout) => (
             <TutorialCard
               key={w.id}
               workout={w}

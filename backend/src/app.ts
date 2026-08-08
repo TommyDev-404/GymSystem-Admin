@@ -5,22 +5,27 @@ import { errorHandler } from "./middlewares/errorHandler";
 import { startSessionScheduler } from "./modules/admin/session/session.scheduler";
 
 import adminAuthRoutes from "./modules/admin/auth/auth.routes";
-import dashboardRoutes from "./modules/admin/dashboard/dashboard.routes";
-import memberRoutes from "./modules/admin/members/members.route";
-import sessionRoutes from "./modules/admin/session/session.routes";
-import attendanceRoutes from "./modules/admin/attendance/attendance.routes";
-import paymentRoutes from "./modules/admin/payments/payments.routes";
-import plansRoutes from "./modules/admin/membership_plans/plan.routes";
-import tutorialRoutes from "./modules/admin/tutorials/tutorials.routes";
-import rewardsRoutes from "./modules/admin/rewards/rewards.routes";
-import profileRoutes from "./modules/admin/profile/profile.routes";
-import notifRoutes from "./modules/admin/notifications/notif.routes";
+import adminDashboardRoutes from "./modules/admin/dashboard/dashboard.routes";
+import adminMemberRoutes from "./modules/admin/members/members.route";
+import adminSessionRoutes from "./modules/admin/session/session.routes";
+import adminAttendanceRoutes from "./modules/admin/attendance/attendance.routes";
+import adminPaymentRoutes from "./modules/admin/payments/payments.routes";
+import adminPlansRoutes from "./modules/admin/membership_plans/plan.routes";
+import adminTutorialRoutes from "./modules/admin/tutorials/tutorials.routes";
+import adminRewardsRoutes from "./modules/admin/rewards/rewards.routes";
+import adminProfileRoutes from "./modules/admin/profile/profile.routes";
+import adminNotificationRoutes from "./modules/admin/notifications/notif.routes";
 
-import checkinRoutes from "./modules/users/checkin/checkin.routes";
+import checkInRoutes from "./modules/users/checkin/checkin.routes";
 import authRoutes from "./modules/users/auth/auth.routes";
 import workoutRoutes from "./modules/users/workout/workout.routes";
 import homeRoutes from "./modules/users/home/home.routes";
-import notif2Routes from "./modules/users/notifications/notif.routes";
+import communityRoutes from "./modules/users/community/community.routes";
+import notificationRoutes from "./modules/users/notifications/notif.routes";
+import userProfileRoutes from "./modules/users/profile/profile.routes";
+import userPaymentRoutes from "./modules/users/payment-history/payment.routes";
+import userRewardRoutes from "./modules/users/reward/reward.routes";
+import userReferralRoutes from "./modules/users/referral-program/referral.routes";
 
 const app = express();
 
@@ -52,23 +57,28 @@ startSessionScheduler();
 
 // ==================== Admin Routes ===================
 app.use("/admin/auth", adminAuthRoutes);
-app.use("/admin/dashboard", dashboardRoutes);
-app.use("/admin/members", memberRoutes);
-app.use("/admin/session", sessionRoutes);
-app.use("/admin/attendance", attendanceRoutes);
-app.use("/admin/payments", paymentRoutes);
-app.use("/admin/plans", plansRoutes);
-app.use("/admin/tutorial", tutorialRoutes);
-app.use("/admin/reward", rewardsRoutes);
-app.use("/admin/profile", profileRoutes);
-app.use("/admin/notifications", notifRoutes);
+app.use("/admin/dashboard", adminDashboardRoutes);
+app.use("/admin/members", adminMemberRoutes);
+app.use("/admin/session", adminSessionRoutes);
+app.use("/admin/attendance", adminAttendanceRoutes);
+app.use("/admin/payments", adminPaymentRoutes);
+app.use("/admin/plans", adminPlansRoutes);
+app.use("/admin/tutorial", adminTutorialRoutes);
+app.use("/admin/reward", adminRewardsRoutes);
+app.use("/admin/profile", adminProfileRoutes);
+app.use("/admin/notifications", adminNotificationRoutes);
 
 // ==================== Users Routes ===================
 app.use("/auth", authRoutes);
-app.use("/check-in", checkinRoutes);
+app.use("/check-in", checkInRoutes);
+app.use("/payment-history", userPaymentRoutes);
 app.use("/workout", workoutRoutes);
 app.use("/home", homeRoutes);
-app.use("/notifications", notif2Routes);
+app.use("/community", communityRoutes);
+app.use("/notifications", notificationRoutes);
+app.use("/profile", userProfileRoutes);
+app.use("/reward", userRewardRoutes);
+app.use("/referral", userReferralRoutes);
 
 // ==================== Health Check ====================
 app.get("/health", (_req, res) => {

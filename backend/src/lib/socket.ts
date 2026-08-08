@@ -11,15 +11,10 @@ export const initSocket = (server: any) => {
 
 
   io.on("connection", (socket) => {
-    console.log("Socket connected:", socket.id);
 
 
     socket.on("join-admin", () => {
       socket.join("admin-room");
-
-      console.log(
-        `${socket.id} joined admin room`
-      );
     });
 
 
@@ -31,19 +26,12 @@ export const initSocket = (server: any) => {
           `member-${memberId}`
         );
 
-        console.log(
-          `${socket.id} joined member-${memberId}`
-        );
-
       }
     );
 
 
     socket.on("disconnect", () => {
-      console.log(
-        "Socket disconnected:",
-        socket.id
-      );
+
     });
 
   });

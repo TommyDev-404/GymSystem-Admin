@@ -22,7 +22,7 @@ export function RecentActivity({ data }: RecentActivityProps) {
 
       <CardContent className="space-y-3">
 
-        {data.length === 1 ? (
+        {data.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-8 text-center">
             <Clock
               size={32}

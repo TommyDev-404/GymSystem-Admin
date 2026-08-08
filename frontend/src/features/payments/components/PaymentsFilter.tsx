@@ -3,7 +3,7 @@ import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import type { FilterType } from "../types/payment";
+import type { FilterType } from "../types/PaymentTypes";
 
 interface Props {
   search: string;
@@ -21,8 +21,7 @@ export function PaymentFilters({
 
   const statuses = [
     "Paid",
-    "Pending",
-    "Overdue",
+    "Pending"
   ];
 
   return (
@@ -76,6 +75,8 @@ export function PaymentFilters({
               `}
             >
               {status}
+
+              
             </Button>
           ))}
         </div>

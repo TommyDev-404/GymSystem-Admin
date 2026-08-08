@@ -79,10 +79,10 @@ export const checkInService = async (
     await tx.activities.create({
       data: {
         type: "CHECK_IN",
-        recepient_type: "ADMIN",
+        recipient_type: "ADMIN",
         title: "Member Check-in",
         description: `${member.fullname} checked in`,
-        member_id: memberId
+        recipient_id: memberId
       }
     });
 
@@ -90,22 +90,21 @@ export const checkInService = async (
     await tx.activities.create({
       data: {
         type: "CHECK_IN",
-        recepient_type: "MEMBER",
+        recipient_type: "MEMBER",
         title: "Checked in",
         description: "You checked in today",
-        member_id: memberId
+        recipient_id: memberId
       }
     });
 
     // 5. Notification
     await tx.notifications.create({
       data: {
-        recepient_id: memberId,
-        recepient_type: "MEMBER",
+        recipient_id: memberId,
+        recipient_type: "MEMBER",
         type: "REWARD",
-        reference_type: "CHECK_IN_REWARD",
         title: "You earned points!",
-        message: "Check-in complete! +10 points earned."
+        description: "Check-in complete! +10 points earned."
       }
     });
 

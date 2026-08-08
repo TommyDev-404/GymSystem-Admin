@@ -53,6 +53,7 @@ export function MemberModal({
       age: member?.age || 0,
       gender: member?.gender || undefined,
       plan_id: member?.plan_id || undefined,
+      referral_code: "",
     },
   });
 
@@ -65,6 +66,7 @@ export function MemberModal({
         age: member.age,
         gender: member.gender,
         plan_id: member.plan_id,
+        referral_code: member.referral_code || "",
       });
     } else {
       reset({
@@ -73,6 +75,7 @@ export function MemberModal({
         age: 0,
         gender: undefined,
         plan_id: undefined,
+        referral_code: "",
       });
     }
   }, [member, reset]);
@@ -86,6 +89,7 @@ export function MemberModal({
         age: 0,
         gender: undefined,
         plan_id: undefined,
+        referral_code: "",
       });
     }
   }, [open]);
@@ -325,99 +329,132 @@ export function MemberModal({
             </div>
           </div>
 
-          {/* MEMBERSHIP */}
-          <div className="space-y-4">
-            <p className="
-              text-xs
-              font-semibold
-              uppercase
-              tracking-wide
-              text-slate-400
-              dark:text-slate-500
-            ">
-              Membership
-            </p>
+          {/* REFERRAL CODE */}
+          <div className="space-y-1.5">
 
-            {/* PLAN */}
-            <div className="space-y-1.5">
-              <label
-                className="
-                  text-sm
-                  font-medium
-                  text-slate-700
-                  dark:text-slate-200
-                "
-              >
-                Membership Plan
-              </label>
+            <label
+              className="
+                text-sm
+                font-medium
+                text-slate-700
+                dark:text-slate-200
+              "
+            >
+              Referral Code
+            </label>
 
-              <Controller
-                control={control}
-                name="plan_id"
-                render={({ field }) => (
-                  <Select
-                    value={
-                      field.value
-                        ? String(field.value)
-                        : ""
-                    }
-                    onValueChange={(val) =>
-                      field.onChange(Number(val))
-                    }
-                  >
 
-                    <SelectTrigger
-                      className="
-                        bg-white
-                        dark:bg-stone-800
-                        border-slate-200
-                        dark:border-stone-700
-                        text-slate-700
-                        dark:text-slate-200
-                        w-full
-                        py-5.5
-                      "
-                    >
-                      <SelectValue placeholder={plans.length > 0 ? "Select membership plan" : "No available membership plan."}/>
-                    </SelectTrigger>
-
-                    <SelectContent
-                      className="
-                        bg-white
-                        dark:bg-stone-900
-                        border-slate-200
-                        dark:border-stone-700
-                        py-2
-                      "
-                    >
-                      {plans.length !== 0 &&
-                        plans.map(
-                          (
-                            p: {
-                              id: number;
-                              plan_name: string;
-                              duration: number;
-                              duration_type: string;
-                            }
-                          ) => (
-                            <SelectItem
-                              key={p.id}
-                              value={String(p.id)}
-                            >
-                              {`${p.plan_name} (${p.duration} ${p.duration_type.toLowerCase()})`}
-                            </SelectItem>
-                          )
-                        )
-                      }
-                    </SelectContent>
-
-                  </Select>
-                )}
-              />
-
-            </div>
+            <Input
+              {...register("referral_code")}
+              placeholder="Enter referral code (optional)"
+              className="
+                h-11
+                bg-white
+                dark:bg-stone-800
+                border-slate-200
+                dark:border-stone-700
+                text-slate-700
+                dark:text-slate-200
+              "
+            />
 
           </div>
+          
+          {/* MEMBERSHIP */}
+          {!member && 
+            <div className="space-y-4">
+              <p className="
+                text-xs
+                font-semibold
+                uppercase
+                tracking-wide
+                text-slate-400
+                dark:text-slate-500
+              ">
+                Membership
+              </p>
+
+              {/* PLAN */}
+              <div className="space-y-1.5">
+                <label
+                  className="
+                    text-sm
+                    font-medium
+                    text-slate-700
+                    dark:text-slate-200
+                  "
+                >
+                  Membership Plan
+                </label>
+
+                <Controller
+                  control={control}
+                  name="plan_id"
+                  render={({ field }) => (
+                    <Select
+                      value={
+                        field.value
+                          ? String(field.value)
+                          : ""
+                      }
+                      onValueChange={(val) =>
+                        field.onChange(Number(val))
+                      }
+                    >
+
+                      <SelectTrigger
+                        className="
+                          bg-white
+                          dark:bg-stone-800
+                          border-slate-200
+                          dark:border-stone-700
+                          text-slate-700
+                          dark:text-slate-200
+                          w-full
+                          py-5.5
+                        "
+                      >
+                        <SelectValue placeholder={plans.length > 0 ? "Select membership plan" : "No available membership plan."}/>
+                      </SelectTrigger>
+
+                      <SelectContent
+                        className="
+                          bg-white
+                          dark:bg-stone-900
+                          border-slate-200
+                          dark:border-stone-700
+                          py-2
+                        "
+                      >
+                        {plans.length !== 0 &&
+                          plans.map(
+                            (
+                              p: {
+                                id: number;
+                                plan_name: string;
+                                duration: number;
+                                duration_type: string;
+                              }
+                            ) => (
+                              <SelectItem
+                                key={p.id}
+                                value={String(p.id)}
+                              >
+                                {`${p.plan_name} (${p.duration} ${p.duration_type.toLowerCase()})`}
+                              </SelectItem>
+                            )
+                          )
+                        }
+                      </SelectContent>
+
+                    </Select>
+                  )}
+                />
+
+              </div>
+
+            </div>
+          }
 
           {/* ACTIONS */}
           <div className="

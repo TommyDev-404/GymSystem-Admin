@@ -1,188 +1,211 @@
 import { prisma } from "../../../lib/prisma";
-import { createPaymentNotifForMemberService } from "../notifications/notif.service";
 import { PaymentFilterDTO } from "./payments.types";
 
 export const getSummaryDataService = async () => {
+  
+  const startOfMonth = new Date();
+  startOfMonth.setDate(1);
+  startOfMonth.setHours(0, 0, 0, 0);
+
+  const endOfMonth = new Date();
+  endOfMonth.setMonth(endOfMonth.getMonth() + 1);
+  endOfMonth.setDate(0);
+  endOfMonth.setHours(23, 59, 59, 999);
+
   return await prisma.$transaction(async (tx) => {
     const paid = await tx.payments.aggregate({
-      _sum: { amount_paid: true },
+      where: { status: 'Paid' },
+      _sum: { amount: true },
       _count: { id: true }
     })
 
-    const pending = await tx.member_bills.aggregate({
+    const pending = await tx.payments.aggregate({
       where: { status: 'Pending' },
       _count: { member_id: true },
-      _sum: { amount_due: true }
+      _sum: { amount: true }
     });
 
-    const overdue = await tx.member_bills.aggregate({
-      where: { status: 'Overdue' },
-      _count: { member_id: true },
-      _sum: { amount_due: true }
+    const monthly = await tx.payments.aggregate({
+      where: {
+        status: "Paid",
+        paid_at: {
+          gte: startOfMonth,
+          lte: endOfMonth,
+        },
+      },
+      _count: { member_id: true},
+      _sum: { amount: true},
     });
 
     return {
       totalPaid: paid._count.id ?? 0,
-      totalPaidAmount: paid._sum.amount_paid ?? 0,
+      totalPaidAmount: paid._sum.amount ?? 0,
       totalPending: pending._count.member_id ?? 0,
-      totalPendingAmount: pending._sum.amount_due ?? 0,
-      totalOverdue: overdue._count.member_id ?? 0,
-      totalOverdueAmount: overdue._sum.amount_due ?? 0
+      totalPendingAmount: pending._sum.amount ?? 0,
+      monthlyRevenue: monthly._sum.amount,
+      monthlyPaymentCount:monthly._count.member_id
     }
   });
 };
 
 export const createPaymentService = async (data: {
-  member_id: string;
-  amount_paid: number;
-  paid_on: Date
+  payment_id: number;
+  payment_method: "GCash" | "Cash" | "Bank_Transfer";
+  paid_at: Date;
 }) => {
-  
   return await prisma.$transaction(async (tx) => {
-    // 1. Find active bill for selected member
-    const bill = await tx.member_bills.findFirst({
+    // 1. Find pending payment
+    const payment = await tx.payments.findUnique({
       where: {
-        member_id: Number(data.member_id),
-        status: "Pending",
+        id: data.payment_id,
       },
-      orderBy: {
-        due_date: "desc",
-      },
-    });
-
-    if (!bill) {
-      throw new Error("No pending bill found for this member");
-    }
-     
-    // 2. Create payment (linked to bill)
-    const payment = await tx.payments.create({
-      data: {
-        bill_id: bill.id,
-        amount_paid: data.amount_paid,
-        paid_on: new Date(data.paid_on),
-      },
-    });
-
-    // create notifications
-    await createPaymentNotifForMemberService({
-      member_id: Number(data.member_id),
-      payment_id: payment.id,
-      message:
-        `Your payment of ₱${data.amount_paid} for ${new Date(data.paid_on).toLocaleDateString('en-PH', { month: 'short', day: '2-digit', year: '2-digit' })} has been successfully recorded.`
-    });
-
-    const member= await tx.members.findFirst({
-      where: { 
-        id: Number(data.member_id)
-      },
-      select: {
-        fullname: true,
-        membership_plans: {
+      include: {
+        members: {
           select: {
-            plan_name: true
-          }
-        }
-      }
+            fullname: true,
+          },
+        },
+        member_memberships: {
+          include: {
+            membership_plans: {
+              select: {
+                plan_name: true,
+              },
+            },
+          },
+        },
+      },
     });
 
-    // create recent activity
+    if (!payment) {
+      throw new Error("Payment record not found");
+    }
+
+    if (payment.status === "Paid") {
+      throw new Error("Payment already completed");
+    }
+
+    // 2. Update payment status
+    const updatedPayment = await tx.payments.update({
+        where: {
+          id: data.payment_id,
+        },
+        data: {
+          status: "Paid",
+          payment_method: data.payment_method,
+          paid_at: new Date(data.paid_at),
+        },
+      });
+
+    // 3. Create member notification
+    await tx.notifications.create({
+      data: {
+         recipient_id: payment.member_id,
+         recipient_type: 'MEMBER',
+         type: 'PAYMENT',
+        title: "Payment Recorded",
+        description:
+        `Your payment of ₱${payment.amount} for ${new Date(data.paid_at).toLocaleDateString(
+          "en-PH",
+          {
+            month: "short",
+            day: "2-digit",
+            year: "numeric",
+          }
+        )} has been successfully recorded.`
+      }
+   });
+
+   await tx.notifications.create({
+    data: {
+      recipient_type: "ADMIN",
+      recipient_id: null,
+      type: "PAYMENT",
+      title: "Payment Received",
+      description: `${payment.members.fullname} has paid ₱${payment.amount} 
+      for the ${payment.member_memberships.membership_plans.plan_name} membership via ${
+        payment.payment_method
+      }.`,
+    },
+  });
+
+    // 4. Create admin activity
     await tx.activities.create({
       data: {
-        member_id: Number(data.member_id),
-        recepient_type: 'ADMIN',
-        type: 'PAYMENT',
-        title: 'Payment Recorded',
-        description: `${member?.fullname} paid ₱${data.amount_paid} for his ${member?.membership_plans.plan_name} plan.`,
+        recipient_id: payment.member_id,
+        recipient_type: "ADMIN",
+        type: "PAYMENT",
+        title: "Payment Recorded",
+        description: `${payment.members.fullname} paid ₱${payment.amount} for ${payment.member_memberships.membership_plans.plan_name} plan.`
       }
     });
-     
-    // 3. Mark bill as paid
-    await tx.member_bills.update({
-      where: { id: bill.id },
-      data: { status: "Paid" },
-    });
 
-    return payment;
+    return updatedPayment;
   });
-  
 };
 
 export const getPaymentsService = async (filters: PaymentFilterDTO) => {
-  const bills = await prisma.member_bills.findMany({
+  const payments = await prisma.payments.findMany({
     include: {
-      members: {
-        include: {
-          membership_plans: {
-            select: {
-              plan_name: true
-            }
-          }
-        }
-      },
-      payments: true,
-    },
-  });
-
-  let result = bills.map((bill: any) => {
-  
-     const payment = bill.payments?.[0]; // latest or only payment
-     const amount =  bill.status !== 'Paid' ? bill.amount_due : payment?.amount_paid
-    
-     return {
-       id: bill.id,
- 
-       // 👇 TABLE FIELDS YOU WANT
-       memberName: bill.members?.fullname,
-       plan: bill.members?.membership_plans.plan_name,
-       amount: amount,
-       status: bill.status,
-       dueDate: bill.due_date,
-       paidOn: payment?.paid_on || null,
-     };
-  });
- 
-   // 🔍 FILTER
-   if (filters.status && filters.status !== "All") {
-     result = result.filter((r: any) => r.status === filters.status);
-   }
- 
-   // 🔎 SEARCH
-   if (filters.search) {
-     const s = filters.search.toLowerCase();
- 
-     result = result.filter((r: any) => {
-       return (
-         r.memberName?.toLowerCase().includes(s) ||
-         r.plan?.toLowerCase().includes(s) ||
-         r.id?.toString().includes(s)
-       );
-     });
-   }
- 
-   return result;
-};
-
-export const getUnpaidMembersService = async () => {
-  const data = await prisma.member_bills.findMany({
-    where: {
-      status: {
-        not: "Paid",
-      },
-    },
-    select: {
       members: {
         select: {
           id: true,
           fullname: true,
         },
       },
-      amount_due: true
+      member_memberships: {
+        include: {
+          membership_plans: {
+            select: {
+              plan_name: true,
+              duration: true,
+              duration_type: true
+            },
+          },
+        },
+      },
+    },
+    orderBy: {
+      created_at: "desc",
     },
   });
 
-  return data.map((b: any) => ({
-    id: b.members.id,
-    name: b.members.fullname,
-    amount: b.amount_due
-  }));
+  let result = payments.map((payment) => {
+    return {
+      id: payment.id,
+      memberId: payment.member_id,
+      membershipId: payment.membership_id,
+      memberName: payment.members.fullname,
+      plan:
+        `${payment.member_memberships.membership_plans.plan_name} (${payment.member_memberships.membership_plans.duration} ${payment.member_memberships.membership_plans.duration_type})`,
+      amount: Number(payment.amount),
+      status: payment.status,
+      paymentMethod: payment.payment_method,
+      paidDate: payment.paid_at,
+      createdAt: payment.created_at
+    };
+  });
+
+  // FILTER STATUS
+  if (filters.status && filters.status !== "All") {
+    result = result.filter(
+      (payment) => payment.status === filters.status
+    );
+  }
+
+  // SEARCH
+  if (filters.search) {
+    const search = filters.search.toLowerCase();
+
+    result = result.filter((payment) => {
+      return (
+        payment.memberName?.toLowerCase().includes(search) ||
+        payment.plan?.toLowerCase().includes(search) ||
+        payment.id?.toString().includes(search)
+      );
+    });
+  }
+
+  return result;
 };
+

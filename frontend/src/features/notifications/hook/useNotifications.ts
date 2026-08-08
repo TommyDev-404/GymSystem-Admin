@@ -26,6 +26,10 @@ export function useMarkNotifAsRead() {
       queryClient.invalidateQueries({
         queryKey: ["admin-notifications"],
       });
+
+      queryClient.invalidateQueries({
+        queryKey: ["notification-count"],
+      });
     },
   });
 }
@@ -39,6 +43,10 @@ export function useMarkAllNotifAsRead() {
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["admin-notifications"],
+      });
+      
+      queryClient.invalidateQueries({
+        queryKey: ["notification-count"],
       });
     },
   });

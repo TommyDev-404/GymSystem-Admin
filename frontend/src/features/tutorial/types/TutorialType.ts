@@ -29,4 +29,5 @@ export type WorkoutForm = Omit<Workout, "id" | "demo_images"> & {
 export type TutorialsFilters = {
   search?: string | undefined;
   level?: string | undefined;
+  category?: string | undefined;
 }

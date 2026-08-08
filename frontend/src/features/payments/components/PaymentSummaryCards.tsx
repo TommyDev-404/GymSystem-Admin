@@ -1,7 +1,7 @@
 import {
-  AlertCircle,
   CheckCircle2,
   Clock,
+  TrendingUp,
 } from "lucide-react";
 
 import {
@@ -15,8 +15,8 @@ interface Props {
   totalPaidAmount:  string;
   totalPending:  string;
   totalPendingAmount:  string;
-  totalOverdue:  string;
-  totalOverdueAmount: string;
+  monthlyRevenue:  string;
+  monthlyPaymentCount: string;
 }
 
 export function PaymentSummaryCards({
@@ -24,8 +24,8 @@ export function PaymentSummaryCards({
   totalPaidAmount,
   totalPending,
   totalPendingAmount,
-  totalOverdue,
-  totalOverdueAmount
+  monthlyRevenue,
+  monthlyPaymentCount
 }: Props) {
 
   const cards = [
@@ -33,7 +33,7 @@ export function PaymentSummaryCards({
       title: "Total Collected",
       value: totalPaidAmount,
       count: totalPaid,
-      sub: "Paid payments",
+      sub: "paid payments",
       icon: CheckCircle2,
       bg: "bg-emerald-500",
     },
@@ -41,18 +41,18 @@ export function PaymentSummaryCards({
       title: "Pending Amount",
       value: totalPendingAmount,
       count: totalPending,
-      sub: "Members with pending bills",
+      sub: "awaiting payments",
       icon: Clock,
       bg: "bg-amber-500",
     },
     {
-      title: "Overdue Amount",
-      value: totalOverdueAmount,
-      count: totalOverdue,
-      sub: "Members with overdue bills",
-      icon: AlertCircle,
-      bg: "bg-red-500",
-    },
+      title: "Monthly Revenue",
+      value: monthlyRevenue,
+      count: monthlyPaymentCount,
+      sub: "payments this month",
+      icon: TrendingUp,
+      bg: "bg-blue-500",
+    }
   ];
 
   return (

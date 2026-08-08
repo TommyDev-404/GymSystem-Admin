@@ -2,12 +2,9 @@ import { useMemo, useState } from "react";
 import { PaymentSummaryCards } from "@/features/payments/components/PaymentSummaryCards";
 import { PaymentFilters } from "@/features/payments/components/PaymentsFilter";
 import { PaymentsTable } from "@/features/payments/components/PaymentTable";
-import { AddPaymentModal } from "@/features/payments/components/AddPaymentModal";
 
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
-import { usePayments, usePaymentSummaryData, useUnpaidMembers } from "../hooks/usePayments";
-import type { FilterType } from "../types/payment";
+import { usePayments, usePaymentSummaryData } from "../hooks/usePayments";
+import type { FilterType } from "../types/PaymentTypes";
 import { PageLoader } from "@/components/shared/PageLoader";
 import { debounce } from "@/lib/debounce";
 import { toPHP } from "@/utils/currencyConverter";
@@ -17,13 +14,11 @@ export function PaymentsPage() {
   const [searchParams] = useSearchParams();
 	
   const urlFilter = searchParams.get("filter");
-  const urlAction = searchParams.get("action");
   
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<FilterType>(urlFilter as FilterType || "Paid");
-  const [openAddModal, setOpenAddModal] = useState(urlAction === 'add' ? true : false);
-
+ 
   const debounceSearch = useMemo(
       () =>
         debounce((value: string) => {
@@ -39,9 +34,8 @@ export function PaymentsPage() {
 
   const { data: paymentsData = [], isLoading: loadingPayments } = usePayments(params);
   const { data: summaryData = [], isLoading: loadingSummaryData } = usePaymentSummaryData();
-  const { data: unpaidMembers = [], isLoading: unpaidMembersLoading } = useUnpaidMembers();
 
-  if (loadingSummaryData || unpaidMembersLoading) return <PageLoader />;
+  if (loadingSummaryData) return <PageLoader />;
 
   return (
     <div className="space-y-6">
@@ -66,22 +60,6 @@ export function PaymentsPage() {
             Manage billing and payment statuses
           </p>
         </div>
-
-        <Button
-          className="
-            bg-emerald-500
-            dark:bg-emerald-600
-            py-5
-            px-3
-            hover:bg-emerald-600
-            dark:hover:bg-emerald-700
-            text-white
-          "
-          onClick={() => setOpenAddModal(true)}
-        >
-          <Plus size={14} />
-          Add Payment
-        </Button>
       </div>
 
       <PaymentSummaryCards
@@ -89,8 +67,8 @@ export function PaymentsPage() {
         totalPaidAmount={toPHP(summaryData.totalPaidAmount)}
         totalPending={summaryData.totalPending}
         totalPendingAmount={toPHP(summaryData.totalPendingAmount)}
-        totalOverdue={summaryData.totalOverdue}
-        totalOverdueAmount={summaryData.totalOverdueAmount}
+        monthlyRevenue={toPHP(summaryData.monthlyRevenue)}
+        monthlyPaymentCount={summaryData.monthlyPaymentCount}
       />
 
       <PaymentFilters
@@ -106,12 +84,6 @@ export function PaymentsPage() {
       <PaymentsTable
         payments={paymentsData}
         isLoading={loadingPayments}
-      />
-
-      <AddPaymentModal
-        unpaidMembers={unpaidMembers}
-        open={openAddModal}
-        setOpen={setOpenAddModal}
       />
     </div>
   );

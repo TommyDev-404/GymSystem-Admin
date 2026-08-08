@@ -1,5 +1,5 @@
 import { api } from "@/lib/axios";
-import type { Member, MemberFilters } from "../types/member";
+import type { Member, MemberFilters, RenewMembershipDTO } from "../types/member";
 
 export const createMemberApi = async (data: Omit<Member, "id">) => {
   try {
@@ -84,6 +84,16 @@ export const resendActivationCodeApi = async (
       "Resend activation code failed:",
       error
     );
+    throw error;
+  }
+};
+
+export const renewMembershipApi = async (data: RenewMembershipDTO) => {
+  try {
+    const res = await api.post("/members/renew-membership", data);
+    return res.data;
+  } catch (error) {
+    console.error("Renew membership failed:", error);
     throw error;
   }
 };
