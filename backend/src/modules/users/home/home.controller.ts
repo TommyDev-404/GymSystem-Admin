@@ -103,7 +103,7 @@ export const getFitnessGoalController = async(
   const member_id = Number(req.params.member_id);
 
   const goal = await service.getFitnessGoalService(member_id);
-
+   
   res.status(200).json(goal);
 
  }catch(error:any){
@@ -122,7 +122,6 @@ export const getFitnessGoalHistoryController = async(
   req:Request,
   res:Response
 ) => {
-  console.log("Reach here...");
   try{
    const member_id = Number(req.params.member_id);
  

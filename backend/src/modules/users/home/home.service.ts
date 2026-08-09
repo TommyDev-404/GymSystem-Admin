@@ -226,195 +226,212 @@ export const createFitnessGoalService = async (data: CreateGoalDTO) => {
 export const updateFitnessGoalService = async (
 	id: number,
 	data: UpdateGoalDTO
-) => {
-
+ ) => {
 	return await prisma.$transaction(async (tx) => {
-
-		const oldGoal = await tx.fitness_goals.findUnique({
-			where:{
-				id
+	  const oldGoal = await tx.fitness_goals.findUnique({
+		 where: {
+			id,
+		 },
+	  });
+ 
+	  if (!oldGoal) {
+		 throw new Error("Fitness goal not found");
+	  }
+ 
+	  const latestProgress =
+		 await tx.body_progress.findFirst({
+			where: {
+			  goal_id: id,
+			},
+			orderBy: {
+			  recorded_at: "desc",
+			},
+		 });
+ 
+	  const previousWeight = latestProgress
+		 ? Number(latestProgress.current_weight)
+		 : Number(oldGoal.start_weight);
+ 
+	  /*
+		* Use new values if provided,
+		* otherwise keep existing values.
+		*/
+	  const currentWeight =
+		 data.current_weight ?? previousWeight;
+ 
+	  const targetWeight =
+		 data.target_weight ??
+		 Number(oldGoal.target_weight);
+ 
+	  const startWeight =
+		 Number(oldGoal.start_weight);
+ 
+	  /*
+		* Check if the target has been achieved.
+		*
+		* LOSE_WEIGHT:
+		* Current must be <= target.
+		*
+		* GAIN_WEIGHT:
+		* Current must be >= target.
+		*/
+	  const isAchieved =
+		 oldGoal.goal_type === "LOSE_WEIGHT"
+			? currentWeight <= targetWeight
+			: currentWeight >= targetWeight;
+ 
+	  let progressPercentage = 0;
+ 
+	  /*
+		* Once achieved, always show 100%.
+		* This prevents values like 120% or 150%
+		* when the user exceeds the target.
+		*/
+	  if (isAchieved) {
+		 progressPercentage = 100;
+	  } else {
+		 const goalDistance =
+			Math.abs(targetWeight - startWeight);
+ 
+		 if (goalDistance > 0) {
+			if (oldGoal.goal_type === "LOSE_WEIGHT") {
+			  progressPercentage =
+				 ((startWeight - currentWeight) /
+					goalDistance) *
+				 100;
+			} else {
+			  progressPercentage =
+				 ((currentWeight - startWeight) /
+					goalDistance) *
+				 100;
 			}
-		});
-
-
-		if(!oldGoal){
-			throw new Error(
-				"Fitness goal not found"
-			);
-		}
-
-
-		const latestProgress =
-			await tx.body_progress.findFirst({
-				where:{
-					goal_id:id
-				},
-				orderBy:{
-					recorded_at:"desc"
-				}
-			});
-
-
-		const previousWeight =
-			latestProgress
-				? Number(latestProgress.current_weight)
-				: Number(oldGoal.start_weight);
-
-
-		const currentWeight =
-			data.current_weight ?? previousWeight;
-
-
-		const targetWeight =
-			data.target_weight ??
-			Number(oldGoal.target_weight);
-
-
-
-		const totalChange =
-			oldGoal.goal_type === "LOSE_WEIGHT"
-				? Number(oldGoal.start_weight) - currentWeight
-				: currentWeight - Number(oldGoal.start_weight);
-
-
-
-		const totalGoalChange =
-			Math.abs(
-				Number(oldGoal.start_weight) -
-				targetWeight
-			);
-
-
-
-		const progressPercentage =
-			totalGoalChange > 0
-				? Math.min(
-					100,
-					Math.max(
-						0,
-						Math.round(
-							(Math.abs(totalChange) /
-							totalGoalChange) *
-							100
-						)
-					)
-				)
-				: 0;
-
-
-
-		/**
-		 * CASE 1:
-		 * Weight changed
-		 * Create new progress record
-		 */
-		if(
-			data.current_weight !== undefined &&
-			data.current_weight !== previousWeight
-		){
-
-			await tx.body_progress.create({
-				data:{
-					goal_id:id,
-
-					member_id:
-						oldGoal.member_id,
-
-					previous_weight:
-						previousWeight,
-
-					current_weight:
-						currentWeight,
-
-					target_weight:
-						targetWeight,
-
-					weight_change:
-						currentWeight - previousWeight,
-
-					progress_percentage:
-						progressPercentage
-				}
-			});
-
-		}
-
-		else if(
-			data.target_weight !== undefined &&
-			data.target_weight !== Number(oldGoal.target_weight) &&
-			latestProgress
-		){
-
-			await tx.body_progress.update({
-				where:{
-					id:latestProgress.id
-				},
-
-				data:{
-					target_weight:
-						targetWeight,
-
-					progress_percentage:
-						progressPercentage
-				}
-			});
-
-		}
-
-
-		const updated =
-			await tx.fitness_goals.update({
-
-				where:{
-					id
-				},
-
-				data:{
-
-					...(data.current_weight !== undefined && {
-						current_weight:
-							currentWeight
-					}),
-
-
-					...(data.target_weight !== undefined && {
-						target_weight:
-							targetWeight
-					})
-
-				}
-			});
-
-
-
-		return updated;
-
+		 }
+ 
+		 /*
+		  * Keep progress between 0 and 100
+		  * while the goal is still active.
+		  */
+		 progressPercentage = Math.min(
+			100,
+			Math.max(
+			  0,
+			  Math.round(progressPercentage)
+			)
+		 );
+	  }
+ 
+	  /*
+		* Create a new history record when
+		* the current weight changes.
+		*/
+	  if (
+		 data.current_weight !== undefined &&
+		 data.current_weight !== previousWeight
+	  ) {
+		 await tx.body_progress.create({
+			data: {
+			  goal_id: id,
+ 
+			  member_id:
+				 oldGoal.member_id,
+ 
+			  previous_weight:
+				 previousWeight,
+ 
+			  current_weight:
+				 currentWeight,
+ 
+			  target_weight:
+				 targetWeight,
+ 
+			  weight_change:
+				 currentWeight - previousWeight,
+ 
+			  progress_percentage:
+				 progressPercentage,
+			},
+		 });
+	  }
+ 
+	  /*
+		* If only the target changes, update
+		* the latest progress record.
+		*/
+	  else if (
+		 data.target_weight !== undefined &&
+		 data.target_weight !==
+			Number(oldGoal.target_weight) &&
+		 latestProgress
+	  ) {
+		 await tx.body_progress.update({
+			where: {
+			  id: latestProgress.id,
+			},
+ 
+			data: {
+			  target_weight:
+				 targetWeight,
+ 
+			  progress_percentage:
+				 progressPercentage,
+			},
+		 });
+	  }
+ 
+	  /*
+		* Update the fitness goal itself.
+		*/
+	  const updated =
+		 await tx.fitness_goals.update({
+			where: {
+			  id,
+			},
+ 
+			data: {
+			  ...(data.current_weight !== undefined && {
+				 current_weight:
+					currentWeight,
+			  }),
+ 
+			  ...(data.target_weight !== undefined && {
+				 target_weight:
+					targetWeight,
+			  }),
+ 
+			  status: isAchieved
+				 ? "ACHIEVED"
+				 : "ACTIVE",
+			},
+		 });
+ 
+	  return updated;
 	});
 };
 
 export const getFitnessGoalService = async (member_id: number) => {
 	const goal = await prisma.fitness_goals.findFirst({
 		where:{
-			member_id
+			member_id,
+			status: 'ACTIVE'
 		},
 
 		include:{
-			body_progress:{
-				orderBy:{
-					recorded_at:"asc"
+			body_progress: {
+				orderBy: {
+				  recorded_at: "desc",
 				},
-
-				select:{
-					progress_percentage:true
-				}
-			}
+				take: 1,
+				select: {
+				  progress_percentage: true,
+				},
+			 }
 		}
 
 	});
 
 	if(!goal) return null;
 
-	const latestProgress = goal.body_progress[goal.body_progress.length - 1];
+	const latestProgress = goal.body_progress[0];
 
 	return {
 		id: goal.id,
@@ -428,52 +445,72 @@ export const getFitnessGoalService = async (member_id: number) => {
 	};
 };
 
-export const getFitnessProgressHistoryService = async (member_id: number) => {
+export const getFitnessProgressHistoryService = async (
+	member_id: number
+ ) => {
 	const goal = await prisma.fitness_goals.findFirst({
-		where:{
-			member_id
-		},
-		select:{
-			id:true,
-			goal_type:true
-		}
+	  where: {
+			member_id,
+		  status: "ACTIVE"
+	  },
+ 
+	  select: {
+		 id: true,
+		 goal_type: true,
+	  },
 	});
-
-	if(!goal){
-		return null;
+ 
+	if (!goal) {
+	  return null;
 	}
-
-	const progressHistory = await prisma.body_progress.findMany({
-		where:{
-			goal_id:goal.id,
-			member_id
-		},
-
-		orderBy:{
-			recorded_at:"desc"
-		},
-
-		select:{
-			id:true,
-			previous_weight:true,
-			current_weight:true,
-			target_weight:true,
-			weight_change:true,
-			progress_percentage:true,
-			recorded_at:true
-		}
-	});
-
-	return {
-		goal_type:goal.goal_type,
-		history: progressHistory.map(item=>({
-			id:item.id,
-			previous_weight: Number(item.previous_weight),
-			current_weight: Number(item.current_weight),
-			target_weight: Number(item.target_weight),
-			weight_change: Number(item.weight_change),
-			progress_percentage: Number(item.progress_percentage),
-			recorded_at: item.recorded_at
-		}))
-	};
-};
+ 
+	const progressHistory =
+	  await prisma.body_progress.findMany({
+		 where: {
+			goal_id: goal.id,
+			member_id,
+		 },
+ 
+		 orderBy: {
+			recorded_at: "desc",
+		 },
+ 
+		 select: {
+			id: true,
+			previous_weight: true,
+			current_weight: true,
+			target_weight: true,
+			weight_change: true,
+			progress_percentage: true,
+			recorded_at: true,
+		 },
+	  });
+ 
+	return progressHistory.map((item) => ({
+		 id: item.id,
+ 
+		 goal_type: goal.goal_type,
+ 
+		 previous_weight: Number(
+			item.previous_weight
+		 ),
+ 
+		 current_weight: Number(
+			item.current_weight
+		 ),
+ 
+		 target_weight: Number(
+			item.target_weight
+		 ),
+ 
+		 weight_change: Number(
+			item.weight_change
+		 ),
+ 
+		 progress_percentage: Number(
+			item.progress_percentage
+		 ),
+ 
+		 recorded_at: item.recorded_at,
+	  }));
+ };
