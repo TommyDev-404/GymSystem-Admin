@@ -43,33 +43,38 @@ export const getMemberDashboardDataService = async (member_id: number) => {
      1
    );
  
-   const member = await prisma.members.findUnique({
-     where: {
-       id: member_id,
-     },
-     select: {
-       id: true,
-       users: {
-         select: {
-           username: true
-         }
-       },
-         email: true,
-         membership_plans: {
-            select: {
-               plan_name: true
-            }
-         },
-        member_memberships: {
-            select: {
-                start_date: true,
-                end_date: true,
-            }
-        },
-         is_activated: true,
-         points: true,
-     },
-   });
+	const member = await prisma.members.findUnique({
+		where: {
+			id: member_id,
+		},
+		select: {
+			id: true,
+			users: {
+				select: {
+					username: true
+				}
+			},
+			email: true,
+			member_memberships: {
+				select: {
+					start_date: true,
+					end_date: true,
+					status: true,
+
+					membership_plans: {
+						select: {
+							plan_name: true
+						}
+					}
+				},
+				orderBy: {
+					created_at: "desc"
+				}
+			},
+			is_activated: true,
+			points: true,
+		},
+	});
  
    if (!member) {
      throw new Error("Member not found");
@@ -117,7 +122,7 @@ export const getMemberDashboardDataService = async (member_id: number) => {
                year: "numeric",
             })
          : null,
-      plan: member.membership_plans.plan_name,
+		plan: member.member_memberships[0].membership_plans.plan_name,
       expiry: member.member_memberships[0]
          ? new Date(member.member_memberships[0].end_date)
             .toLocaleDateString("en-PH", {
@@ -126,7 +131,7 @@ export const getMemberDashboardDataService = async (member_id: number) => {
                year: "numeric",
             })
          : null,
-      status: member.is_activated ? 'Active' : 'Inactive',
+		status: member.member_memberships[0].status,
       points: member.points,
 
       stats: {
@@ -191,7 +196,7 @@ export async function getRecentActivityService(member_id: number){
      name: activity.title,
      action: activity.description,
      time: activity.created_at?.toISOString(),
-     type: activity.type
+     type: activity.category
    }));
 }
 
@@ -513,4 +518,4 @@ export const getFitnessProgressHistoryService = async (
  
 		 recorded_at: item.recorded_at,
 	  }));
- };
+};

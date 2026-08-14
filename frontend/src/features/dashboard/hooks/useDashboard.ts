@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import * as api from "@/features/dashboard/api/dashboard.api";
-import type { GenderDistribution, MemberStatus, RecentActivity, RevenueTrend, SummaryData, TopClaimedRewards, WeeklyAttendance } from "../types/DashboardTypes";
+import type { ExpiringMembership, GenderDistribution, MemberStatus, RecentActivity, RevenueTrend, SummaryData, TopClaimedRewards, WeeklyAttendance } from "../types/DashboardTypes";
 
 export function useGetDashboardSummaryData() {
   return useQuery<SummaryData>({
@@ -13,6 +13,13 @@ export function useGetMonthlyRevenueTrend() {
   return useQuery<RevenueTrend[]>({
     queryKey: ["dashboard-revenue-trend"],
     queryFn: api.getMonthlyRevenueTrendApi,
+  });
+}
+
+export function useGetMembershipsExpiry() {
+  return useQuery<ExpiringMembership[]>({
+    queryKey: ["dashboard-memberships-expiry"],
+    queryFn: api.getMembershipsExpiryApi,
   });
 }
 

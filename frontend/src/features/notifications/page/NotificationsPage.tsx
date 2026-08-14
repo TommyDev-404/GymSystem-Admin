@@ -11,7 +11,7 @@ import { toast } from "sonner";
 export function NotificationsPage() {
   const [filter, setFilter] = useState("All");
 
-  const { data: notificationsData = [], isLoading } = useGetAdminNotifications({ type: filter });
+  const { data: notificationsData = [], isLoading } = useGetAdminNotifications({ category: filter });
    const { data: notifCount = {} as NotificationCount } = useGetNotificationCount();
    
   const { mutate: markAllAsRead } = useMarkAllNotifAsRead();
@@ -34,21 +34,11 @@ export function NotificationsPage() {
          {/* Header */}
          <div className="flex items-center justify-between">
             <div>
-               <h1 className="
-                  text-slate-800
-                  dark:text-slate-100
-                  font-bold
-                  text-xl
-               ">
+               <h1 className="text-slate-800 dark:text-slate-100 font-bold text-xl">
                   Notifications
                </h1>
 
-               <p className="
-                  text-slate-500
-                  dark:text-slate-400
-                  text-sm
-                  mt-0.5
-               ">
+               <p className="text-slate-500 dark:text-slate-400 text-sm mt-0.5">
                   {unreadCount === 0 ? "You have no new notifications" : `${unreadCount} unread notification${unreadCount > 1 ? "s" : ""}`}
                </p>
                
@@ -56,15 +46,7 @@ export function NotificationsPage() {
 
             {unreadCount > 0  && (
                <Button
-                  className="
-                     bg-emerald-500
-                     dark:bg-emerald-600
-                     py-5
-                     px-3
-                     hover:bg-emerald-600
-                     dark:hover:bg-emerald-700
-                     text-white
-                  "
+                  className="bg-emerald-500 dark:bg-emerald-600 py-5 px-3 hover:bg-emerald-600 dark:hover:bg-emerald-700 text-white"
                   onClick={onMarkAllRead}
                >
                   <Check size={14} />

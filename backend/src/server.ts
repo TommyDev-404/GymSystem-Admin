@@ -2,6 +2,9 @@ import app from "./app";
 import { prisma } from "./lib/prisma";
 import http from "http";
 import { initSocket } from "./lib/socket";
+import { startSessionScheduler } from "./cron/sessionCron";
+import { startMembershipCron } from "./cron/membershipCron";
+import { startAttendanceCron } from "./cron/attendanceCron";
 
 // ==================== Server Setup ====================
 
@@ -15,6 +18,10 @@ const server = http.createServer(app);
 // Initialize Socket.IO
 initSocket(server);
 
+// Start cron jobs
+startSessionScheduler();
+startMembershipCron();
+startAttendanceCron();
 
 server.listen(PORT, () => {
   console.log(`

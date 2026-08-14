@@ -4,9 +4,12 @@ import { MemberTable } from "@/features/members/components/MemberTable";
 import { MemberModal } from "@/features/members/components/MemberModal";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useMembers } from "../hooks/useMember";
+import { useMembersSummary } from "../hooks/useMember";
 import { debounce } from "@/lib/debounce";
 import { useSearchParams } from "react-router-dom";
+import { MemberSummaryCards } from "../components/MemberSummaryCards";
+import type { MemberSummaryType } from "../types/member";
+import { PageLoader } from "@/components/shared/PageLoader";
 
 export function MembersPage() {
 	const [searchParams] = useSearchParams();
@@ -34,7 +37,9 @@ export function MembersPage() {
 		status: status !== "All" ? status : undefined,
 	}), [search, gender, status]);
 
-	const { data: members = [], isLoading } = useMembers(params);
+	const { data: memberSummary = {} as MemberSummaryType, isLoading: summaryLoading } = useMembersSummary();
+
+	if (summaryLoading) return <PageLoader />;
 
 	return (
 		<div className="space-y-5">
@@ -77,6 +82,10 @@ export function MembersPage() {
 				</Button>
 			</div>
 
+			<MemberSummaryCards
+				summary={memberSummary}
+			/>
+			
 			{/* FILTERS */}
 			<MemberFilters
 				search={searchInput}
@@ -91,7 +100,7 @@ export function MembersPage() {
 			/>
 
 			{/* TABLE */}
-			<MemberTable members={members} isLoading={isLoading}/>
+			<MemberTable params={params}/>
 
 			{/* MODAL */}
 			<MemberModal open={open} setOpen={setOpen} />

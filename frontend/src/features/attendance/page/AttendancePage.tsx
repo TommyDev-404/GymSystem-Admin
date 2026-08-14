@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
 import { AttendanceTable } from "@/features/attendance/components/AttendanceTable";
@@ -7,15 +7,10 @@ import { QRCodeModal } from "@/features/attendance/components/QRCodeModal";
 import { useGetMemberAttendance, useTodayQr } from "@/features/attendance/hooks/useAttendance";
 import { AttendanceFilter } from "../components/AttendanceFilter";
 import type { Filters } from "../types/AttendanceTypes";
-import { useSocket } from "@/context/SocketContext";
-import { useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
 import { QrCodeIcon } from "lucide-react";
 
 export function AttendancePage() {
-  const socket = useSocket();
-  const queryClient = useQueryClient();
-  
 	const [searchParams] = useSearchParams();
 	
 	const urlFilter = searchParams.get("filter");
@@ -31,38 +26,6 @@ export function AttendancePage() {
   const { data, isLoading: qrCodeLoading } = useTodayQr();
   const { data: memberAttendance = [], isLoading: attendanceLoading } = useGetMemberAttendance(filters);
   
-  useEffect(() => {
-    const handleNewAttendance = () => {
-      queryClient.invalidateQueries({
-        queryKey: ["attendance"],
-      });
-  
-      queryClient.invalidateQueries({
-        queryKey: ["dashboard-summary-data"],
-      });
-  
-      queryClient.invalidateQueries({
-        queryKey: ["dashboard-weekly-attendance"],
-      });
-  
-      queryClient.invalidateQueries({
-        queryKey: ["dashboard-recent-activity"],
-      });
-    };
-  
-    socket.on(
-      "attendance:new",
-      handleNewAttendance
-    );
-  
-    return () => {
-      socket.off(
-        "attendance:new",
-        handleNewAttendance
-      );
-    };
-  }, [socket, queryClient]);
-      
   return (
     <div className="space-y-5">
 

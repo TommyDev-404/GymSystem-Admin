@@ -1,7 +1,31 @@
 import { api } from "@/lib/axios";
-import type { Member, MemberFilters, RenewMembershipDTO } from "../types/member";
+import type { AddMemberFormType, MemberFilters, RenewMembershipDTO, UpgradeMembership } from "../types/member";
 
-export const createMemberApi = async (data: Omit<Member, "id">) => {
+export const getMembersSummaryApi = async () => {
+  try {
+    const res = await api.get("/members/summary");
+
+    return res.data;
+  } catch (error) {
+    console.error("Get members failed:", error);
+    throw error;
+  }
+};
+
+export const getMembersApi = async (
+  params?: MemberFilters
+) => {
+  try {
+    const res = await api.get("/members", { params });
+
+    return res.data;
+  } catch (error) {
+    console.error("Get members failed:", error);
+    throw error;
+  }
+};
+
+export const createMemberApi = async (data: AddMemberFormType) => {
   try {
     const res = await api.post("/members/add", data);
     return res.data;
@@ -11,61 +35,13 @@ export const createMemberApi = async (data: Omit<Member, "id">) => {
   }
 };
 
-export const updateMemberApi = async (id: number, data: Partial<Member>) => {
+export const upgradeMembershipPlanApi = async (id: number, data: UpgradeMembership) => {
+  console.log(data);
   try {
-    const res = await api.patch(`/members/update/${id}`, data);
+    const res = await api.patch(`/members/changed-membership-plan/${id}`, { data });
     return res.data;
   } catch (error) {
     console.error("Update member failed:", error);
-    throw error;
-  }
-};
-
-export const updateMemberStatusApi = async (id: number, data: { status: string }) => {
-  try {
-    const res = await api.patch(
-      `/members/update-status/${id}`,
-      data
-    );
-
-    return res.data;
-  } catch (error) {
-    console.error("Update member status failed:", error);
-    throw error;
-  }
-};
-
-export const deleteMemberApi = async (id: number) => {
-  try {
-    const res = await api.delete(`/members/delete/${id}`);
-    return res.data;
-  } catch (error) {
-    console.error("Delete member failed:", error);
-    throw error;
-  }
-};
-
-export const getMembersApi = async (
-  params?: MemberFilters
-) => {
-  try {
-    const res = await api.get("/members", {
-      params,
-    });
-
-    return res.data;
-  } catch (error) {
-    console.error("Get members failed:", error);
-    throw error;
-  }
-};
-
-export const getMemberByIdApi = async (id: number) => {
-  try {
-    const res = await api.get(`/members/${id}`);
-    return res.data;
-  } catch (error) {
-    console.error("Get member by ID failed:", error);
     throw error;
   }
 };

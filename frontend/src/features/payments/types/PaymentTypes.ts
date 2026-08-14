@@ -1,4 +1,4 @@
-export type FilterType = "Paid" | "Pending" | "Overdue" | "All"
+export type PaymentType = "All" | "Membership" | "Renewal" | "Upgrade";
 
 export interface Payment {
   id: number;
@@ -10,27 +10,26 @@ export interface Payment {
   status: "Paid" | "Pending" | "Cancelled" | "Refunded";
   paymentMethod?: "Cash" | "GCash" | "Bank Transfer";
   paidDate?: string;
+	paymentType?: PaymentType;
 }
 
-export type CreatePaymentDTO = {
-  payment_id: number; // admin selects member name
-  payment_method: string;
-  paid_at: Date;
-};
-
-export type PaymentFilters = {
+export type PaymentFiltersType = {
   search?: string;
-  status?: "Paid" | "Pending" | "Overdue" | "All";
+  date?: Date;
+	paymentType?: PaymentType;
 };
 
-export type UnpaidMember = {
-  id: number;
-  name: string;
-  amount: number;
+export type PaymentSummary = {
+	renewal: {
+		amount: number;
+		count: number;
+	};
+	upgrade: {
+		amount: number;
+		count: number;
+	};
+	membership: {
+		amount: number;
+		count: number;
+	};
 };
-
-export type Filters = {
-   year?: number;
-   month?: number;
-   day?: number;
- };

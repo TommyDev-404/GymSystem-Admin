@@ -21,7 +21,7 @@ export function MembershipStatus({ data }: MembershipStatusProps) {
       <CardHeader>
         <CardTitle>Membership Status</CardTitle>
         <p className="text-sm text-muted-foreground">
-          Active vs Inactive
+          Active vs Expired
         </p>
       </CardHeader>
 

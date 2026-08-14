@@ -1,8 +1,8 @@
 import { useState } from "react";
 import {
-  Edit,
   Mail,
   RefreshCcw,
+  Repeat2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -19,21 +19,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import type { Member } from "@/features/members/types/member";
+import type { Member, MemberFilters } from "@/features/members/types/member";
 import { ResendActivationModal } from "./ResendActivationModal";
-import { MemberModal } from "./MemberModal";
 import { getInitials } from "@/utils/initials";
-import { useUpdateMemberStatus } from "../hooks/useMember";
-import { toast } from "sonner";
 import { TableLoader } from "@/components/shared/TableLoader";
 import RenewMembershipDialog from "./RenewMembershipDialog";
+import { UpgradeMembershipModal } from "./UpgradeMembershipModal";
+import { useMembers } from "../hooks/useMember";
 
 
 const planColors: Record<string, string> = {
@@ -49,16 +41,15 @@ const statusColors: Record<string, string> = {
 };
 
 interface Props {
-  members: Member[];
-  isLoading: boolean;
+  params: MemberFilters
 }
 
-export function MemberTable({members, isLoading}: Props) {
-  const { mutate: updateStatus } = useUpdateMemberStatus();
-
+export function MemberTable({ params }: Props) {
+  const { data: members = [], isLoading } = useMembers(params);
+  
   const [resendMember, setResendMember] = useState<Member | null>(null);
   const [openMemberModal, setOpenMemberModal] = useState(false);
-  const [renewMember, setRenewMember] = useState(null);
+  const [renewMember, setRenewMember] = useState<Member | null>(null);
   const [renewOpen, setRenewOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
 
@@ -66,63 +57,25 @@ export function MemberTable({members, isLoading}: Props) {
     setSelectedMember(member);
     setOpenMemberModal(true);
   };
-
-  const handleStatusChange = (id: number, status: string) => {
-    updateStatus(
-      {
-        id,
-        data: {
-          status
-        }
-      },
-      {
-        onSuccess: () => {
-          toast.success(
-            "Status updated successfully."
-          );
-        },
-      }
-    );
-  };
-
-  const TH_CLASS = "text-left text-slate-700 dark:text-slate-300 px-5 py-3.5";
+  
+  const TH_CLASS = "text-left text-xs uppercase tracking-wide text-slate-400 dark:text-slate-500 font-semibold px-5 py-4";
 
   return (
     <>
       <Card className="rounded-2xl shadow-sm overflow-hidden p-0">
         <CardContent className="p-0">
           <Table>
-
             {/* HEADER */}
             <TableHeader>
-              <TableRow>
-                <TableHead className={TH_CLASS}>
-                  Member
-                </TableHead>
-
-                <TableHead className={TH_CLASS}>
-                  Age
-                </TableHead>
-
-                <TableHead className={TH_CLASS}>
-                  Gender
-                </TableHead>
-
-                <TableHead className={TH_CLASS}>
-                  Plan
-                </TableHead>
-
-                <TableHead className={TH_CLASS}>
-                  Membership Ends
-                </TableHead>
-
-                <TableHead className={TH_CLASS}>
-                  Status
-                </TableHead>
-
-                <TableHead className={TH_CLASS}>
-                  Actions
-                </TableHead>
+              <TableRow className="hover:bg-transparent bg-slate-50/70 dark:bg-stone-900/50">
+                <TableHead className={TH_CLASS}>Member</TableHead>
+                <TableHead className={TH_CLASS}>Age</TableHead>
+                <TableHead className={TH_CLASS}>Gender</TableHead>
+                <TableHead className={TH_CLASS}>Plan</TableHead>
+                <TableHead className={TH_CLASS}>Membership Start</TableHead>
+                <TableHead className={TH_CLASS}>Membership Ends</TableHead>
+                <TableHead className={TH_CLASS}>Status</TableHead>
+                <TableHead className={TH_CLASS}>Actions</TableHead>
               </TableRow>
             </TableHeader>
 
@@ -132,14 +85,14 @@ export function MemberTable({members, isLoading}: Props) {
               ) : members.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={7}
+                    colSpan={8}
                     className="h-32 text-center text-slate-400 dark:text-slate-500"
                   >
                     No members found.
                   </TableCell>
                 </TableRow>
               ) : (
-                members.map((member) => (
+                members.map((member: Member) => (
                   <TableRow
                     key={member.id}
                     className="hover:bg-slate-50 dark:hover:bg-slate-800 transition"
@@ -184,17 +137,32 @@ export function MemberTable({members, isLoading}: Props) {
                         className={`
                           px-3 py-1
                           ${planColors[
-                            member.membership_plans.plan_name
+                            member.plan_name
                           ]}
                         `}
                       >
-                        {`${member.membership_plans.plan_name} (${member.membership_plans.duration} ${member.membership_plans.duration_type})`}
+                        {`${member.plan_name} (${member.duration} ${member.duration_type}) - ${new Intl.NumberFormat(
+												"en-PH",
+												{
+													style: "currency",
+													currency: "PHP",
+												}
+											).format(Number(member.plan_price))}`}
                       </Badge>
                     </TableCell>
 
-                    {/* JOIN DATE */}
+                    {/* MEMBERSHIP START */}
                     <TableCell className="text-left p-5 text-slate-500 dark:text-slate-400">
-                      {new Date(member.join_date!).toLocaleDateString("en-PH", {
+                      {new Date(member.membership_start!).toLocaleDateString("en-PH", {
+                        month: "short",
+                        day: "2-digit",
+                        year: "numeric",
+                      })}
+                    </TableCell>
+
+                    {/* MEMBERSHIP END */}
+                    <TableCell className="text-left p-5 text-slate-500 dark:text-slate-400">
+                      {new Date(member.membership_end!).toLocaleDateString("en-PH", {
                         month: "short",
                         day: "2-digit",
                         year: "numeric",
@@ -203,46 +171,20 @@ export function MemberTable({members, isLoading}: Props) {
 
                     {/* STATUS */}
                     <TableCell className="text-left p-5">
-                      <Select
-                        
-                        value={member.status}
-                        onValueChange={(value) =>
-                          handleStatusChange(
-                            member.id!,
-                            value
-                          )
-                        }
+                      <span
+                        className={`
+                          inline-flex
+                          items-center
+                          rounded-md
+                          px-2.5
+                          py-1
+                          text-xs
+                          font-medium
+                          ${statusColors[member.status!]}
+                        `}
                       >
-                        <SelectTrigger
-                          className={`
-                            h-8
-                            w-[120px]
-                            rounded-md
-                            text-xs
-                            border
-                            dark:border-slate-700
-                            dark:bg-slate-800
-                            ${statusColors[member.status!]}
-                          `}
-                        >
-                          <SelectValue />
-                        </SelectTrigger>
-
-                        <SelectContent>
-                          <SelectItem value="Active">
-                            Active
-                          </SelectItem>
-
-                          <SelectItem value="Inactive">
-                            Inactive
-                          </SelectItem>
-
-                          <SelectItem value="Suspended">
-                            Suspended
-                          </SelectItem>
-
-                        </SelectContent>
-                      </Select>
+                        {member.status}
+                      </span>
                     </TableCell>
 
                     {/* ACTIONS */}
@@ -250,26 +192,28 @@ export function MemberTable({members, isLoading}: Props) {
                       <div className="flex justify-left gap-1">
 
                         {/* RENEW */}
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="
-                            hover:bg-emerald-50
-                            dark:hover:bg-emerald-900/30
-                          "
-                          onClick={() => {
-                            setRenewMember(member);
-                            setRenewOpen(true);
-                          }}
-                        >
-                          <RefreshCcw
-                            size={16}
+                        {member.status !== "Active" && 
+                          <Button
+                            size="icon"
+                            variant="ghost"
                             className="
-                              text-emerald-600
-                              dark:text-emerald-400
+                              hover:bg-emerald-50
+                              dark:hover:bg-emerald-900/30
                             "
-                          />
-                        </Button>
+                            onClick={() => {
+                              setRenewMember(member);
+                              setRenewOpen(true);
+                            }}
+                          >
+                            <RefreshCcw
+                              size={16}
+                              className="
+                                text-emerald-600
+                                dark:text-emerald-400
+                              "
+                            />
+                            </Button>
+                        }
                         
                         {/* RESEND ACTIVATION CODE */}
                         <Button
@@ -290,7 +234,7 @@ export function MemberTable({members, isLoading}: Props) {
                           />
                         </Button>
 
-                        {/* EDIT */}
+                        {/* Update MEMBERSHIP PLAN */}
                         <Button
                           size="icon"
                           variant="ghost"
@@ -300,7 +244,7 @@ export function MemberTable({members, isLoading}: Props) {
                           "
                           onClick={() => handleEdit(member)}
                         >
-                          <Edit
+                          <Repeat2
                             size={16}
                             className="
                               text-slate-700
@@ -308,18 +252,12 @@ export function MemberTable({members, isLoading}: Props) {
                             "
                           />
                         </Button>
-
-
+                        
                       </div>
                     </TableCell>
-
-
                   </TableRow>
-
                 ))
-
               )}
-
             </TableBody>
 
           </Table>
@@ -334,7 +272,7 @@ export function MemberTable({members, isLoading}: Props) {
       />
 
       {/* ADD */}
-      <MemberModal
+      <UpgradeMembershipModal
         open={openMemberModal}
         setOpen={setOpenMemberModal}
         member={selectedMember}

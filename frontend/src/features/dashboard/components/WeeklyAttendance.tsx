@@ -25,7 +25,7 @@ export function WeeklyAttendance({ data }: WeeklyAttendanceProps) {
         </p>
       </CardHeader>
 
-      <CardContent className="h-[470px]">
+      <CardContent className="h-[350px]">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data}>
             <CartesianGrid strokeDasharray="3 3" />

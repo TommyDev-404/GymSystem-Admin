@@ -78,7 +78,7 @@ export const checkInService = async (
     // 3. Admin activity
     await tx.activities.create({
       data: {
-        type: "CHECK_IN",
+        category: "ATTENDANCE",
         recipient_type: "ADMIN",
         title: "Member Check-in",
         description: `${member.fullname} checked in`,
@@ -89,7 +89,7 @@ export const checkInService = async (
     // 4. Member activity
     await tx.activities.create({
       data: {
-        type: "CHECK_IN",
+        category: "ATTENDANCE",
         recipient_type: "MEMBER",
         title: "Checked in",
         description: "You checked in today",
@@ -102,7 +102,8 @@ export const checkInService = async (
       data: {
         recipient_id: memberId,
         recipient_type: "MEMBER",
-        type: "REWARD",
+        category: "ATTENDANCE",
+        type: "ATTENDANCE_POINTS",
         title: "You earned points!",
         description: "Check-in complete! +10 points earned."
       }
@@ -117,13 +118,13 @@ export const checkInService = async (
 
   // Socket events
   getIO()
-    .to("admin-room")
-    .emit(
-      "attendance:new",
-      {
-        memberId
-      }
-    );
+  .to("admin-room")
+  .emit(
+    "attendance:new",
+    {
+      memberId
+    }
+  );
 
   /*
   getIO()

@@ -1,5 +1,5 @@
 import cron from "node-cron";
-import { createDailySessionService } from "./session.service";
+import { createDailySessionService } from "../modules/admin/session/session.service";
 
 export const startSessionScheduler = async () => {
   try {

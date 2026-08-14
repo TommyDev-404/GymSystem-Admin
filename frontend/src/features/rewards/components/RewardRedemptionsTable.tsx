@@ -30,24 +30,23 @@ type Props = {
 
 export function RewardRedemptionsTable({ redemptions, isLoading, }: Props) {
 	const { mutate: updateStatus, isPending } = useUpdateRewardRedemptionsStatus();
+	
+	const TH_CLASS = "text-left text-xs uppercase tracking-wide text-slate-400 dark:text-slate-500 font-semibold px-5 py-4" 
 
-	const statusStyle = (status:string)=>{
-
+	const statusStyle = (status: string) => {
 		switch(status){
+			case "claimed":
+				return "bg-emerald-100 text-emerald-700 hover:bg-emerald-100";
 
-		case "claimed":
-			return "bg-emerald-100 text-emerald-700 hover:bg-emerald-100";
+			case "pending":
+				return "bg-amber-100 text-amber-700 hover:bg-amber-100";
 
-		case "pending":
-			return "bg-amber-100 text-amber-700 hover:bg-amber-100";
+			case "cancelled":
+				return "bg-red-100 text-red-700 hover:bg-red-100";
 
-		case "cancelled":
-			return "bg-red-100 text-red-700 hover:bg-red-100";
-
-		default:
-			return "bg-slate-100 text-slate-700 hover:bg-slate-100";
+			default:
+				return "bg-slate-100 text-slate-700 hover:bg-slate-100";
 		}
-
 	};
 
 	const handleStatusUpdate = (redemption_id: number, status: string) => {
@@ -63,30 +62,13 @@ export function RewardRedemptionsTable({ redemptions, isLoading, }: Props) {
 			<CardContent className="p-0">
 				<Table className="text-sm">
 					<TableHeader>
-						<TableRow>
-							<TableHead className="text-left text-slate-500 font-medium px-5 py-3.5 h-auto">
-								Member
-							</TableHead>
-
-							<TableHead className="text-left text-slate-500 font-medium px-5 py-3.5 h-auto">
-								Reward
-							</TableHead>
-
-							<TableHead className="text-left text-slate-500 font-medium px-5 py-3.5 h-auto">
-								Points Used
-							</TableHead>
-
-							<TableHead className="text-left text-slate-500 font-medium px-5 py-3.5 h-auto">
-								Redeemed At
-							</TableHead>
-
-							<TableHead className="text-left text-slate-500 font-medium px-5 py-3.5 h-auto">
-								Status
-							</TableHead>
-							
-							<TableHead className="text-center text-slate-500 font-medium px-5 py-3.5 h-auto">
-								Actions
-							</TableHead>
+						<TableRow className="hover:bg-transparent bg-slate-50/70 dark:bg-stone-900/50">
+							<TableHead className={TH_CLASS}>Member</TableHead>
+							<TableHead className={TH_CLASS}>Reward</TableHead>
+							<TableHead className={TH_CLASS}>Points Used</TableHead>
+							<TableHead className={TH_CLASS}>Redeemed At</TableHead>
+							<TableHead className={TH_CLASS}>Status</TableHead>
+							<TableHead className={TH_CLASS}>Actions</TableHead>
 						</TableRow>
 					</TableHeader>
 

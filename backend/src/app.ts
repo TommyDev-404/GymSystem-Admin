@@ -2,7 +2,6 @@ import express from "express";
 import cors from "cors";
 
 import { errorHandler } from "./middlewares/errorHandler";
-import { startSessionScheduler } from "./modules/admin/session/session.scheduler";
 
 import adminAuthRoutes from "./modules/admin/auth/auth.routes";
 import adminDashboardRoutes from "./modules/admin/dashboard/dashboard.routes";
@@ -51,9 +50,6 @@ app.use(
   })
 );
 app.use(express.json());
-
-// ==================== Session Scheduler ================
-startSessionScheduler();
 
 // ==================== Admin Routes ===================
 app.use("/admin/auth", adminAuthRoutes);

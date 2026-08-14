@@ -20,6 +20,16 @@ export const getMonthlyRevenueTrendApi = async () => {
   }
 };
 
+export const getMembershipsExpiryApi = async () => {
+  try {
+    const res = await api.get("/dashboard/memberships-expiry");
+    return res.data;
+  } catch (error) {
+    console.error("Fetch memberships expiry failed:", error);
+    throw error;
+  }
+};
+
 export const getWeeklyAttendanceApi = async () => {
   try {
     const res = await api.get("/dashboard/weekly-attendance");

@@ -20,7 +20,6 @@ import {
 
 
 export function RewardsPage() {
-
 	const [searchParams] = useSearchParams();
 	const urlAction = searchParams.get("action");
 
@@ -31,7 +30,6 @@ export function RewardsPage() {
 
 	const [showForm,setShowForm] = useState(!!urlAction);
 
-	console.log(redeemedRewards);
 	if(
 		rewardsLoading ||
 		memberProgressLoading ||
@@ -61,9 +59,7 @@ export function RewardsPage() {
 
 			{/* ================= STATISTICS ================= */}
 			<section>
-				<RewardsStats
-					summaryData={summaryData}
-				/>
+				<RewardsStats summaryData={summaryData}/>
 			</section>
 
 			{/* ================= REWARD MANAGEMENT ================= */}

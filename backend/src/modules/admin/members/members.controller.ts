@@ -1,21 +1,49 @@
 import { Request, Response } from "express";
 import * as service from "./members.service";
 
+
+export const getMembersSummaryController = async (req: Request, res: Response) => {
+	try {
+		const data = await service.getMemberSummaryService();
+		
+		return res.status(200).json(data);
+	} catch (err: any) {
+		console.log(err);
+		return res.status(500).json({
+			message: err.message || "Failed to fetch members summary",
+		});
+	}
+};
+
+export const getMembersController = async (req: Request, res: Response) => {
+	try {
+		const data = await service.getMembersService(req.query);
+		
+		return res.status(200).json(data);
+	} catch (err: any) {
+		console.log(err);
+		return res.status(500).json({
+			message: err.message || "Failed to fetch members",
+		});
+	}
+};
+
 export const createMemberController = async (req: Request, res: Response) => {
 	try {
-		const result = await service.createMember(req.body);
+		const result = await service.createMemberService(req.body);
 		
 		return res.status(201).json(result);
 	} catch (err: any) {
+		console.log(err);
 		return res.status(400).json({
 			message: err.message || "Failed to create member",
 		});
 	}
 };
 
-export const updateMemberInfoController = async (req: Request, res: Response) => {
+export const upgradeMembershipPlanController = async (req: Request, res: Response) => {
 	try {
-		const result = await service.updateMemberInfo(Number(req.params.member_id), req.body);
+		const result = await service.upgradeMembershipPlanService(Number(req.params.member_id), req.body.data);
 
 		return res.status(200).json(result);
 	} catch (err: any) {
@@ -25,58 +53,10 @@ export const updateMemberInfoController = async (req: Request, res: Response) =>
 	}
 };
 
-export const updateMemberStatusController = async (req: Request, res: Response) => {
-	try {
-		const result = await service.updateMemberStatus(Number(req.params.member_id), req.body);
-
-		return res.status(200).json(result);
-	} catch (err: any) {
-		return res.status(400).json({
-			message: err.message || "Failed to update status",
-		});
-	}
-};
-
-export const deleteMemberController = async (req: Request, res: Response) => {
-	try {
-		const result = await service.deleteMember(Number(req.params.member_id));
-
-		return res.status(200).json(result);
-	} catch (err: any) {
-		return res.status(400).json({
-			message: err.message || "Failed to delete member",
-		});
-	}
-};
-
-export const getMembersController = async (req: Request, res: Response) => {
-	try {
-		const data = await service.getMembers(req.query);
-
-		return res.status(200).json(data);
-	} catch (err: any) {
-		return res.status(500).json({
-			message: err.message || "Failed to fetch members",
-		});
-	}
-};
-
-export const getMemberByIdController = async (req: Request, res: Response) => {
-	try {
-		const data = await service.getMemberById(Number(req.params.member_id));
-
-		return res.status(200).json(data);
-	} catch (err: any) {
-		return res.status(404).json({
-			message: err.message || "Member not found",
-		});
-	}
-};
-
 export const resendActivationController = async (req: Request, res: Response) => {
 	try {
 		const { email } = req.body;
-		const result = await service.resendActivationCode(email);
+		const result = await service.resendActivationCodeService(email);
 
 		return res.status(200).json(result);
 	} catch (error: any) {
@@ -88,7 +68,7 @@ export const resendActivationController = async (req: Request, res: Response) =>
 
 export const renewMembershipController = async (req: Request, res: Response) => {
 	try {
-		const result = await service.renewMembershipService(req.body);
+		const result = await service.renewMembershipServiceService(req.body);
 
 		return res.status(200).json(result);
 	} catch (error: any) {

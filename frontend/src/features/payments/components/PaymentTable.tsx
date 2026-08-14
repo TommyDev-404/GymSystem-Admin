@@ -1,341 +1,237 @@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
 } from "@/components/ui/table";
-
-import {
-  Eye,
-  CreditCard,
-} from "lucide-react";
-
-import type { Payment } from "@/features/payments/types/PaymentTypes";
-import { statusConfig } from "@/utils/statusConfig";
+import type { PaymentFiltersType } from "@/features/payments/types/PaymentTypes";
 import { getInitials } from "@/utils/initials";
 import { TableLoader } from "@/components/shared/TableLoader";
-import PayPaymentDialog from "./PayPaymentDialog";
-import { useState } from "react";
-import PaymentDetailsDialog from "./PaymentDetailsDialog";
+import { usePayments } from "../hooks/usePayments";
+import {
+	CheckCircle2,
+	Clock3,
+	XCircle,
+	RotateCcw,
+} from "lucide-react";
 
 
 interface Props {
-  payments: Payment[];
-  isLoading: boolean;
+	params: PaymentFiltersType;
 }
 
-const TH_CLASS = "text-left text-slate-500 dark:text-slate-400 font-medium px-5 py-3.5 h-auto";
-const TD_CLASS = "px-5 py-5";
+const TH_CLASS = "text-left text-xs uppercase tracking-wide text-slate-400 dark:text-slate-500 font-semibold px-5 py-4";
+const TD_CLASS = "px-5 py-4";
 
-export function PaymentsTable({payments, isLoading}: Props) {
+const paymentTypeConfig = {
+	Membership: {
+		label: "Membership",
+		className:
+			"bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
+	},
+	Renewal: {
+		label: "Renewal",
+		className:
+			"bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300",
+	},
+	Upgrade: {
+		label: "Upgrade",
+		className:
+			"bg-violet-50 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300",
+	},
+} as const;
 
-  const [showDialog, setShowDialog] = useState<"pay" | "view" | null>(null);
-  const [selectedPayment, setSelectedPayment] = useState<Payment |null>(null);
+const statusConfig = {
+	Paid: {
+		color:
+			"bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400",
+		icon: CheckCircle2,
+	},
 
-  const onPay = (payment: Payment) => {
-    setSelectedPayment(payment);
-    setShowDialog('pay');
-  };
+	Pending: {
+		color:
+			"bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400",
+		icon: Clock3,
+	},
 
-  const onView = (payment: Payment) => {
-    setSelectedPayment(payment);
-    setShowDialog('view');
-  };
+	Cancelled: {
+		color:
+			"bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400",
+		icon: XCircle,
+	},
 
-  return (
-    <>
-      <Card className="rounded-2xl shadow-sm overflow-hidden p-0">
-        <CardContent className="p-0">
-          <Table className="text-sm">
-            {/* HEADER */}
-            <TableHeader>
+	Refunded: {
+		color:
+			"bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-400",
+		icon: RotateCcw,
+	},
+} as const;
 
-              <TableRow>
+export function PaymentsTable({ params }: Props) {
+	const { data: payments = [], isLoading } = usePayments(params);
+	
+	return (
+		<Card className="rounded-2xl shadow-sm overflow-hidden p-0">
+			<CardContent className="p-0">
+				<Table className="text-sm">
+					<TableHeader>
+						<TableRow className="hover:bg-transparent bg-slate-50/70 dark:bg-stone-900/50">
+							<TableHead className={TH_CLASS}>Member</TableHead>
+							<TableHead className={TH_CLASS}>Plan</TableHead>
+							<TableHead className={TH_CLASS}>Type</TableHead>
+							<TableHead className={TH_CLASS}>Amount</TableHead>
+							<TableHead className={TH_CLASS}>Method</TableHead>
+							<TableHead className={TH_CLASS}>Status</TableHead>
+							<TableHead className={TH_CLASS}>Paid On</TableHead>
+						</TableRow>
+					</TableHeader>
 
-                <TableHead className={TH_CLASS}>
-                  Member
-                </TableHead>
+					<TableBody>
+						{isLoading ? (
+							<TableLoader />
+						) : payments.length === 0 ? (
+							<TableRow>
+								<TableCell
+									colSpan={7}
+									className="text-center py-14 text-slate-400 dark:text-slate-500"
+								>
+									<div className="flex flex-col items-center gap-1">
+										<p className="font-medium text-slate-500 dark:text-slate-400">
+											No payments found
+										</p>
 
+										<p className="text-xs">
+											Payment transactions will appear here.
+										</p>
+									</div>
+								</TableCell>
+							</TableRow>
+						) : (
+							payments.map((p) => {
+								const status = statusConfig[p.status];
+								const paymentType = paymentTypeConfig[p.paymentType as keyof typeof paymentTypeConfig];
 
-                <TableHead className={TH_CLASS}>
-                  Plan
-                </TableHead>
+								return (
+									<TableRow
+										key={p.id}
+										className="group hover:bg-slate-50/70 dark:hover:bg-stone-800/50 transition-colors border-slate-100 dark:border-stone-800"
+									>
+										{/* MEMBER */}
+										<TableCell className={TD_CLASS}>
+											<div className="flex items-center gap-3">
+												<Avatar className="h-9 w-9 shrink-0">
+													<AvatarFallback className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300 text-xs font-semibold">
+														{getInitials(
+															p.memberName
+														)}
+													</AvatarFallback>
+												</Avatar>
 
+												<div className="min-w-0">
+													<p className="font-medium text-slate-700 dark:text-slate-100 truncate">
+														{p.memberName}
+													</p>
 
-                <TableHead className={TH_CLASS}>
-                  Amount
-                </TableHead>
+													<p className="text-xs text-slate-400 dark:text-slate-500">
+														Payment #{p.id}
+													</p>
+												</div>
+											</div>
+										</TableCell>
 
+										{/* PLAN */}
+										<TableCell className={TD_CLASS}>
+											<Badge className="bg-indigo-50 text-indigo-700 hover:bg-indigo-50 dark:bg-indigo-900/30 dark:text-indigo-300 dark:hover:bg-indigo-900/30 border-0 font-medium">
+												{p.plan}
+											</Badge>
+										</TableCell>
 
-                <TableHead className={TH_CLASS}>
-                  Status
-                </TableHead>
+										{/* PAYMENT TYPE */}
+										<TableCell className={TD_CLASS}>
+											{paymentType ? (
+												<Badge
+													className={`${paymentType.className} border-0 font-medium hover:opacity-100`}
+												>
+													{paymentType.label}
+												</Badge>
+											) : (
+												<span className="text-slate-400">
+													-
+												</span>
+											)}
+										</TableCell>
 
+										{/* AMOUNT */}
+										<TableCell className={`${TD_CLASS} font-semibold text-slate-700 dark:text-slate-100`}>
+											{new Intl.NumberFormat(
+												"en-PH",
+												{
+													style: "currency",
+													currency: "PHP",
+												}
+											).format(Number(p.amount))}
+										</TableCell>
 
-                <TableHead className={TH_CLASS}>
-                  Method
-                </TableHead>
+										{/* PAYMENT METHOD */}
+										<TableCell className={`${TD_CLASS} text-slate-500 dark:text-slate-400`}>
+											{p.paymentMethod ?? "-"}
+										</TableCell>
 
+										{/* STATUS */}
+										<TableCell className={TD_CLASS}>
+											<Badge className={`gap-1.5 border font-medium hover:bg-inherit ${status.color}`}>
+												<status.icon className="h-3 w-3" />
+												{p.status}
+											</Badge>
+										</TableCell>
 
-                <TableHead className={TH_CLASS}>
-                  Paid On
-                </TableHead>
+										{/* PAID DATE */}
+										<TableCell className={`${TD_CLASS} text-slate-500 dark:text-slate-400`}>
+											{p.paidDate ? (
+												<div>
+													<p className="font-medium text-slate-600 dark:text-slate-300">
+														{new Date(
+															p.paidDate
+														).toLocaleDateString(
+															"en-PH",
+															{
+																month: "short",
+																day: "2-digit",
+																year: "numeric",
+															}
+														)}
+													</p>
 
-
-                <TableHead className={TH_CLASS}>
-                  Actions
-                </TableHead>
-
-
-              </TableRow>
-
-
-            </TableHeader>
-
-            {/* BODY */}
-            <TableBody>
-              {isLoading ? (
-                <TableLoader />
-              ) : payments.length === 0 ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={7}
-                    className="
-                      text-center
-                      py-10
-                      text-slate-400
-                      dark:text-slate-500
-                    "
-                  >
-                    No payments found.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                payments.map((p)=>{
-                  const cfg = statusConfig[p.status];
-
-                  return (
-                    <TableRow
-                      key={p.id}
-                      className="
-                        hover:bg-slate-50
-                        dark:hover:bg-slate-800
-                        transition-colors
-                      "
-                    >
-                      {/* MEMBER */}
-                      <TableCell className={TD_CLASS}>
-
-                        <div className="flex items-center gap-3">
-
-                          <Avatar className="w-9 h-9 shrink-0">
-
-                            <AvatarFallback
-                              className="
-                                bg-emerald-100
-                                text-emerald-700
-                                dark:bg-emerald-900/40
-                                dark:text-emerald-300
-                                text-xs
-                                font-semibold
-                              "
-                            >
-                              {getInitials(p.memberName)}
-                            </AvatarFallback>
-
-                          </Avatar>
-
-
-                          <span
-                            className="
-                              text-slate-700
-                              dark:text-slate-100
-                              font-medium
-                            "
-                          >
-                            {p.memberName}
-                          </span>
-
-
-                        </div>
-
-
-                      </TableCell>
-
-                      {/* PLAN */}
-                      <TableCell className={TD_CLASS}>
-
-                        <Badge
-                          className="
-                            bg-indigo-100
-                            text-indigo-700
-                            dark:bg-indigo-900/40
-                            dark:text-indigo-300
-                          "
-                        >
-                          {p.plan}
-                        </Badge>
-
-                      </TableCell>
-
-                      {/* AMOUNT */}
-                      <TableCell
-                        className="
-                          px-5
-                          py-5
-                          font-medium
-                          text-slate-700
-                          dark:text-slate-100
-                        "
-                      >
-
-                        {new Intl.NumberFormat(
-                          "en-PH",
-                          {
-                            style:"currency",
-                            currency:"PHP",
-                          }
-                        ).format(p.amount)}
-
-                      </TableCell>
-
-                      {/* STATUS */}
-                      <TableCell className={TD_CLASS}>
-
-                        <Badge
-                          className={`
-                            gap-1.5
-                            border
-                            font-medium
-                            hover:bg-inherit
-                            ${cfg.color}
-                          `}
-                        >
-
-                          <cfg.icon className="h-3 w-3"/>
-
-                          {p.status}
-
-                        </Badge>
-
-                      </TableCell>
-
-                      {/* METHOD */}
-                      <TableCell
-                        className="
-                          px-5
-                          py-5
-                          text-slate-500
-                          dark:text-slate-400
-                        "
-                      >
-
-                        {p.paymentMethod ?? "-"}
-
-                      </TableCell>
-
-                      {/* PAID ON */}
-                      <TableCell
-                        className="
-                          px-5
-                          py-5
-                          text-slate-500
-                          dark:text-slate-400
-                        "
-                      >
-
-                        {p.paidDate ? (
-
-                          new Date(
-                            p.paidDate
-                          ).toLocaleDateString(
-                            "en-PH",
-                            {
-                              year:"numeric",
-                              month:"short",
-                              day:"2-digit",
-                            }
-                          )
-
-                        ) : (
-
-                          <Badge
-                            className="
-                              bg-slate-100
-                              text-slate-400
-                              dark:bg-slate-800
-                              dark:text-slate-500
-                            "
-                          >
-                            Not paid
-                          </Badge>
-
-                        )}
-
-                      </TableCell>
-
-                      {/* ACTIONS */}
-                      <TableCell className={TD_CLASS}>
-                        {p.status === "Pending" ? (
-                          <Button
-                            size="sm"
-                            className="
-                              bg-emerald-500
-                              hover:bg-emerald-600
-                              text-white
-                              gap-2
-                            "
-                            onClick={() => onPay(p)}
-                          >
-                            <CreditCard size={15}/>
-                            Pay
-                          </Button>
-                        ) : (
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="
-                              hover:bg-slate-100
-                              dark:hover:bg-slate-800
-                            "
-                            onClick={() => onView(p)}
-                          >
-                            <Eye
-                              size={16}
-                              className="
-                                text-slate-600
-                                dark:text-slate-300
-                              "
-                            />
-                          </Button>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  );
-                })
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-      
-      <PayPaymentDialog
-        payment={selectedPayment!}
-        open={showDialog === 'pay' && true}
-        onClose={() => setShowDialog(null)}
-      />
-
-      <PaymentDetailsDialog
-        payment={selectedPayment!}
-        open={showDialog === 'view' && true}
-        onClose={() => setShowDialog(null)}
-      />
-    </>
-  );
+													<p className="text-xs text-slate-400 dark:text-slate-500">
+														{new Date(
+															p.paidDate
+														).toLocaleTimeString(
+															"en-PH",
+															{
+																hour: "numeric",
+																minute: "2-digit",
+															}
+														)}
+													</p>
+												</div>
+											) : (
+												<Badge className="bg-slate-100 text-slate-400 dark:bg-stone-800 dark:text-slate-500 border-0">
+													Not paid
+												</Badge>
+											)}
+										</TableCell>
+									</TableRow>
+								);
+							})
+						)}
+					</TableBody>
+				</Table>
+			</CardContent>
+		</Card>
+	);
 }

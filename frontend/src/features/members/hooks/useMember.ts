@@ -1,6 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import * as api from "@/features/members/api/members.api";
-import type { Member, MemberFilters, RenewMembershipDTO } from "../types/member";
+import type { AddMemberFormType, MemberFilters, MemberSummaryType, RenewMembershipDTO, UpgradeMembership } from "../types/member";
+
+export function useMembersSummary() {
+  return useQuery<MemberSummaryType>({
+    queryKey: ["members-summary"],
+    queryFn: api.getMembersSummaryApi,
+  });
+}
 
 export function useMembers(params?: MemberFilters) {
    return useQuery({
@@ -13,10 +20,14 @@ export function useCreateMember() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: Omit<Member, "id">) => api.createMemberApi(data),
+    mutationFn: (data: AddMemberFormType) => api.createMemberApi(data),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["members"],
+      });
+      
+      queryClient.invalidateQueries({
+        queryKey: ["members-summary"],
       });
 
       queryClient.invalidateQueries({
@@ -28,13 +39,17 @@ export function useCreateMember() {
       });
 
       queryClient.invalidateQueries({
-        queryKey: ["payment-unpaid-members"],
+        queryKey: ["payments"],
+      });
+      
+      queryClient.invalidateQueries({
+        queryKey: ["payments-summary"],
       });
     },
   });
 }
 
-export function useUpdateMember() {
+export function useUpgradeMembership() {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -43,8 +58,8 @@ export function useUpdateMember() {
       data,
     }: {
       id: number;
-      data: Partial<Member>;
-    }) => api.updateMemberApi(id, data),
+      data: UpgradeMembership
+    }) => api.upgradeMembershipPlanApi(id, data),
 
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -52,53 +67,19 @@ export function useUpdateMember() {
       });
 
       queryClient.invalidateQueries({
-        queryKey: ["dashboard-gender-distribution"],
+        queryKey: ["members-summary"],
       });
-      
+
       queryClient.invalidateQueries({
         queryKey: ["dashboard-recent-activity"],
       });
-
+      
       queryClient.invalidateQueries({
-        queryKey: ["payment-unpaid-members"],
-      });
-    },
-  });
-}
-
-export function useUpdateMemberStatus() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({
-      id,
-      data,
-    }: {
-      id: number;
-      data: { status: string };
-    }) => api.updateMemberStatusApi(id, data),
-
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["members"],
+        queryKey: ["payments"],
       });
       
       queryClient.invalidateQueries({
-        queryKey: ["dashboard-member-status"],
-      });
-    },
-  });
-}
-
-export function useDeleteMember() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (id: number) => api.deleteMemberApi(id),
-
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey:  ["members"]
+        queryKey: ["payments-summary"],
       });
     },
   });
@@ -123,31 +104,27 @@ export function useResendActivationCode() {
 }
 
 export function useRenewMembership() {
-
   const queryClient = useQueryClient();
 
-
   return useMutation({
-
-    mutationFn: (
-      data: RenewMembershipDTO
-    ) =>
-      api.renewMembershipApi(data),
-
-
+    mutationFn: (data: RenewMembershipDTO) => api.renewMembershipApi(data),
     onSuccess: () => {
 
       queryClient.invalidateQueries({
         queryKey:["members"],
       });
-
+    
+      queryClient.invalidateQueries({
+        queryKey: ["members-summary"],
+      });
 
       queryClient.invalidateQueries({
         queryKey:["payments"],
       });
-
+      
+      queryClient.invalidateQueries({
+        queryKey: ["payments-summary"],
+      });
     },
-
   });
-
 }

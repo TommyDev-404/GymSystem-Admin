@@ -77,3 +77,14 @@ export const getRecentActivityController = async (req: Request, res: Response) =
       return res.status(500).json({ message: "Failed to fetch recent activity" });
    }
 };
+
+export const getMembershipsExpiringSoonController = async (req: Request, res: Response) => {
+   try {
+      const memberships = await service.getMembershipsExpiringSoonService();
+
+      return res.status(200).json(memberships);
+   } catch (error) {
+      console.error("Get memberships expiring soon error:", error);
+      return res.status(500).json({ message: "Failed to fetch expiring memberships" });
+   }
+};

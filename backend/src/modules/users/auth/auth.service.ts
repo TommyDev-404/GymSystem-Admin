@@ -148,8 +148,7 @@ export const completeRegistration = async (
     },
     data: {
       user_id: user.id,
-      is_activated: true,
-      status: "Active",
+      is_activated: true
     },
   });
 
@@ -161,7 +160,6 @@ export const completeRegistration = async (
       is_used: true,
     },
   });
-
 
   const token = jwt.sign(
     {

@@ -57,9 +57,13 @@ export const getAttendanceService = async (filters: {
         select: {
           fullname: true,
           gender: true,
-          membership_plans: {
+          member_memberships: {
             select: {
-              plan_name: true
+              membership_plans: {
+                select: {
+                  plan_name: true
+                }
+              }
             }
           }
         },
@@ -74,7 +78,7 @@ export const getAttendanceService = async (filters: {
     name: r.members.fullname,
     gender: r.members.gender,
     status: r.status,
-    plan: r.members.membership_plans.plan_name,
+    plan: r.members.member_memberships[0].membership_plans.plan_name,
     checkin_time: r.check_in_time,
   }));
   

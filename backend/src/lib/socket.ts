@@ -3,50 +3,34 @@ import { Server } from "socket.io";
 let io: Server;
 
 export const initSocket = (server: any) => {
-  io = new Server(server, {
-    cors: {
-      origin: "*",
-    },
-  });
+	io = new Server(server, {
+		cors: {
+			origin: "*",
+		},
+	});
 
+	io.on("connection", (socket) => {
 
-  io.on("connection", (socket) => {
+		socket.on("join-admin", () => { socket.join("admin-room") });
 
+		socket.on("join-member",
+			(memberId: number) => {
+				socket.join(`member-${memberId}`);
+				socket.join("members-room");
+			}
+		);
 
-    socket.on("join-admin", () => {
-      socket.join("admin-room");
-    });
+		socket.on("disconnect", () => {});
 
-
-    socket.on(
-      "join-member",
-      (memberId: number) => {
-
-        socket.join(
-          `member-${memberId}`
-        );
-
-      }
-    );
-
-
-    socket.on("disconnect", () => {
-
-    });
-
-  });
-
+	});
 
   return io;
 };
 
-
 export const getIO = () => {
-  if (!io) {
-    throw new Error(
-      "Socket.io not initialized"
-    );
-  }
+	if (!io) {
+		throw new Error("Socket.io not initialized");
+	}
 
-  return io;
+	return io;
 };

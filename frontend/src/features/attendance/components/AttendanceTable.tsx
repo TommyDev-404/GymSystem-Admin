@@ -27,28 +27,20 @@ export function AttendanceTable({ members, isLoading }: Props) {
       hour12: true,
     }).format(new Date(date));
   };
+  
+  const TH_CLASS = "text-left text-xs uppercase tracking-wide text-slate-400 dark:text-slate-500 font-semibold px-5 py-4"
 
   return (
     <Card className="rounded-2xl shadow-sm overflow-hidden p-0">
       <CardContent className="p-0">
       <Table className="text-sm">
         <TableHeader>
-          <TableRow>
-            <TableHead className="text-left text-slate-500 font-medium px-5 py-3.5 h-auto">
-              Name
-            </TableHead>
-            <TableHead className="text-left text-slate-500 font-medium px-5 py-3.5 h-auto">
-              Gender
-            </TableHead>
-            <TableHead className="text-left text-slate-500 font-medium px-5 py-3.5 h-auto">
-              Check-in Time
-            </TableHead>
-            <TableHead className="text-left text-slate-500 font-medium px-5 py-3.5 h-auto">
-              Plan
-            </TableHead>
-            <TableHead className="text-left text-slate-500 font-medium px-5 py-3.5 h-auto">
-              Status
-            </TableHead>
+          <TableRow className="hover:bg-transparent bg-slate-50/70 dark:bg-stone-900/50">
+            <TableHead className={TH_CLASS}>Name</TableHead>
+            <TableHead className={TH_CLASS}>Gender</TableHead>
+            <TableHead className={TH_CLASS}>Check-in Time</TableHead>
+            <TableHead className={TH_CLASS}>Plan</TableHead>
+            <TableHead className={TH_CLASS}>Status</TableHead>
           </TableRow>
         </TableHeader>
 

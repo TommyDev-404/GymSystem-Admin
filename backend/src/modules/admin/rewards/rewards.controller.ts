@@ -11,40 +11,10 @@ export const getRewardController = async (req: Request, res: Response) => {
   }
 };
 
-export const createRewardController = async (req: Request, res: Response) => {
-  try {
-    const result = await service.createRewardService(req.body);
-
-    res.status(200).json(result);
-  } catch (err) {
-    res.status(500).json({ error: "Failed to create reward" });
-  }
-};
-
-export const updateRewardController = async (req: Request, res: Response) => {
- try {
-   const result = await service.updateRewardService(Number(req.params.id), req.body);
-
-   res.status(200).json(result);
- } catch (err) {
-   res.status(500).json({ error: "Failed to create reward" });
- }
-};
-
-export const deleteRewardController = async (req: Request, res: Response) => {
- try {
-   const result = await service.deleteRewardService(Number(req.params.id));
-
-   res.status(200).json(result);
- } catch (err) {
-   res.status(500).json({ error: "Failed to delete reward" });
- }
-};
-
 export const getMemberProgressController = async (req: Request, res: Response) => {
   try {
     const result = await service.getMemberProgressService();
- 
+
     res.status(200).json(result);
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch member progress" });
@@ -74,6 +44,36 @@ export const getAllRewardRedemptionsController = async (req: Request, res: Respo
 			message: error.message || "Failed to retrieve reward redemptions"
 		});
 	}
+};
+
+export const createRewardController = async (req: Request, res: Response) => {
+  try {
+    const result = await service.createRewardService(req.body);
+
+    res.status(200).json(result);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to create reward" });
+  }
+};
+
+export const updateRewardController = async (req: Request, res: Response) => {
+ try {
+   const result = await service.updateRewardService(Number(req.params.id), req.body);
+
+   res.status(200).json(result);
+ } catch (err) {
+   res.status(500).json({ error: "Failed to create reward" });
+ }
+};
+
+export const deleteRewardController = async (req: Request, res: Response) => {
+ try {
+   const result = await service.deleteRewardService(Number(req.params.id));
+
+   res.status(200).json(result);
+ } catch (err) {
+   res.status(500).json({ error: "Failed to delete reward" });
+ }
 };
 
 export const updateRewardRedemptionStatusController = async (req: Request, res: Response) => {

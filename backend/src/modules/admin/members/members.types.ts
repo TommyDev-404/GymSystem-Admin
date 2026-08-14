@@ -7,6 +7,8 @@ export type CreateMemberDTO = {
   gender: "Male" | "Female";
   referral_code?: string;
   plan_id: number;
+  membership_id?: number
+  payment_method: "Cash" | "GCash" 
   join_date: string;
 };
 
@@ -17,12 +19,12 @@ export type UpdateMemberDTO = {
   age?: number;
   gender?: "Male" | "Female";
   plan?: string;
-  status?: "Active" | "Inactive" | "Suspended";
+  status?: "Active" | "Expired" | "Cancelled";
 };
 
 // ==================== QUERY / FILTER ====================
 export type MemberFilters = {
   search?: string;
   gender?: "Male" | "Female";
-  status?: "Active" | "Inactive" | "Suspended";
+  status?: "Active" | "Expired" | "Cancelled";
 };

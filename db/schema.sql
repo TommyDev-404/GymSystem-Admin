@@ -17,7 +17,7 @@ CREATE TABLE users (
     contact varchar(11),
     password VARCHAR(255) NOT NULL,
     hash_pass TEXT NOT NULL,
-    profile varchar(255) not null,
+    profile varchar(255),
     role ENUM('ADMIN', 'MEMBER') NOT NULL DEFAULT 'MEMBER',
 
     createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -52,7 +52,6 @@ CREATE TABLE rewards (
     description TEXT NOT NULL,
     points_required INT NOT NULL,
     category VARCHAR(255) NOT NULL,
-    total_claim INT NOT NULL,
 
     createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -65,18 +64,11 @@ CREATE TABLE members (
     email VARCHAR(255) NOT NULL UNIQUE,
     age INT NOT NULL,
     gender ENUM('Male','Female') NOT NULL,
-    plan_id INT NOT NULL,
-    status ENUM('Inactive','Active','Suspended') NOT NULL DEFAULT 'Active',
     is_activated BOOLEAN NOT NULL DEFAULT FALSE,
     points INT NOT NULL,
     referral_code varchar(255) not null UNIQUE,
     join_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-
-    CONSTRAINT fk_members_plan
-        FOREIGN KEY (plan_id)
-        REFERENCES membership_plans(id)
-        ON DELETE CASCADE,
 
     CONSTRAINT fk_members_user
         FOREIGN KEY (user_id)
@@ -172,17 +164,19 @@ CREATE TABLE payments (
         'GCash',
         'Bank Transfer'
     ) NULL,
+
+    payment_type ENUM(
+        'Membership',
+        'Renewal',
+        'Upgrade',
+        'Refund'
+    ) NOT NULL,
     status ENUM(
-        'Pending',
         'Paid',
-        'Cancelled',
         'Refunded'
-    ) DEFAULT 'Pending',
-    paid_at DATETIME NULL,
-    
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        ON UPDATE CURRENT_TIMESTAMP,
+    ) DEFAULT 'Paid',
+    description VARCHAR(255) NULL,
+    paid_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_payment_member
         FOREIGN KEY (member_id)
@@ -219,13 +213,15 @@ CREATE TABLE activities (
     id INT AUTO_INCREMENT PRIMARY KEY,
     recipient_id INT NULL,
     recipient_type ENUM('ADMIN', 'MEMBER') NOT NULL,
-    type ENUM(
-        'MEMBER',
-        'CHECK_IN',
-        'PAYMENT',
-        'REWARD',
-        'REGISTER'
-    ) NOT NULL,
+    category ENUM(
+        "PAYMENT",
+        "MEMBERSHIP",
+        "REWARD",
+        "MEMBER",
+        "ATTENDANCE",
+        "PRICING",
+        "WORKOUT"
+    ),
 
     title VARCHAR(255) NOT NULL,
     description TEXT NOT NULL,
@@ -242,12 +238,25 @@ CREATE TABLE notifications (
     id INT AUTO_INCREMENT PRIMARY KEY,
     recipient_id INT NULL,
     recipient_type ENUM('ADMIN', 'MEMBER') NOT NULL,
+    category ENUM(
+        "PAYMENT",
+        "MEMBERSHIP",
+        "REWARD",
+        "MEMBER",
+        "ATTENDANCE"
+    ),
     type ENUM(
-        'CHECK_IN',
-        'PAYMENT',
-        'REWARD',
-        'EXPIRY',
-        'REMINDER'
+        "MEMBERSHIP_EXPIRED",
+        "MEMBERSHIP_EXPIRING",
+        "MEMBERSHIP_UPGRADE",
+        "PAYMENT_RECORDED",
+        "MEMBER_ADDED",
+        "MEMBER_INACTIVE_3_DAYS",
+        "MEMBER_INACTIVE_7_DAYS",
+        "MEMBER_INACTIVE_14_DAYS",
+        "REWARD_CLAIMED",
+        "ATTENDANCE_POINTS",
+        "REWARD_CANCELLED"
     ) NOT NULL,
 
     title VARCHAR(255) NOT NULL,
@@ -304,7 +313,6 @@ CREATE TABLE posts (
         ON DELETE CASCADE
 );
 
-
 CREATE TABLE post_images (
     id INT AUTO_INCREMENT PRIMARY KEY,
     post_id INT NOT NULL,
@@ -317,7 +325,6 @@ CREATE TABLE post_images (
         REFERENCES posts(id)
         ON DELETE CASCADE
 );
-
 
 CREATE TABLE post_likes (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -339,7 +346,6 @@ CREATE TABLE post_likes (
     CONSTRAINT uq_post_likes_member_post
         UNIQUE (post_id, member_id)
 );
-
 
 CREATE TABLE post_comments (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -409,7 +415,6 @@ CREATE TABLE body_progress (
         REFERENCES members(id)
         ON DELETE CASCADE
 );
-
 
 CREATE TABLE referrals (
     id INT AUTO_INCREMENT PRIMARY KEY,

@@ -1,9 +1,9 @@
 import {
-  Users,
-  UserCheck,
-  DollarSign,
-  TrendingUp,
-  Activity
+	Users,
+	UserCheck,
+	DollarSign,
+	Activity,
+	CalendarX,
 } from "lucide-react";
 
 import { StatCard } from "@/features/dashboard/components/StatCard";
@@ -13,155 +13,200 @@ import { WeeklyAttendance } from "@/features/dashboard/components/WeeklyAttendan
 import { GenderWidget } from "@/features/dashboard/components/GenderWidget";
 import { TopClaimedRewards } from "@/features/dashboard/components/TopRewards";
 import { RecentActivity } from "@/features/dashboard/components/RecentActivity";
-import { useGenderDistribution, useGetDashboardSummaryData, useGetMemberStatus, useGetMonthlyRevenueTrend, useGetRecentActivity, useGetTopClaimedRewards, useGetWeeklyAttendance } from "../hooks/useDashboard";
+import { MembershipsExpiringSoon } from "../components/MembershipExpiringSoon";
+
+import {
+	useGenderDistribution,
+	useGetDashboardSummaryData,
+	useGetMembershipsExpiry,
+	useGetMemberStatus,
+	useGetMonthlyRevenueTrend,
+	useGetRecentActivity,
+	useGetTopClaimedRewards,
+	useGetWeeklyAttendance,
+} from "../hooks/useDashboard";
+
 import type { SummaryData } from "../types/DashboardTypes";
 import { PageLoader } from "@/components/shared/PageLoader";
 
 export function DashboardPage() {
-  const { data: summaryData = {} as SummaryData, isLoading: summaryDataLoading } = useGetDashboardSummaryData();
-  const { data: revenueTrend = [], isLoading: revenueTrendLoading } = useGetMonthlyRevenueTrend();
-  const { data: weeklyAttendance = [], isLoading: weeklyAttendanceLoading } = useGetWeeklyAttendance();
-  const { data: memberStatus = [], isLoading: memberStatusLoading } = useGetMemberStatus();
-  const { data: genderDistribution = [], isLoading: genderDistributionLoading } = useGenderDistribution();
-  const { data: topClaimedRewards = [], isLoading: topClaimedRewardsLoading } = useGetTopClaimedRewards();
-  const { data: recentActivity = [], isLoading: recentActivityLoading } = useGetRecentActivity();
+	const { data: summaryData = {} as SummaryData, isLoading: summaryDataLoading} = useGetDashboardSummaryData();
+	const { data: revenueTrend = [], isLoading: revenueTrendLoading } = useGetMonthlyRevenueTrend();
+	const { data: weeklyAttendance = [], isLoading: weeklyAttendanceLoading } = useGetWeeklyAttendance();
+	const { data: memberStatus = [], isLoading: memberStatusLoading } = useGetMemberStatus();
+	const { data: genderDistribution = [], isLoading: genderDistributionLoading } = useGenderDistribution();
+	const { data: topClaimedRewards = [], isLoading: topClaimedRewardsLoading } = useGetTopClaimedRewards();
+	const { data: recentActivity = [], isLoading: recentActivityLoading } = useGetRecentActivity();
+	const { data: membershipsExpiry = [], isLoading: membershipsExpiryLoading } = useGetMembershipsExpiry();
 
-  const dataFetching =
-    summaryDataLoading ||
-    recentActivityLoading ||
-    revenueTrendLoading ||
-    weeklyAttendanceLoading ||
-    memberStatusLoading ||
-    genderDistributionLoading ||
-    topClaimedRewardsLoading;
-  
-  if (dataFetching) return <PageLoader />;
+	const dataFetching =
+		summaryDataLoading ||
+		revenueTrendLoading ||
+		weeklyAttendanceLoading ||
+		memberStatusLoading ||
+		genderDistributionLoading ||
+		topClaimedRewardsLoading ||
+		membershipsExpiryLoading ||
+		recentActivityLoading;
 
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="
-            text-slate-800 
-            dark:text-slate-100
-            font-bold 
-            text-xl
-          ">
-            Dashboard
-          </h1>
+	if (dataFetching) {
+		return <PageLoader />;
+	}
 
-          <p className="
-            text-slate-500 
-            dark:text-slate-400
-            text-sm 
-            mt-0.5
-          ">
-            Monday, June 9, 2026
-          </p>
-        </div>
+	return (
+		<div className="space-y-6">
 
-        <div className="
-          flex 
-          items-center 
-          gap-2 
-          bg-emerald-50 
-          dark:bg-emerald-900/30
-          border 
-          border-emerald-200
-          dark:border-emerald-800
-          rounded-xl 
-          px-4 
-          py-2
-        ">
-          <Activity 
-            size={15} 
-            className="
-              text-emerald-600
-              dark:text-emerald-400
-            " 
-          />
+			{/* ================= HEADER ================= */}
+			<div className="flex items-center justify-between">
+				<div>
+					<h1 className="text-xl font-bold text-slate-800 dark:text-slate-100">
+						Dashboard
+					</h1>
 
-          <span className="
-            text-emerald-700
-            dark:text-emerald-300
-            text-sm 
-            font-medium
-          ">
-            Gym Open
-          </span>
-        </div>
-      </div>
-      
-      {/* Stats */}
-      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
-        <StatCard
-          title="Total Members"
-          value={summaryData?.totalMembers?.toString() ?? "0"}
-          sub={`New Members: ${summaryData?.newMembersThisMonth ?? 0}`}
-          icon={Users}
-          trend={`${summaryData?.memberTrend ?? 0}%`}
-          trendUp={(summaryData?.memberTrend ?? 0) >= 0}
-          trendLabel="vs last month"
-          color="bg-emerald-500"
-        />
-        <StatCard
-          title="Currently Present"
-          value={summaryData?.currentlyPresent?.toString() ?? 0}
-          sub={`Male: ${summaryData?.totalMalePresent ?? 0} · Female: ${summaryData?.totalFemalePresent ?? 0}`}
-          icon={UserCheck}
-          trend={`${summaryData?.presentTrend ?? 0}%`}
-          trendUp={(summaryData?.presentTrend ?? 0) >= 0}
-          trendLabel="vs yesterday"
-          color="bg-indigo-500"
-        />
+					<p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">
+						Monday, June 9, 2026
+					</p>
+				</div>
 
-        <StatCard
-          title="Monthly Revenue"
-          value={new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP'}).format(summaryData?.totalPaidThisMonth ?? 0)}
-          sub="This month"
-          icon={DollarSign}
-          trend={`${summaryData?.paymentTrendThisMonth ?? 0}%`}
-          trendUp={(summaryData?.paymentTrendThisMonth ?? 0) >= 0}
-          trendLabel="vs last month"
-          color="bg-violet-500"
-        />
+				<div className="
+					flex items-center gap-2
+					rounded-xl
+					border border-emerald-200
+					bg-emerald-50
+					px-4 py-2
+					dark:border-emerald-800
+					dark:bg-emerald-900/30
+				">
+					<Activity
+						size={15}
+						className="text-emerald-600 dark:text-emerald-400"
+					/>
 
-        <StatCard
-          title="Yearly Income"
-          value={new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP'}).format(summaryData?.totalPaidThisYear ?? 0)}
-          sub="This year"
-          icon={TrendingUp}
-          trend={`${summaryData?.paymentTrendThisYear ?? 0}%`}
-          trendUp={(summaryData?.paymentTrendThisYear ?? 0) >= 0}
-          trendLabel="vs previous year"
-          color="bg-amber-500"
-        />
-      </div>
+					<span className="
+						text-sm font-medium
+						text-emerald-700
+						dark:text-emerald-300
+					">
+						Gym Open
+					</span>
+				</div>
+			</div>
 
-      {/* Charts */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-        {/* Main Revenue Chart */}
-        <RevenueChart data={revenueTrend} />
+			{/* ================= SUMMARY ================= */}
+			<section>
+			<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
 
-        <TopClaimedRewards data={topClaimedRewards} />
-      </div>
+<StatCard
+	title="Total Members"
+	value={summaryData?.totalMembers?.toString() ?? "0"}
+	sub={`New Members: ${summaryData?.newMembersThisMonth ?? 0}`}
+	icon={Users}
+	trend={`${summaryData?.memberTrend ?? 0}%`}
+	trendUp={(summaryData?.memberTrend ?? 0) >= 0}
+	trendLabel="vs last month"
+	color="bg-emerald-50 dark:bg-emerald-950/40"
+	iconColor="text-emerald-600 dark:text-emerald-400"
+/>
 
-      {/* Analytics */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-        {/* Attendance takes more space */}
-        <WeeklyAttendance data={weeklyAttendance} />
+<StatCard
+	title="Currently Present"
+	value={summaryData?.currentlyPresent?.toString() ?? "0"}
+	sub={`
+		Male: ${summaryData?.totalMalePresent ?? 0}
+		· Female: ${summaryData?.totalFemalePresent ?? 0}
+	`}
+	icon={UserCheck}
+	trend={`${summaryData?.presentTrend ?? 0}%`}
+	trendUp={(summaryData?.presentTrend ?? 0) >= 0}
+	trendLabel="vs yesterday"
+	color="bg-indigo-50 dark:bg-indigo-950/40"
+	iconColor="text-indigo-600 dark:text-indigo-400"
+/>
 
-        {/* Right Side Widgets */}
-        <div className="space-y-4">
-          <MembershipStatus data={memberStatus} />
+<StatCard
+	title="Expired Memberships"
+	value={summaryData?.totalExpiredMemberships?.toString() ?? "0"}
+	sub="Currently expired"
+	icon={CalendarX}
+	trend={`${
+		(summaryData?.expiredMembershipTrend ?? 0) >= 0
+			? "+"
+			: ""
+	}${summaryData?.expiredMembershipTrend ?? 0}`}
+	trendUp={(summaryData?.expiredMembershipTrend ?? 0) <= 0}
+	trendLabel="vs last month"
+	color="bg-rose-50 dark:bg-rose-950/40"
+	iconColor="text-rose-600 dark:text-rose-400"
+/>
 
-          <GenderWidget data={genderDistribution} />
-        </div>
-      </div>
+<StatCard
+	title="Monthly Revenue"
+	value={new Intl.NumberFormat("en-PH", {
+		style: "currency",
+		currency: "PHP",
+	}).format(summaryData?.totalPaidThisMonth ?? 0)}
+	sub="This month"
+	icon={DollarSign}
+	trend={`${summaryData?.paymentTrendThisMonth ?? 0}%`}
+	trendUp={(summaryData?.paymentTrendThisMonth ?? 0) >= 0}
+	trendLabel="vs last month"
+	color="bg-violet-50 dark:bg-violet-950/40"
+	iconColor="text-violet-600 dark:text-violet-400"
+/>
 
-      {/* Activity */}
-      <RecentActivity data={recentActivity} />
-    </div>
-  );
+</div>
+			</section>
+
+			{/* ================= REVENUE & EXPIRATION ================= */}
+			<section>
+				<div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
+
+					{/* Revenue takes 2/3 */}
+					<div className="xl:col-span-2">
+						<RevenueChart data={revenueTrend} />
+					</div>
+
+					{/* Expiring memberships */}
+					<div className="xl:col-span-1">
+						<MembershipsExpiringSoon data={membershipsExpiry} />
+					</div>
+
+				</div>
+			</section>
+
+			{/* ================= ANALYTICS ================= */}
+			<section>
+				<div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
+
+					{/* Attendance - 2/3 */}
+					<div className="xl:col-span-2">
+						<WeeklyAttendance data={weeklyAttendance} />
+					</div>
+
+					{/* Rewards - 1/3 */}
+					<div className="xl:col-span-1">
+						<TopClaimedRewards data={topClaimedRewards} />
+					</div>
+
+				</div>
+			</section>
+
+			{/* ================= MEMBERSHIP & DEMOGRAPHICS ================= */}
+			<section>
+				<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+
+					<MembershipStatus data={memberStatus} />
+
+					<GenderWidget data={genderDistribution} />
+
+				</div>
+			</section>
+
+			{/* ================= RECENT ACTIVITY ================= */}
+			<section>
+				<RecentActivity data={recentActivity} />
+			</section>
+
+		</div>
+	);
 }

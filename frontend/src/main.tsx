@@ -9,30 +9,31 @@ import { AuthProvider } from './context/AuthContext';
 import { SocketProvider } from './context/SocketContext';
 
 const queryClient = new QueryClient({
-	defaultOptions: {
-		queries: {
-			staleTime: 5 * 60 * 1000,  // data stays fresh for 5 min
-			gcTime: 10 * 60 * 1000,    // cache removed after 10 min unused
-		},
+defaultOptions: {
+	queries: {
+		staleTime: 5 * 60 * 1000,  // data stays fresh for 5 min
+		gcTime: 10 * 60 * 1000,    // cache removed after 10 min unused
 	},
+},
 });
 
 createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <SocketProvider>
-      <QueryClientProvider client={queryClient}>
-      
-        <Toaster
-          richColors
-          position="top-right"
-          closeButton
-          duration={3000}
-        />
-        
-        <AuthProvider>
-          <App />
-        </AuthProvider>
-      </QueryClientProvider>
-    </SocketProvider>
-  </StrictMode>,
+	<StrictMode>
+		<QueryClientProvider client={queryClient}>
+			<AuthProvider>	
+				<SocketProvider>
+
+					<Toaster
+						richColors
+						position="top-right"
+						closeButton
+						duration={3000}
+					/>
+
+					<App />
+					
+				</SocketProvider>
+			</AuthProvider>
+		</QueryClientProvider>
+	</StrictMode>,
 )

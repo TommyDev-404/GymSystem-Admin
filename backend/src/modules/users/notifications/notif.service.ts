@@ -9,6 +9,7 @@ export async function getAllNotificationsService(member_id: number) {
      select: {
         id: true,
         recipient_id: true,
+        category: true,
         type: true,
         title: true,
         description: true,

@@ -1,9 +1,19 @@
-import type { typeConfig } from "../constants/typeConfig";
+
+export const filterTypes = [
+	"All",
+	"PAYMENT",
+	"MEMBERSHIP",
+	"REWARD",
+	"MEMBER",
+	"ATTENDANCE",
+] as const;
+
+export type FilterType = (typeof filterTypes)[number];
 
 export type Notifications = {
    id: number;
    recipient_id: number;
-   type: keyof typeof typeConfig;
+   category: FilterType;
    title: string;
    description: string;
    is_read: boolean;
@@ -14,7 +24,8 @@ export type NotificationCount = {
    allNotifCount: number;
    unreadCount: number;
    typeCounts: {
-     type: "CHECK_IN" | "PAYMENT" | "REWARD" | "EXPIRY" | "REMINDER";
+     category: FilterType;
      count: number;
    }[];
- };
+};
+ 

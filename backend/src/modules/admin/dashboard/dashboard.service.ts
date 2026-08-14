@@ -15,18 +15,12 @@ export const getSummaryDataService = async () => {
       1
    );
 
-   const startOfCurrentYear = new Date(
+   const startOfNextMonth = new Date(
       now.getFullYear(),
-      0,
+      now.getMonth() + 1,
       1
    );
-   
-   const startOfPreviousYear = new Date(
-      now.getFullYear() - 1,
-      0,
-      1
-   );
-   
+
    const startOfToday = new Date();
    startOfToday.setHours(0, 0, 0, 0);
 
@@ -131,12 +125,36 @@ export const getSummaryDataService = async () => {
          }
       });
 
+      // Expired memberships - current month
+      const expiredMembershipsThisMonth = await tx.member_memberships.count({
+         where: {
+            status: "Expired",
+            end_date: {
+               gte: startOfCurrentMonth,
+               lt: startOfNextMonth,
+            },
+         },
+      });
+
+      // Expired memberships - previous month
+      const expiredMembershipsPreviousMonth = await tx.member_memberships.count({
+         where: {
+            status: "Expired",
+            end_date: {
+               gte: startOfPreviousMonth,
+               lt: startOfCurrentMonth,
+            },
+         },
+      });
+
+      const expiredMembershipTrend = expiredMembershipsThisMonth - expiredMembershipsPreviousMonth;
+      
       // Payments by this month
       const totalPaidThisMonth = await tx.payments.aggregate({
          _sum: { amount: true }, 
          where: {
             status: "Paid",
-            created_at: {
+            paid_at: {
                gte: startOfCurrentMonth
             }
          }
@@ -146,7 +164,7 @@ export const getSummaryDataService = async () => {
          _sum: { amount: true }, 
          where: {
             status: "Paid",
-            created_at: {
+            paid_at: {
                gte: startOfPreviousMonth,
                lt: startOfCurrentMonth
             }
@@ -156,37 +174,6 @@ export const getSummaryDataService = async () => {
       const paymentTrendThisMonth = getTrend(
          Number(totalPaidThisMonth._sum.amount ?? 0),
          Number(totalPaidPreviousMonth._sum.amount ?? 0)
-      );
-      
-      // Total paid this year
-      const totalPaidThisYear = await tx.payments.aggregate({
-         _sum: {
-            amount: true
-         },
-         where: {
-            status: "Paid",
-            created_at: {
-               gte: startOfCurrentYear
-            }
-         }
-      });
-      
-      const totalPaidPreviousYear = await tx.payments.aggregate({
-         _sum: {
-            amount: true
-         },
-         where: {
-            status: "Paid",
-            created_at: {
-               gte: startOfPreviousYear,
-               lt: startOfCurrentYear
-            }
-         }
-      });
-      
-      const paymentTrendThisYear = getTrend(
-         Number(totalPaidThisYear._sum.amount ?? 0),
-         Number(totalPaidPreviousYear._sum.amount ?? 0)
       );
 
       return {
@@ -199,8 +186,8 @@ export const getSummaryDataService = async () => {
          totalFemalePresent,
          totalPaidThisMonth: totalPaidThisMonth._sum.amount ?? 0,
          paymentTrendThisMonth,
-         totalPaidThisYear: totalPaidThisYear._sum.amount ?? 0,
-         paymentTrendThisYear
+         totalExpiredMemberships: expiredMembershipsThisMonth,
+         expiredMembershipTrend
       };
    });
 
@@ -231,6 +218,67 @@ export async function getMonthlyRevenueTrendService() {
       ORDER BY m.month_start;
    `;
 }
+
+export const getMembershipsExpiringSoonService = async () => {
+   const now = new Date();
+
+   const todayStart = new Date(now);
+   todayStart.setHours(0, 0, 0, 0);
+
+   const sevenDaysLater = new Date(todayStart);
+   sevenDaysLater.setDate(sevenDaysLater.getDate() + 7);
+   sevenDaysLater.setHours(23, 59, 59, 999);
+
+   const memberships = await prisma.member_memberships.findMany({
+      where: {
+         status: "Active",
+         end_date: {
+            gte: todayStart,
+            lte: sevenDaysLater,
+         },
+      },
+
+      select: {
+         id: true,
+         end_date: true,
+
+         members: {
+            select: {
+               fullname: true,
+            },
+         },
+
+         membership_plans: {
+            select: {
+               plan_name: true,
+            },
+         },
+      },
+
+      orderBy: {
+         end_date: "asc",
+      },
+
+      take: 5,
+   });
+
+   return memberships.map((membership) => {
+      const endDate = new Date(membership.end_date);
+
+      const diffMs = endDate.getTime() - todayStart.getTime();
+      const daysRemaining = Math.ceil(
+         diffMs / (1000 * 60 * 60 * 24)
+      );
+
+      return {
+         id: membership.id,
+         fullname: membership.members.fullname,
+         planName: membership.membership_plans.plan_name,
+         endDate: membership.end_date,
+         daysRemaining,
+      };
+   });
+};
 
 export async function getWeeklyGuestAttendanceService() {
    const data = await prisma.$queryRaw<
@@ -270,7 +318,7 @@ export async function getWeeklyGuestAttendanceService() {
 }
 
 export async function getMembershipStatusService() {
-   const data = await prisma.members.groupBy({
+   const data = await prisma.member_memberships.groupBy({
       by: ["status"],
       _count: {
          status: true,
@@ -290,13 +338,9 @@ export async function getMembershipStatusService() {
          value: statusMap.get("Active") ?? 0,
       },
       {
-         name: "Inactive",
-         value: statusMap.get("Inactive") ?? 0,
-      },
-      {
-         name: "Suspended",
-         value: statusMap.get("Suspended") ?? 0,
-      },
+         name: "Expired",
+         value: statusMap.get("Expired") ?? 0,
+      }
    ];
 }
 
@@ -328,21 +372,41 @@ export async function getGenderDistributionService() {
 }
 
 export async function getTopClaimedRewardsService() {
-   const rewards = await prisma.rewards.findMany({
-      select: {
-         name: true,
-         total_claim: true,
+   const rewards = await prisma.reward_redemptions.groupBy({
+      by: ["reward_id"],
+      where: {
+        status: "Claimed",
+      },
+      _count: {
+        id: true,
       },
       orderBy: {
-         total_claim: "desc",
+        _count: {
+          id: "desc",
+        },
       },
       take: 5,
-   });
+    });
  
-   return rewards.map((reward) => ({
-      name: reward.name,
-      claimed: reward.total_claim,
-   }));
+   const rewardsWithNames = await Promise.all(
+     rewards.map(async (reward) => {
+       const rewardData = await prisma.rewards.findUnique({
+         where: {
+           id: reward.reward_id,
+         },
+         select: {
+           name: true,
+         },
+       });
+ 
+       return {
+         name: rewardData?.name,
+         claimed: reward._count.id,
+       };
+     })
+   );
+ 
+   return rewardsWithNames;
 }
  
 export async function getRecentActivityService(){

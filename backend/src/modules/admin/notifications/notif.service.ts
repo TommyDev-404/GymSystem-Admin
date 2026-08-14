@@ -1,17 +1,17 @@
 import { prisma } from "../../../lib/prisma";
 
-export async function getAllNotificationsService(data: { type?: any }) {
+export async function getAllNotificationsService(data: { category: any }) {
 	return await prisma.notifications.findMany({
 		where: {
 			recipient_type: "ADMIN",
-			...(data.type && data.type !== "All" && {
-				type: data.type,
+			...(data.category && data.category !== "All" && {
+				category: data.category,
 			})
 		},
 		select: {
 			id: true,
 			recipient_id: true,
-			type: true,
+			category: true,
 			title: true,
 			description: true,
 			is_read: true,
@@ -42,12 +42,12 @@ export async function getNotificationCountService() {
 
 		// Notifications grouped by type
 		prisma.notifications.groupBy({
-			by: ["type"],
+			by: ["category"],
 			where: {
 				recipient_type: "ADMIN",
 			},
 			_count: {
-				type: true,
+				category: true,
 			},
 		}),
 	]);
@@ -56,8 +56,8 @@ export async function getNotificationCountService() {
 		unreadCount,
 		allNotifCount,
 		typeCounts: typeCounts.map((item) => ({
-			type: item.type,
-			count: item._count.type,
+			category: item.category,
+			count: item._count.category,
 		})),
 	};
 }

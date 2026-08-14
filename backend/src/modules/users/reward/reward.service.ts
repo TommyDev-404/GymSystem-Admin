@@ -1,4 +1,5 @@
 import { prisma } from "../../../lib/prisma";
+import { getIO } from "../../../lib/socket";
 
 
 export const getAllRewardsService = async () => {
@@ -54,7 +55,7 @@ export const redeemRewardService = async (
   reward_id: number
 ) => {
 
-  return await prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx) => {
     // 1. Get reward
     const reward = await tx.rewards.findUnique({
       where:{
@@ -106,52 +107,50 @@ export const redeemRewardService = async (
           status:"Pending"
         }
       });
-
-    // 6. Update reward claim count
-    await tx.rewards.update({
-      where:{
-        id:reward_id
-      },
-      data:{
-        total_claim:{
-          increment:1
-        }
-      }
-    });
-
-     
+    
+		// Admin activity
+		await tx.activities.create({
+			data:{
+				recipient_id: redemption.member_id,
+				recipient_type: "ADMIN",
+				category: "REWARD",
+				title: "Reward Redeemed",
+				description: `${member.fullname} redeemed the ${reward.name} reward.`
+				}
+		});
+    
     // Member recent activity
     await tx.activities.create({
       data: {
         recipient_id: member_id,
         recipient_type: "MEMBER",
-        type: "REWARD",
+        category: "REWARD",
         title: "Reward Redeemed",
         description: `You redeemed ${reward.name}. Claim your reward at the gym.`,
-      }
-    });
-    
-    // Member notification
-    await tx.notifications.create({
-      data: {
-        recipient_id: member_id,
-        recipient_type: "MEMBER",
-        type: "REWARD",
-        title: "Reward Redeemed",
-        description: `You redeemed ${reward.name}. Claim your reward now.`,
-        is_read: false,
       }
     });
      
     return redemption;
   });
+  
+  // Socket events
+  getIO()
+  .to("admin-room")
+  .emit(
+    "reward:redeemed",
+    {
+      memberId: member_id
+    }
+  );
+  
+  return result;
 };
 
 export const cancelRedeemedRewardService = async (
   redemption_id: number,
   member_id: number
 ) => {
-  return await prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx) => {
 
     // Get redemption details
     const redemption = await tx.reward_redemptions.findFirst({
@@ -181,7 +180,6 @@ export const cancelRedeemedRewardService = async (
     if (!redemption) {
       throw new Error("Reward redemption not found");
     }
-
 
     // Only pending rewards can be cancelled
     if (redemption.status !== "Pending") {
@@ -219,19 +217,31 @@ export const cancelRedeemedRewardService = async (
       data: {
         recipient_id: member_id,
         recipient_type: "MEMBER",
-        type: "REWARD",
+        type: "REWARD_CANCELLED",
         title: "Reward Redemption Cancelled",
         description: `${redemption.rewards.name} redemption was cancelled. ${redemption.points_used} points have been returned.`,
         is_read: false,
       },
     });
 
+    // Admin notification
+		await tx.notifications.create({
+			data:{
+				recipient_id: redemption.member_id,
+				recipient_type: "ADMIN",
+				type: "REWARD_CANCELLED",
+				title: "Reward Redeem Cancelled",
+				description: `${redemption.members.fullname} cancelled redeeming the ${redemption.rewards.name}. Points were returned.`,
+				is_read:false
+			}
+    });
+    
     // MEMBER ACTIVITY
     await tx.activities.create({
       data: {
         recipient_id: member_id,
         recipient_type: "MEMBER",
-        type: "REWARD",
+        category: "REWARD",
         title: "Reward Cancelled Redeeming",
         description:`You cancelled your ${redemption.rewards.name} reward redemption. ${redemption.points_used} points were refunded.`,
       }
@@ -241,6 +251,18 @@ export const cancelRedeemedRewardService = async (
       success: true,
       message: "Reward redemption cancelled successfully"
     };
-
   });
+
+  // Socket events
+  getIO()
+  .to("admin-room")
+  .emit(
+    "reward:cancel-redeemed",
+    {
+      memberId: member_id
+    }
+  );
+  
+  
+  return result;
 };

@@ -22,7 +22,7 @@ export function TopClaimedRewards({ data }: TopRewardsProps) {
         </p>
       </CardHeader>
 
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-3 h-[350px]">
         {data.length > 0 ? (
           data.slice(0, 5).map((reward, index) => (
             <div

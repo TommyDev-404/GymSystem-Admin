@@ -3,8 +3,8 @@ import * as service from "./notif.service";
 
 export const getAllNotificationsController = async (req: Request, res: Response) => {
 	try {
-		const { type } = req.query;
-		const data = await service.getAllNotificationsService({ type });
+		const { category } = req.query;
+		const data = await service.getAllNotificationsService({ category });
 
 		return res.status(201).json(data);
 	} catch (err: any) {

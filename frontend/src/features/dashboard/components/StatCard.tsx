@@ -4,117 +4,161 @@ import { ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { HOVER_EFFECT } from "@/utils/animations";
 
 type StatCardProps = {
-  title: string;
-  value: string;
-  sub?: string;
-  icon: React.ElementType;
-  trend?: string;
-  trendUp?: boolean;
-  trendLabel?: string;
-  color: string;
+	title: string;
+	value: string;
+	sub?: string;
+	icon: React.ElementType;
+	trend?: string;
+	trendUp?: boolean;
+	trendLabel?: string;
+	color: string;
+	iconColor: string;
 };
 
 export function StatCard({
-  title,
-  value,
-  sub,
-  icon: Icon,
-  trend,
-  trendUp,
-  trendLabel,
-  color,
+	title,
+	value,
+	sub,
+	icon: Icon,
+	trend,
+	trendUp,
+	trendLabel,
+	color,
+	iconColor,
 }: StatCardProps) {
-  return (
-    <Card className={HOVER_EFFECT}>
-      <CardContent>
-        <div className="flex items-start justify-between">
+	return (
+		<Card
+			className={`
+				overflow-hidden
+				border-slate-200
+				bg-white
+				shadow-sm
+				dark:border-slate-800
+				dark:bg-slate-900
+				${HOVER_EFFECT}
+			`}
+		>
+			<CardContent className="px-5 py-2">
+				<div className="flex items-start justify-between gap-4">
+					{/* CONTENT */}
+					<div className="min-w-0">
+						<p
+							className="
+								text-sm
+								font-medium
+								text-slate-500
+								dark:text-slate-400
+							"
+						>
+							{title}
+						</p>
 
-          <div>
-            <p className="
-              text-slate-500
-              dark:text-slate-400
-              text-sm
-            ">
-              {title}
-            </p>
+						<p
+							className="
+								mt-2
+								text-2xl
+								font-bold
+								tracking-tight
+								text-slate-800
+								dark:text-slate-100
+							"
+						>
+							{value}
+						</p>
 
-            <p className="
-              text-2xl
-              font-semibold
-              text-slate-800
-              dark:text-slate-100
-              mt-1
-            ">
-              {value}
-            </p>
+						{sub && (
+							<p
+								className="
+									mt-1
+									text-xs
+									text-slate-400
+									dark:text-slate-500
+								"
+							>
+								{sub}
+							</p>
+						)}
+					</div>
 
-            {sub && (
-              <p className="
-                text-slate-400
-                dark:text-slate-500
-                text-xs
-                mt-0.5
-              ">
-                {sub}
-              </p>
-            )}
-          </div>
+					{/* ICON */}
+					<div
+						className={`
+							flex
+							h-11
+							w-11
+							shrink-0
+							items-center
+							justify-center
+							rounded-xl
+							${color}
+						`}
+					>
+						<Icon
+							size={20}
+							strokeWidth={2}
+							className={iconColor}
+						/>
+					</div>
+				</div>
 
+				{/* TREND */}
+				{trend && (
+					<div
+						className="
+							mt-4
+							flex
+							items-center
+							gap-1.5
+							border-t
+							border-slate-100
+							pt-3
+							dark:border-slate-800
+						"
+					>
+						<div
+							className={`
+								flex
+								items-center
+								gap-0.5
+								text-xs
+								font-semibold
+								${
+									trendUp
+										? "text-emerald-600 dark:text-emerald-400"
+										: "text-red-500 dark:text-red-400"
+								}
+							`}
+						>
+							{trendUp ? (
+								<ArrowUpRight
+									size={14}
+									strokeWidth={2.5}
+								/>
+							) : (
+								<ArrowDownRight
+									size={14}
+									strokeWidth={2.5}
+								/>
+							)}
 
-          <div className={`p-2.5 rounded-xl ${color}`}>
-            <Icon 
-              size={20} 
-              className="text-white" 
-            />
-          </div>
+							<span>{trend}</span>
+						</div>
 
-        </div>
-
-
-        {trend && (
-          <div
-            className={`
-              flex 
-              items-center 
-              gap-1 
-              mt-3 
-              text-xs 
-              font-medium
-              ${
-                trendUp
-                  ? "text-emerald-600 dark:text-emerald-400"
-                  : "text-red-500 dark:text-red-400"
-              }
-            `}
-          >
-
-            {trendUp ? (
-              <ArrowUpRight size={14} />
-            ) : (
-              <ArrowDownRight size={14} />
-            )}
-
-
-            <span>
-              {trend}
-            </span>
-
-
-            {trendLabel && (
-              <span className="
-                text-slate-400
-                dark:text-slate-500
-                font-normal
-                ml-1
-              ">
-                {trendLabel}
-              </span>
-            )}
-
-          </div>
-        )}
-
-      </CardContent>
-    </Card>
-  );
+						{trendLabel && (
+							<span
+								className="
+									text-xs
+									font-normal
+									text-slate-400
+									dark:text-slate-500
+								"
+							>
+								{trendLabel}
+							</span>
+						)}
+					</div>
+				)}
+			</CardContent>
+		</Card>
+	);
 }

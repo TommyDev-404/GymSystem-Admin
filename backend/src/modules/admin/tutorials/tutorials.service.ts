@@ -1,4 +1,5 @@
 import { prisma } from "../../../lib/prisma";
+import { getIO } from "../../../lib/socket";
 import { supabase } from "../../../lib/supabase";
 import { WorkoutFilters } from "./tutorials.types";
 
@@ -24,38 +25,6 @@ export const uploadImageToSupabase = async (file: Express.Multer.File) => {
     .getPublicUrl(fileName);
 
   return data.publicUrl;
-};
-
-export const createTutorialService = async (
-  body: any,
-  files: Express.Multer.File[]
-) => {
-  // 1. upload images
-  const urls = await Promise.all(
-    files.map((file) => uploadImageToSupabase(file))
-  );
-  
-  // 2. save to DB
-  const tutorial = await prisma.tutorials.create({
-    data: {
-      name: body.name,
-      category: body.category,
-      level: body.level,
-      instructions: body.instructions,
-      video_url: body.video_url,
-
-      equipment: JSON.stringify(normalizeArray(body.equipment)),
-      muscles_targeted: JSON.stringify(normalizeArray(body.muscles_targeted)),
-
-      demo_images: JSON.stringify(urls),
-    }
-  });
-
-  return {
-    success: true,
-    message: "Tutorial created successfully",
-    data: tutorial,
-  };
 };
 
 export const getAllTutorialsService = async (filters: WorkoutFilters) => {
@@ -92,6 +61,43 @@ export const getAllTutorialsService = async (filters: WorkoutFilters) => {
     },
   });
   
+};
+
+export const createTutorialService = async (
+  body: any,
+  files: Express.Multer.File[]
+) => {
+  // 1. upload images
+  const urls = await Promise.all(
+    files.map((file) => uploadImageToSupabase(file))
+  );
+  
+  // 2. save to DB
+  const tutorial = await prisma.tutorials.create({
+    data: {
+      name: body.name,
+      category: body.category,
+      level: body.level,
+      instructions: body.instructions,
+      video_url: body.video_url,
+
+      equipment: JSON.stringify(normalizeArray(body.equipment)),
+      muscles_targeted: JSON.stringify(normalizeArray(body.muscles_targeted)),
+
+      demo_images: JSON.stringify(urls),
+    }
+  });
+
+  // Socket events
+  getIO().to("members-room").emit("tutorial:new", {
+    tutorialId: tutorial.id,
+  });
+  
+  return {
+    success: true,
+    message: "Tutorial created successfully",
+    data: tutorial,
+  };
 };
 
 export const updateTutorialService = async (
@@ -179,6 +185,15 @@ export const updateTutorialService = async (
     data: updateData,
   });
 
+  // Socket events
+  getIO()
+  .to("members-room")
+  .emit(
+    "tutorial:update",
+    {
+      tutorialId: tutorial.id
+    }
+  );
 
   return {
     success: true,
@@ -193,7 +208,15 @@ export const removeTutorialService = async (id: number) => {
   }) 
 
   if (!result) throw new Error("Failed to delete tutorial");
-
+  
+  getIO()
+  .to("members-room")
+  .emit(
+    "tutorial:delete",
+    {
+      tutorialId: result.id
+    }
+  );
   return {
     success: true,
     message: "Tutorial removed successfully!",

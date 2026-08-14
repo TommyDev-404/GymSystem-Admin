@@ -1,90 +1,86 @@
 import { useMemo, useState } from "react";
-import { PaymentSummaryCards } from "@/features/payments/components/PaymentSummaryCards";
 import { PaymentFilters } from "@/features/payments/components/PaymentsFilter";
 import { PaymentsTable } from "@/features/payments/components/PaymentTable";
 
-import { usePayments, usePaymentSummaryData } from "../hooks/usePayments";
-import type { FilterType } from "../types/PaymentTypes";
+import { usePaymentSummaryData } from "../hooks/usePayments";
+
 import { PageLoader } from "@/components/shared/PageLoader";
 import { debounce } from "@/lib/debounce";
-import { toPHP } from "@/utils/currencyConverter";
-import { useSearchParams } from "react-router-dom";
+import type { PaymentFiltersType, PaymentSummary, PaymentType } from "../types/PaymentTypes";
+import { PaymentSummaryCards } from "../components/PaymentSummaryCard";
 
 export function PaymentsPage() {
-  const [searchParams] = useSearchParams();
-	
-  const urlFilter = searchParams.get("filter");
-  
-  const [searchInput, setSearchInput] = useState("");
-  const [search, setSearch] = useState("");
-  const [filterStatus, setFilterStatus] = useState<FilterType>(urlFilter as FilterType || "Paid");
- 
-  const debounceSearch = useMemo(
-      () =>
-        debounce((value: string) => {
-         setSearch(value);
-        }),
-      []
-  );
-  
-	const params = useMemo(() => ({
-		search: search || undefined,
-    status: filterStatus,
-	}), [search, filterStatus]);
+	const [searchInput, setSearchInput] = useState("");
+	const [search, setSearch] = useState("");
 
-  const { data: paymentsData = [], isLoading: loadingPayments } = usePayments(params);
-  const { data: summaryData = [], isLoading: loadingSummaryData } = usePaymentSummaryData();
+	// Payment type filter
+	const [paymentType, setPaymentType] = useState<PaymentType>("All");
 
-  if (loadingSummaryData) return <PageLoader />;
+	// Single date filter
+	const [date, setDate] = useState<Date | undefined>();
 
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="
-            text-slate-800
-            dark:text-slate-100
-            font-bold
-            text-xl
-          ">
-            Payments
-          </h1>
+	// Debounced search
+	const debounceSearch = useMemo(
+		() =>
+			debounce((value: string) => {
+				setSearch(value);
+			}),
+		[]
+	);
 
-          <p className="
-            text-slate-500
-            dark:text-slate-400
-            text-sm
-            mt-0.5
-          ">
-            Manage billing and payment statuses
-          </p>
-        </div>
-      </div>
+	// Search input handler
+	const handleSearch = (value: string) => {
+		setSearchInput(value);
+		debounceSearch(value);
+	};
 
-      <PaymentSummaryCards
-        totalPaid={summaryData.totalPaid}
-        totalPaidAmount={toPHP(summaryData.totalPaidAmount)}
-        totalPending={summaryData.totalPending}
-        totalPendingAmount={toPHP(summaryData.totalPendingAmount)}
-        monthlyRevenue={toPHP(summaryData.monthlyRevenue)}
-        monthlyPaymentCount={summaryData.monthlyPaymentCount}
-      />
+	// API params
+	const params = useMemo<PaymentFiltersType>(
+		() => ({
+			search: search || undefined,
+			paymentType: paymentType !== "All" ? paymentType : undefined,
+			date: date,
+		}),
+		[search, paymentType, date]
+	);
 
-      <PaymentFilters
-        search={searchInput}
-				setSearch={(value) => {
-					setSearchInput(value);
-					debounceSearch(value);
-				}}
-        filterStatus={filterStatus}
-        setFilterStatus={setFilterStatus}
-      />
+	const { data: summaryData = {} as PaymentSummary, isLoading: loadingSummaryData } = usePaymentSummaryData();
 
-      <PaymentsTable
-        payments={paymentsData}
-        isLoading={loadingPayments}
-      />
-    </div>
-  );
+	if (loadingSummaryData) return <PageLoader />;
+
+	return (
+		<div className="space-y-6">
+			{/* HEADER */}
+			<div className="flex items-center justify-between">
+				<div>
+					<h1 className="text-xl font-bold text-slate-800 dark:text-slate-100">
+						Payments
+					</h1>
+
+					<p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">
+						Manage billing and payment records
+					</p>
+				</div>
+			</div>
+
+			<PaymentSummaryCards
+				summary={summaryData}
+			/>
+
+			{/* FILTERS */}
+			<PaymentFilters
+				search={searchInput}
+				setSearch={handleSearch}
+				paymentType={paymentType}
+				setPaymentType={setPaymentType}
+				date={date}
+				setDate={setDate}
+			/>
+
+			{/* PAYMENTS TABLE */}
+			<PaymentsTable
+				params={params}
+			/>
+		</div>
+	);
 }
