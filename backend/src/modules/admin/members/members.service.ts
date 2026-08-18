@@ -281,7 +281,7 @@ export const createMemberService = async (data: CreateMemberDTO) => {
 	const referralCode = generateReferralCode(data.fullname);
 	const activationCode = Math.floor(100000 + Math.random() * 900000).toString();
 
-	await prisma.$transaction(async (tx) => {
+	const result = await prisma.$transaction(async (tx) => {
 		// Find plan
 		const plan = await tx.membership_plans.findUnique({
 			where:{
@@ -310,6 +310,21 @@ export const createMemberService = async (data: CreateMemberDTO) => {
 					"Invalid referral code"
 				);
 			}
+		}
+
+		const existingMember = await tx.members.findUnique({
+			where: {
+				email: data.email,
+			},
+			select: {
+				id: true,
+				fullname: true,
+				is_activated: true,
+			},
+		});
+		
+		if (existingMember) {
+			throw new Error("A member with this email already exists");
 		}
 
 		// Create member
@@ -455,15 +470,14 @@ export const createMemberService = async (data: CreateMemberDTO) => {
 		};
 
 	});
-
 	
 	// Email
 	await sendMail({
-		to:data.email,
+		to: result.email,
 		subject:"Your Gym Activation Code",
 		html:`
 			<div style="font-family:Arial,sans-serif;">
-				<h2>Hello ${data.fullname},</h2>
+				<h2>Hello ${result.fullname},</h2>
 
 				<p>Welcome to the gym system!</p>
 

@@ -8,17 +8,18 @@ const upload = multer({
   storage: multer.memoryStorage(),
 });
 
+
+router.get("/get-posts/:member_id", controller.getCommunityPostsController);
+router.get("/get-my-posts/:member_id", controller.getUserPostsController);
+router.get("/posts/:postId/comments", controller.getCommentsController);
+
 router.post(
-   "/post/:id",
+   "/post/:member_id",
    upload.array("files", 10),
    controller.createPostController
 );
-
-router.get("/get-posts/:id", controller.getCommunityPostsController);
-router.get("/get-my-posts/:id", controller.getUserPostsController);
-router.post("/toggle-like/:id/:postId", controller.toggleLikeController);
-router.post("/add-comment/:id/:postId", controller.addCommentController);
-router.get("/posts/:postId/comments", controller.getCommentsController);
+router.post("/toggle-like/:member_id/:postId", controller.toggleLikeController);
+router.post("/add-comment/:member_id/:postId", controller.addCommentController);
 
 export default router;
 

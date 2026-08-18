@@ -171,7 +171,7 @@ export function RewardRedemptionsTable({ redemptions, isLoading, }: Props) {
 									</TableCell>
 									
 									{/* ACTIONS */}
-									<TableCell className="px-5 py-4 flex justify-center">
+									<TableCell className="px-5 py-4">
 										{item.status === "Pending" && (
 											<div className="flex gap-2">
 												{isPending ? (

@@ -25,6 +25,8 @@ import userProfileRoutes from "./modules/users/profile/profile.routes";
 import userPaymentRoutes from "./modules/users/payment-history/payment.routes";
 import userRewardRoutes from "./modules/users/reward/reward.routes";
 import userReferralRoutes from "./modules/users/referral-program/referral.routes";
+import dotenv from "dotenv";
+dotenv.config();
 
 const app = express();
 
@@ -67,7 +69,7 @@ app.use("/admin/notifications", adminNotificationRoutes);
 // ==================== Users Routes ===================
 app.use("/auth", authRoutes);
 app.use("/check-in", checkInRoutes);
-app.use("/payment-history", userPaymentRoutes);
+app.use("/payments", userPaymentRoutes);
 app.use("/workout", workoutRoutes);
 app.use("/home", homeRoutes);
 app.use("/community", communityRoutes);

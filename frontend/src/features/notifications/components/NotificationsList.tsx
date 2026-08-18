@@ -78,7 +78,7 @@ export function NotificationsList({
 								${
 									n.is_read
 										? "border-slate-100 bg-white opacity-70 dark:border-slate-800"
-										: "border-emerald-200 bg-emerald-50/30 dark:border-emerald-900 dark:bg-emerald-950/20"
+										: "border-emerald-200 bg-emerald-50/30 dark:bg-stone-900 dark:border-emerald-900 dark:bg-emerald-950/20"
 								}
 							`}
 						>

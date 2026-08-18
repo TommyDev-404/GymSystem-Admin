@@ -1,14 +1,16 @@
 import { Request, Response } from "express";
 import * as service from "./auth.service";
 
+
 export const loginController = async (req: Request, res: Response) => {
 	try {
-		const { email, password } = req.body;
+		const { username, password } = req.body;
 
-		const result = await service.loginUser(email, password);
+		const result = await service.loginUser(username, password);
 
 		return res.json(result);
 	} catch (error: any) {
+		console.log(error);
 		return res.status(400).json({
 			success: false,
 			message: error.message,
@@ -27,6 +29,7 @@ export const verifyActivationController = async (req: Request, res: Response) =>
 			data: result,
 		});
 	} catch (error: any) {
+		console.log(error);
 		return res.status(400).json({
 			success: false,
 			message: error.message,
@@ -36,9 +39,9 @@ export const verifyActivationController = async (req: Request, res: Response) =>
 
 export const completeRegistrationController = async (req: Request, res: Response) => {
 	try {
-		const { member_id, password } = req.body;
+		const { member_id, username, password } = req.body;
 
-		const result = await service.completeRegistration(member_id, password);
+		const result = await service.completeRegistration(member_id, username, password);
 
 		return res.json(result);
 	} catch (error: any) {
@@ -50,14 +53,15 @@ export const completeRegistrationController = async (req: Request, res: Response
 };
 
 export const forgotPasswordController = async (req: Request, res: Response) => {
-   try {
-     const { email } = req.body;
-     const result = await service.sendForgotPasswordOtp(email);
- 
-     res.json(result);
-   } catch (err: any) {
-     res.status(400).json({ message: err.message });
-   }
+	try {
+		const { email } = req.body;
+		
+		const result = await service.sendForgotPasswordOtp(email);
+
+		res.json(result);
+	} catch (err: any) {
+		res.status(400).json({ message: err.message });
+	}
 };
  
 export const verifyOtpController = async (req: Request, res: Response) => {
@@ -80,4 +84,4 @@ export const resetPasswordController = async (req: Request, res: Response) => {
 	} catch (err: any) {
 		res.status(400).json({ message: err.message });
 	}
- };
+};

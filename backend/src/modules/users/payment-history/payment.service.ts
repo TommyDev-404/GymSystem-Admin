@@ -34,20 +34,20 @@ export const getMemberPaymentHistoryService = async (member_id: number) => {
 				member_id,
 			},
 			orderBy:{
-				created_at:"desc",
+				paid_at:"desc",
 			},
 			select:{
 				id:true,
-				created_at:true,
+				paid_at:true,
 				amount:true,
 				payment_method:true,
 				status:true,
 
-				members:{
-					select:{
-						membership_plans:{
-							select:{
-								plan_name:true,
+				member_memberships: {
+					select: {
+						membership_plans: {
+							select: {
+								plan_name: true
 							}
 						}
 					}
@@ -65,9 +65,9 @@ export const getMemberPaymentHistoryService = async (member_id: number) => {
 
 		payments: payments.map((payment)=>({
 			id: payment.id,
-			plan: payment.members.membership_plans?.plan_name ?? "Unknown",
+			plan: payment.member_memberships.membership_plans?.plan_name ?? "Unknown",
 			amount: payment.amount,
-			datePaid: payment.created_at,
+			datePaid: payment.paid_at,
 			paymentMethod: payment.payment_method,
 			status: payment.status,
 		}))

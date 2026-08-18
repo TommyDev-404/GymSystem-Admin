@@ -12,8 +12,7 @@ CREATE TABLE membership_plans (
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     
-    username VARCHAR(255) NOT NULL,
-    email VARCHAR(255) NOT NULL UNIQUE,
+    username VARCHAR(255) NOT NULL UNIQUE,
     contact varchar(11),
     password VARCHAR(255) NOT NULL,
     hash_pass TEXT NOT NULL,
@@ -106,7 +105,7 @@ CREATE TABLE reward_redemptions (
 
 
     CONSTRAINT fk_reward_member_redeemed FOREIGN KEY(member_id)
-        REFERENCES members(id),
+        REFERENCES members(id) ON DELETE CASCADE,
 
     CONSTRAINT fk_reward_redeemed FOREIGN KEY(reward_id)
         REFERENCES rewards(id)
@@ -276,7 +275,6 @@ CREATE TABLE member_workouts (
     member_id INT NOT NULL,
     workout_name VARCHAR(150) NOT NULL,
     duration_minutes INT NOT NULL,
-    calories_burned INT NOT NULL,
     completed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_member_workouts

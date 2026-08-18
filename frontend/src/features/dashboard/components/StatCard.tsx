@@ -31,10 +31,8 @@ export function StatCard({
 			className={`
 				overflow-hidden
 				border-slate-200
-				bg-white
 				shadow-sm
 				dark:border-slate-800
-				dark:bg-slate-900
 				${HOVER_EFFECT}
 			`}
 		>

@@ -47,12 +47,18 @@ export const getMemberReferralRecordsService = async (member_id: number) => {
 
       select:{
          referee_points:true,
-         referred_at:true,
+			referred_at: true,
+			
          members_referrals_referee_idTomembers:{
             select:{
                fullname:true,
-               status:true,
 					join_date: true, 
+
+					member_memberships: {
+						select: {
+							status: true
+						}
+					},
 
 					users: {
 						select: {
@@ -71,7 +77,7 @@ export const getMemberReferralRecordsService = async (member_id: number) => {
 
    return referrals.map((r)=>({
       name: r.members_referrals_referee_idTomembers.fullname,
-		status: r.members_referrals_referee_idTomembers.status,
+		status: r.members_referrals_referee_idTomembers.member_memberships[0].status,
 		profile: r.members_referrals_referee_idTomembers.users?.profile,
       points_earned: r.referee_points,
       joined_date: r.members_referrals_referee_idTomembers.join_date,

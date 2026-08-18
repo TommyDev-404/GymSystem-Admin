@@ -61,11 +61,10 @@ export function NotificationsFilters({
 							text-sm
 							font-medium
 							transition-all
-
 							${
 								isActive
 									? "border-emerald-500 bg-emerald-500 text-white shadow-sm hover:bg-emerald-600 hover:text-white"
-									: "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+									: "border-slate-200 text-slate-600 hover:border-slate-300 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
 							}
 						`}
 					>
@@ -89,7 +88,7 @@ export function NotificationsFilters({
                 ${
                   count > 0
                     ? "bg-red-100 text-red-600 dark:bg-red-950/40 dark:text-red-400"
-                    : "bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500"
+                    : "bg-slate-100 text-slate-400 dark:bg-stone-900 dark:text-slate-500"
                 }
               `}
             >

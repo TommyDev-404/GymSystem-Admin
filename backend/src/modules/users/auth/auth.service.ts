@@ -4,81 +4,71 @@ import { sendMail } from "../../../utils/mailer";
 import jwt from "jsonwebtoken";
 
 
-export const loginUser = async (
-	email: string,
-	password: string
- ) => {
+export const loginUser = async (username: string, password: string) => {
 	const user = await prisma.users.findUnique({
-	  where: { email },
+		where: { username },
+		include: {
+			members: true,
+		},
 	});
- 
-	if (!user) {
-	  throw new Error("Invalid email or password");
-	}
- 
-	const isMatch = await bcrypt.compare(
-	  password,
-	  user.hash_pass
-	);
- 
-	if (!isMatch) {
-	  throw new Error("Invalid email or password");
-	}
- 
-	let memberId: number | null = null;
- 
-	// Check activation for members
-	if (user.role === "MEMBER") {
-	  const member = await prisma.members.findUnique({
-		 where: {
-			email: user.email,
-		 },
-		 select: {
-			id: true,
-			is_activated: true,
-		 },
-	  });
- 
- 
-	  if (!member) {
-		 throw new Error("Member profile not found");
-	  }
- 
- 
-	  if (!member.is_activated) {
-		 throw new Error("Account not activated");
-	  }
- 
- 
-	  memberId = member.id;
-	}
- 
- 
-	const token = jwt.sign(
-	  {
-		 id: user.id,
-		 email: user.email,
-		 role: user.role,
-	  },
-	  process.env.JWT_SECRET!,
-	  {
-		 expiresIn: "7d",
-	  }
-	);
- 
- 
-	return {
-	  message: "Login successful",
-	  token,
 
-	  user: {
-		 id: user.id,
-		 memberId,
-		 username: user.username,
-		 email: user.email,
-		 profile: user.profile,
-		 pass_last_changed: user.updatedAt
-	  },
+	if (!user) {
+		throw new Error("Invalid username or password");
+	}
+
+	const isMatch = await bcrypt.compare(
+		password,
+		user.hash_pass
+	);
+
+	if (!isMatch) {
+		throw new Error("Invalid username or password");
+	}
+
+	let memberId: number | null = null;
+	let email: string | null = null;
+
+	// MEMBER-specific validation
+	if (user.role === "MEMBER") {
+		const member = user.members;
+
+		if (!member) {
+			throw new Error("Member profile not found");
+		}
+
+		if (!member.is_activated) {
+			throw new Error("Account not activated");
+		}
+
+		memberId = member.id;
+		email = member.email;
+	}
+
+	const token = jwt.sign(
+		{
+			id: user.id,
+			memberId,
+			username: user.username,
+			role: user.role,
+		},
+		process.env.JWT_SECRET!,
+		{
+			expiresIn: "7d",
+		}
+	);
+
+	return {
+		message: "Login successful",
+		token,
+
+		user: {
+			id: user.id,
+			memberId,
+			username: user.username,
+			email,
+			profile: user.profile,
+			pass_last_changed: user.updatedAt,
+		},
 	};
 };
  
@@ -96,7 +86,6 @@ export const verifyActivationCode = async (code: string) => {
 		},
 	});
 
-	console.log(activation);
 	if (!activation) {
 		throw new Error("Invalid or expired activation code");
 	}
@@ -116,102 +105,130 @@ export const verifyActivationCode = async (code: string) => {
 	};
 };
 
-export const completeRegistration = async (
-  member_id: number,
-  password: string
-) => {
-  const member = await prisma.members.findUnique({
-    where: {
-      id: member_id,
-    },
-  });
+export const completeRegistration = async (member_id: number, username: string, password: string) => {
+	const member = await prisma.members.findUnique({
+		where: {
+			id: member_id,
+		},
+	});
 
-  if (!member) {
-    throw new Error("Member not found");
-  }
+	if (!member) {
+		throw new Error("Member not found");
+	}
 
-  const hashedPassword = await bcrypt.hash(password, 10);
+	if (member.is_activated) {
+		throw new Error("Account already activated");
+	}
 
-  const user = await prisma.users.create({
-    data: {
-      username: member.fullname,
-      email: member.email,
-		password: password,
-      hash_pass: hashedPassword,
-      role: "MEMBER",
-    },
-  });
+	const existingUsername = await prisma.users.findUnique({
+		where: {
+			username,
+		},
+	});
 
-  await prisma.members.update({
-    where: {
-      id: member_id,
-    },
-    data: {
-      user_id: user.id,
-      is_activated: true
-    },
-  });
+	if (existingUsername) {
+		throw new Error("Username is already taken");
+	}
 
-  await prisma.member_activations.updateMany({
-    where: {
-      member_id,
-    },
-    data: {
-      is_used: true,
-    },
-  });
+	const hashedPassword = await bcrypt.hash(password, 10);
 
-  const token = jwt.sign(
-    {
-      id: user.id,
-      role: user.role,
-    },
-    process.env.JWT_SECRET!,
-    {
-      expiresIn: "7d",
-    }
-  );
+	const result = await prisma.$transaction(async (tx) => {
+		const user = await tx.users.create({
+			data: {
+				username,
+				password,
+				hash_pass: hashedPassword,
+				role: "MEMBER",
+			},
+		});
+
+		await tx.members.update({
+			where: {
+				id: member_id,
+			},
+			data: {
+				user_id: user.id,
+				is_activated: true,
+			},
+		});
+
+		await tx.member_activations.updateMany({
+			where: {
+				member_id,
+			},
+			data: {
+				is_used: true,
+			},
+		});
+
+		return user;
+	});
+
+	const token = jwt.sign(
+		{
+			id: result.id,
+			memberId: member.id,
+			username: result.username,
+			role: result.role,
+		},
+		process.env.JWT_SECRET!,
+		{
+			expiresIn: "7d",
+		}
+	);
 
 	return {
-	  success: true,
-    message: "Account created successfully",
-    token,
-    user: {
-		 id: user.id,
-		 memberId: member.id,
-      username: user.username,
-      email: user.email,
-    },
-  };
+		success: true,
+		message: "Account created successfully",
+		token,
+		user: {
+			id: result.id,
+			memberId: member.id,
+			username: result.username,
+			email: member.email,
+			profile: result.profile,
+			pass_last_changed: result.updatedAt,
+		},
+	};
 };
 
 export const sendForgotPasswordOtp = async (email: string) => {
-	const member = await prisma.users.findUnique({
-		where: { email },
+	const member = await prisma.members.findUnique({
+		where: {
+			email,
+		},
+		select: {
+			id: true,
+			email: true,
+			user_id: true,
+			is_activated: true,
+		},
 	});
 
 	if (!member) {
 		throw new Error("Email not found");
 	}
 
+	if (!member.user_id) {
+		throw new Error("Member account is not activated");
+	}
+
 	const code = Math.floor(100000 + Math.random() * 900000).toString();
 
-	// Create OTP inside transaction
-	await prisma.$transaction(async (tx) => {
-		await tx.otp_codes.create({
-			data: {
-				user_id: member.id,
-				code,
-				purpose: "RESET_PASSWORD",
-				expiresAt: new Date(Date.now() + 10 * 60 * 1000),
-				used: false,
-			},
-		});
+	await prisma.otp_codes.create({
+		data: {
+			user_id: member.user_id,
+			code,
+			purpose: "RESET_PASSWORD",
+			expiresAt: new Date(
+				Date.now() + 10 * 60 * 1000
+			),
+			used: false,
+		},
 	});
 
-	// Send email after transaction succeeds
 	await sendMail({
-		to: email,
+		to: member.email,
 		subject: "Password Reset Code",
 		html: `
 			<h2>Password Reset</h2>
@@ -228,17 +245,24 @@ export const sendForgotPasswordOtp = async (email: string) => {
 };
 
 export const verifyForgotPasswordOtp = async (email: string, code: string) => {
-	const user = await prisma.users.findUnique({
-		where: { email },
+	const member = await prisma.members.findUnique({
+		where: {
+			email,
+		},
+		select: {
+			user_id: true,
+		},
 	});
 
-	if (!user) return null;
+	if (!member?.user_id) {
+		throw new Error("Account not found");
+	}
 
-	// validate otp
 	const otp = await prisma.otp_codes.findFirst({
 		where: {
-			user_id: user.id,
+			user_id: member.user_id,
 			code,
+			purpose: "RESET_PASSWORD",
 			used: false,
 			expiresAt: {
 				gt: new Date(),
@@ -246,46 +270,13 @@ export const verifyForgotPasswordOtp = async (email: string, code: string) => {
 		},
 	});
 
-	if (!otp || otp.used === true) {
+	if (!otp) {
 		throw new Error("Invalid or expired OTP");
 	}
-		
-	// mark otp as used
+
 	await prisma.otp_codes.update({
-		where: { id: otp.id },
-		data: { used: true },
-	});
- 
-	return {
-		success: true,
-		message: "OTP verified",
-	};
-};
-
-export const resetPassword = async (email: string, newPassword: string) => {
-	const user = await prisma.users.findUnique({
-		where: { email },
-	});
-
-	if (!user) {
-		throw new Error("User not found");
-	}
-
-	const hashed = await bcrypt.hash(newPassword, 10);
-
-	const res = await prisma.users.update({
-		where: { email },
-		data: {
-			password: newPassword,
-			hash_pass: hashed,
-		},
-	});
-
-	// mark OTP as used
-	await prisma.otp_codes.updateMany({
 		where: {
-			user_id: user.id,
-			used: false,
+			id: otp.id,
 		},
 		data: {
 			used: true,
@@ -294,9 +285,58 @@ export const resetPassword = async (email: string, newPassword: string) => {
 
 	return {
 		success: true,
+		message: "OTP verified",
+	};
+};
+
+export const resetPassword = async (email: string, newPassword: string) => {
+	const member = await prisma.members.findUnique({
+		where: {
+			email,
+		},
+		select: {
+			user_id: true,
+		},
+	});
+
+	if (!member?.user_id) {
+		throw new Error("User account not found");
+	}
+
+	const hashedPassword = await bcrypt.hash(
+		newPassword,
+		10
+	);
+
+	const result = await prisma.$transaction(async (tx) => {
+		const user = await tx.users.update({
+			where: {
+				id: member.user_id!,
+			},
+			data: {
+				hash_pass: hashedPassword,
+			},
+		});
+
+		await tx.otp_codes.updateMany({
+			where: {
+				user_id: member.user_id!,
+				purpose: "RESET_PASSWORD",
+				used: false,
+			},
+			data: {
+				used: true,
+			},
+		});
+
+		return user;
+	});
+
+	return {
+		success: true,
 		message: "Password reset successful",
-		data: { 
-			updated_at: res.updatedAt
-		}
+		data: {
+			updated_at: result.updatedAt,
+		},
 	};
 };

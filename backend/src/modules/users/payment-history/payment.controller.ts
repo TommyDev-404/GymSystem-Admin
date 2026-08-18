@@ -2,13 +2,10 @@ import { Request, Response } from "express";
 import * as service from "./payment.service";
 
 
-export const getMemberPaymentHistoryController = async (
-  req: Request,
-  res: Response
-) => {
+export const getMemberPaymentHistoryController = async (req: Request, res: Response) => {
 
   try {
-    const member_id = Number(req.params.id);
+    const member_id = Number(req.params.member_id);
 
     if (!member_id) {
       return res.status(400).json({
@@ -16,11 +13,9 @@ export const getMemberPaymentHistoryController = async (
       });
     }
 
-
     const data = await service.getMemberPaymentHistoryService(
       member_id
     );
-
 
     return res.status(200).json(data);
 

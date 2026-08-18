@@ -7,6 +7,7 @@ export const getMemberReferralDataController = async (req: Request, res: Respons
       
       return res.status(201).json(data);
    } catch (err: any) {
+      console.log(err);
       return res.status(400).json({
          message: err.message || "Failed to retrieve member referral data",
       });
@@ -19,6 +20,8 @@ export const getMemberReferralRecordsController = async (req: Request, res: Resp
       
       return res.status(201).json(data);
    } catch (err: any) {
+      console.log(err);
+      
       return res.status(400).json({
          message: err.message || "Failed to retrieve member referral records",
       });

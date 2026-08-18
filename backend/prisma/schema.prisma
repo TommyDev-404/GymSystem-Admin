@@ -71,7 +71,6 @@ model member_workouts {
   member_id                Int
   workout_name             String                     @db.VarChar(150)
   duration_minutes         Int
-  calories_burned          Int
   completed_at             DateTime?                  @default(now()) @db.DateTime(0)
   member_workout_exercises member_workout_exercises[]
   members                  members                    @relation(fields: [member_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_member_workouts")
@@ -242,8 +241,7 @@ model tutorials {
 
 model users {
   id        Int         @id @default(autoincrement())
-  username  String      @db.VarChar(255)
-  email     String      @unique(map: "email") @db.VarChar(255)
+  username  String      @unique(map: "username") @db.VarChar(255)
   contact   String?     @db.VarChar(11)
   password  String      @db.VarChar(255)
   hash_pass String      @db.Text
@@ -279,7 +277,7 @@ model reward_redemptions {
   points_used Int
   status      reward_redemptions_status? @default(Pending)
   redeemed_at DateTime?                  @default(now()) @db.Timestamp(0)
-  members     members                    @relation(fields: [member_id], references: [id], onUpdate: Restrict, map: "1")
+  members     members                    @relation(fields: [member_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "1")
   rewards     rewards                    @relation(fields: [reward_id], references: [id], onUpdate: Restrict, map: "2")
 
   @@index([member_id], map: "fk_reward_member_redeemed")
@@ -436,13 +434,13 @@ enum notifications_category {
 enum notifications_type {
   MEMBERSHIP_EXPIRED
   MEMBERSHIP_EXPIRING
-  PAYMENT_RECORDED
-  REWARD_CLAIMED
-  REWARD_CANCELLED
-  MEMBER_ADDED
   MEMBERSHIP_UPGRADE
-  ATTENDANCE_POINTS
+  PAYMENT_RECORDED
+  MEMBER_ADDED
   MEMBER_INACTIVE_3_DAYS
   MEMBER_INACTIVE_7_DAYS
   MEMBER_INACTIVE_14_DAYS
+  REWARD_CLAIMED
+  ATTENDANCE_POINTS
+  REWARD_CANCELLED
 }

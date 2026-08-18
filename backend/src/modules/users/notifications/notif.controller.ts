@@ -1,36 +1,35 @@
 import { Request, Response } from "express";
 import * as service from "./notif.service";
 
+
 export const getAllNotificationsController = async (req: Request, res: Response) => {
    try {
-      const data = await service.getAllNotificationsService(Number(req.params.member_id));
-   
-      return res.status(201).json(data);
+		const data = await service.getAllNotificationsService(Number(req.params.member_id));
+
+		return res.status(201).json(data);
    } catch (err: any) {
-      return res.status(400).json({
-         message: err.message || "Failed to fetch all notifications",
-      });
-   }
+		console.log(err);
+
+		return res.status(400).json({
+			message: err.message || "Failed to fetch all notifications",
+		});
+	}
 }; 
 
 export async function markNotificationAsReadController(req: Request, res: Response) {
    try {
-     const notification_id = Number(req.params.notification_id);
-     const member_id = Number(req.params.member_id);
- 
-     await service.markNotificationAsReadService(
-       notification_id,
-       member_id
-     );
- 
-     res.status(200).json({
-       message: "Marked as read successfully.",
-     });
- 
+		const notification_id = Number(req.params.notification_id);
+		const member_id = Number(req.params.member_id);
+
+		const result = await service.markNotificationAsReadService( notification_id, member_id );
+
+		res.status(200).json(result);
    } catch (error) {
-     res.status(500).json({
-       message: "Failed to mark notification as read",
-     });
+		console.log(error);
+
+		res.status(500).json({
+			message: "Failed to mark notification as read",
+		});
    }
 }
 

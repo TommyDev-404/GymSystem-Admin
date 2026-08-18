@@ -53,7 +53,7 @@ export function RewardsList({ rewards }: { rewards: Rewards[] }) {
 
         {rewards.length > 0 ? (
           rewards.map((r) => {
-            const Icon = iconMap[r.category as keyof typeof iconMap];
+            const Icon = iconMap[r.category as keyof typeof iconMap] ?? Zap;
 
             return (
               <Card

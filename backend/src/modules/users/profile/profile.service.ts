@@ -32,7 +32,6 @@ export const updateProfileInfoService = async (
 			data
 		});
 
-
 		// Update email in members table
 		if (data.email && user.members) {
 			await tx.members.update({
