@@ -27,12 +27,12 @@ export const getAllNotificationsService = async (member_id: number) => {
 export const markNotificationAsReadService = async (notification_id: number, member_id: number) => {
 	await prisma.notifications.updateMany({
 		where: {
-		id: notification_id,
-		recipient_id: member_id,
-		recipient_type: "MEMBER",
+			id: notification_id,
+			recipient_id: member_id,
+			recipient_type: "MEMBER",
 		},
 		data: {
-		is_read: true,
+			is_read: true,
 		},
 	});
 

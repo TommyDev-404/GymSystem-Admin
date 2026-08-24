@@ -276,6 +276,37 @@ export const getFitnessProgressHistoryService = async (member_id: number) => {
 	}));
 };
 
+export const getTabBadgeCounts = async (memberId: number) => {
+  const startOfDay = new Date();
+  startOfDay.setHours(0, 0, 0, 0);
+
+  const startOfTomorrow = new Date(startOfDay);
+  startOfTomorrow.setDate(startOfTomorrow.getDate() + 1);
+
+  const [notificationCount, communityCount] = await Promise.all([
+    prisma.notifications.count({
+      where: {
+        recipient_id: memberId,
+		  recipient_type: "MEMBER",
+        is_read: false
+      },
+    }),
+    prisma.posts.count({
+      where: {
+        created_at: {
+          gte: startOfDay,
+          lt: startOfTomorrow,
+        },
+      },
+    }),
+  ]);
+
+  return {
+    notificationCount,
+    communityCount,
+  };
+}
+
 export const createFitnessGoalService = async (member_id: number, data: CreateGoalDTO) => {
 	return await prisma.$transaction(async (tx) => {
 		const goal = await tx.fitness_goals.create({

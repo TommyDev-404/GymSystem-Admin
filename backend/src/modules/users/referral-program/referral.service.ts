@@ -2,27 +2,25 @@ import { prisma } from "../../../lib/prisma";
 
 
 export const getMemberReferralDataService = async (member_id: number) => {
- 
 	const member = await prisma.members.findUnique({
-	  where: {
-		 id: member_id,
-	  },
- 
-	  select: {
-		 referral_code: true,
- 
-		 referrals_referrals_referrer_idTomembers: {
-			select: {
-			  referrer_points: true,
+		where: {
+			id: member_id,
+		},
+
+		select: {
+			referral_code: true,
+
+			referrals_referrals_referrer_idTomembers: {
+				select: {
+					referrer_points: true,
+				},
 			},
-		 },
-	  },
+		},
 	});
- 
+
 	if (!member) {
-	  throw new Error("Member not found");
+		throw new Error("Member not found");
 	}
- 
  
 	const referrals = member.referrals_referrals_referrer_idTomembers;
  
@@ -83,5 +81,4 @@ export const getMemberReferralRecordsService = async (member_id: number) => {
       joined_date: r.members_referrals_referee_idTomembers.join_date,
       referred_at: r.referred_at
    }));
-
 };

@@ -10,5 +10,6 @@ router.post("/create-fitness-goal/:member_id", controller.createFitnessGoalContr
 router.patch("/update-fitness-goal/:member_id", controller.updateFitnessGoalController);
 router.get("/member-fitness-goal/:member_id", controller.getFitnessGoalController);
 router.get("/member-fitness-goal-history/:member_id", controller.getFitnessGoalHistoryController);
+router.get("/tab-badges/:member_id", controller.getTabBadgesController);
 
 export default router;

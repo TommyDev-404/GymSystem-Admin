@@ -8,7 +8,6 @@ export const updateProfileInfoService = async (
 		email?: string;
 	}
 ) => {
-
 	const user = await prisma.users.findUnique({
 		where: {
 			id: userId,
@@ -23,7 +22,6 @@ export const updateProfileInfoService = async (
 	}
 
 	const result = await prisma.$transaction(async (tx) => {
-
 		// Update username in users table
 		const updatedUser = await tx.users.update({
 			where: {
@@ -49,19 +47,11 @@ export const updateProfileInfoService = async (
 
 	return {
 		success: true,
-		message: "Profile updated successfully",
-		user: {
-			id: result.id,
-			username: result.username,
-			email: data.email ?? user.members?.email,
-		},
+		message: "Profile updated successfully"
 	};
 };
 
-export const updateProfileImageService = async (
-	userId: number,
-	file: Express.Multer.File
- ) => {
+export const updateProfileImageService = async (userId: number, file: Express.Multer.File) => {
 	if (!file) {
 	  throw new Error("Profile image is required");
 	}
@@ -79,11 +69,9 @@ export const updateProfileImageService = async (
 	  }
 	});
  
- 
 	return {
 	  success: true,
-	  message: "Profile image updated successfully",
-	  image: imageUrl
+	  message: "Profile image updated successfully"
 	};
 };
  

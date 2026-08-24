@@ -17,25 +17,25 @@ export const getAllRewardsController = async (req: Request, res: Response) => {
 };
 
 export const getMemberRedeemedRewardsController = async (req: Request, res: Response) => {
-  try {
-    const member_id = Number(req.params.member_id);
+	try {
+		const member_id = Number(req.params.member_id);
 
-    if (!member_id) {
-      return res.status(400).json({
-        message: "Member ID is required",
-      });
-    }
+		if (!member_id) {
+			return res.status(400).json({
+				message: "Member ID is required",
+			});
+		}
 
-    const rewards = await service.getMemberRedeemedRewardsService(member_id);
+		const rewards = await service.getMemberRedeemedRewardsService(member_id);
 
-    return res.status(200).json(rewards);
-  } catch (error) {
-    console.error("Get redeemed rewards error:", error);
+		return res.status(200).json(rewards);
+	} catch (error) {
+		console.error("Get redeemed rewards error:", error);
 
-    return res.status(500).json({
-      message: "Failed to fetch redeemed rewards",
-    });
-  }
+		return res.status(500).json({
+			message: "Failed to fetch redeemed rewards",
+		});
+	}
 };
 
 export const redeemRewardController = async (req: Request, res: Response) => {
@@ -50,9 +50,9 @@ export const redeemRewardController = async (req: Request, res: Response) => {
 			});
 		}
 
-		const redemption = await service.redeemRewardService(member_id, reward_id);
+		const result = await service.redeemRewardService(member_id, reward_id);
 
-		return res.status(201).json(redemption);
+		return res.status(201).json(result);
 	} catch(error:any){
 		console.error(error);
 
@@ -60,31 +60,22 @@ export const redeemRewardController = async (req: Request, res: Response) => {
 			success:false,
 			message:error.message || "Failed to redeem reward"
 		});
-
 	}
 };
 
-export const cancelRedeemedRewardController = async (
-	req: Request,
-	res: Response
- ) => {
- 
+export const cancelRedeemedRewardController = async (req: Request, res: Response) => {
 	try {
+		const redemption_id = Number(req.params.redemption_id);
+		const member_id = Number(req.params.member_id);
 
-	  const redemption_id = Number(req.params.redemption_id);
-	  const member_id = Number(req.params.member_id);
- 
-	  const result = await service.cancelRedeemedRewardService(
-		 redemption_id,
-		 member_id
-	  );
+		const result = await service.cancelRedeemedRewardService(redemption_id, member_id);
 
-	  return res.status(200).json(result);
+		return res.status(200).json(result);
 	} catch (error: any) {
-	  console.error(error);
- 
-	  return res.status(400).json({
-		 message: error.message,
-	  });
+		console.error(error);
+
+		return res.status(400).json({
+			message: error.message,
+		});
 	}
- };
+};

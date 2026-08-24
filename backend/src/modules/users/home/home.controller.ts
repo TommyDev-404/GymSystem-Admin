@@ -67,6 +67,21 @@ export const getFitnessGoalHistoryController = async(req:Request, res:Response) 
    }
 };
 
+export const getTabBadgesController = async (req: Request, res: Response) => {
+   try{
+      const result = await service.getTabBadgeCounts(Number(req.params.member_id));
+
+      res.status(201).json(result);
+   }catch(error:any){
+      console.log(error);
+      
+      res.status(500).json({
+         message:error.message
+      });
+   }
+};
+
+
 export const createFitnessGoalController = async(req:Request, res:Response)=>{
    try{
       const result = await service.createFitnessGoalService(Number(req.params.member_id), req.body);
@@ -93,5 +108,6 @@ export const updateFitnessGoalController = async(req:Request, res:Response)=>{
       });
    }
 };
+
 
  

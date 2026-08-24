@@ -34,14 +34,15 @@ export async function markNotificationAsReadController(req: Request, res: Respon
 }
 
 export const markAllNotifAsReadController = async (req: Request, res: Response) => {
-  try {
-    const result = await service.markAllNotificationsAsReadService(Number(req.params.member_id));
+	try {
+		const result = await service.markAllNotificationsAsReadService(Number(req.params.member_id));
 
-    return res.status(200).json(result);
-  } catch (err: any) {
-    return res.status(400).json({
-      message: err.message || "Failed to mark all notifications as read",
-    });
-  }
+		return res.status(200).json(result);
+	} catch (err: any) {
+		console.log(err);
+		return res.status(400).json({
+			message: err.message || "Failed to mark all notifications as read",
+		});
+	}
 };
  

@@ -1,75 +1,72 @@
 import { prisma } from "../../../lib/prisma";
 import { CreateWorkoutInput } from "./workout.types";
 
+
 export const getWorkoutTutorialsService = async (
-  query: {
-    limit?: string;
-    category?: string;
-  }
+	query: {
+		limit?: string;
+		category?: string;
+	}
 ) => {
-  const categoryFilter =
-    query.category && query.category !== "All"
-      ? query.category
-      : undefined;
+	const categoryFilter = query.category && query.category !== "All"
+		? query.category
+		: undefined;
 
-  return await prisma.tutorials.findMany({
-    where: {
-      ...(categoryFilter && {
-        category: categoryFilter,
-      }),
-    },
+	return await prisma.tutorials.findMany({
+		where: {
+			...(categoryFilter && {
+				category: categoryFilter,
+			}),
+		},
 
-    ...(query.limit && {
-      take: Number(query.limit),
-    }),
-  });
+		...(query.limit && {
+			take: Number(query.limit),
+		}),
+	});
 };
 
+export const getWorkoutTutorialByIdService = async (workoutId: number) => {
+	return await prisma.tutorials.findUnique({
+		where: {
+			id: Number(workoutId),
+		},
+	});
+};
 
-export const getPersonalWorkoutHistoryService = async (
-  member_id: number
-) => {
-  const workouts = await prisma.member_workouts.findMany({
-    where: {
-      member_id: Number(member_id),
-    },
+export const getPersonalWorkoutHistoryService = async (member_id: number) => {
+	const workouts = await prisma.member_workouts.findMany({
+		where: {
+		member_id: Number(member_id),
+		},
 
-    include: {
-      member_workout_exercises: true,
-    },
+		include: {
+		member_workout_exercises: true,
+		},
 
-    orderBy: {
-      completed_at: "desc",
-    },
-  });
+		orderBy: {
+		completed_at: "desc",
+		},
+	});
 
-  return workouts.map((workout) => ({
-    id: workout.id,
-
-    name: workout.workout_name,
-
-    date: workout.completed_at?.toLocaleDateString(
-      "en-US",
-      {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      }
-    ),
-
-    duration: `${workout.duration_minutes} min`,
-
-    // Exercises are optional
-    exercises: workout.member_workout_exercises.map(
-      (exercise) => ({
-        id: exercise.id,
-        name: exercise.exercise_name,
-        sets: `${exercise.sets} sets`,
-        reps: `${exercise.reps} reps`,
-        weight: `${exercise.weight} kg`,
-      })
-    ),
-  }));
+	return workouts.map((workout) => ({
+		id: workout.id,
+		name: workout.workout_name,
+		date: workout.completed_at?.toLocaleDateString("en-US", {
+			month: "short",
+			day: "numeric",
+			year: "numeric",
+		}),
+		duration: `${workout.duration_minutes} min`,
+		exercises: workout.member_workout_exercises.map(
+			(exercise) => ({
+				id: exercise.id,
+				name: exercise.exercise_name,
+				sets: `${exercise.sets} sets`,
+				reps: `${exercise.reps} reps`,
+				weight: `${exercise.weight} kg`,
+			})
+		),
+	}));
 };
 
 export const getWorkoutSummaryService = async (
@@ -271,46 +268,68 @@ export const getWorkoutProgressService = async (
 		 }
 	  ),
 	}));
- };
+};
  
+export const createPersonalWorkoutService = async (data: CreateWorkoutInput) => {
+	const {
+		member_id,
+		name,
+		duration,
+		exercises = [],
+	} = data;
 
-export const createPersonalWorkoutService = async (
-  data: CreateWorkoutInput
-) => {
-  const {
-    member_id,
-    name,
-    duration,
-    exercises = [],
-  } = data;
+	await prisma.$transaction(async (tx) => {
+		const createdWorkout = await tx.member_workouts.create({
+			data: {
+				member_id: Number(member_id),
+				workout_name: name.trim(),
+				duration_minutes: Number(duration),
+			},
+		});
 
-  await prisma.$transaction(async (tx) => {
+		// Exercises are optional
+		if (exercises.length > 0) {
+			await tx.member_workout_exercises.createMany({
+				data: exercises.map((exercise) => ({
+					workout_id: createdWorkout.id,
+					exercise_name: exercise.name.trim(),
+					sets: Number(exercise.sets),
+					reps: Number(exercise.reps),
+					weight: Number(exercise.weight),
+				})),
+			});
+		}
+	});
 
-    // Create workout
-    const createdWorkout = await tx.member_workouts.create({
-        data: {
-          member_id: Number(member_id),
-          workout_name: name.trim(),
-          duration_minutes: Number(duration),
-        },
-      });
+	return {
+		success: true,
+		message: "Workout added successfully.",
+	};
+};
 
-    // Exercises are optional
-    if (exercises.length > 0) {
-      await tx.member_workout_exercises.createMany({
-        data: exercises.map((exercise) => ({
-          workout_id: createdWorkout.id,
-          exercise_name: exercise.name.trim(),
-          sets: Number(exercise.sets),
-          reps: Number(exercise.reps),
-          weight: Number(exercise.weight),
-        })),
-      });
-    }
-  });
+export const searchExercisesService = async (search?: string) => {
+	const keyword = search?.trim();
+ 
+	if (!keyword) {
+	  return [];
+	}
+ 
+	return await prisma.tutorials.findMany({
+		where: {
+			name: {
+				contains: keyword,
+			},
+		},
 
-  return {
-    success: true,
-    message: "Workout added successfully.",
-  };
+		select: {
+			id: true,
+			name: true,
+		},
+
+		take: 10,
+
+		orderBy: {
+			name: "asc",
+		},
+	});
 };
