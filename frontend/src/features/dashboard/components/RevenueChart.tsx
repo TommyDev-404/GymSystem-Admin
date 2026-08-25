@@ -7,7 +7,6 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { RevenueTrend } from "../types/DashboardTypes";
 
@@ -36,8 +35,16 @@ export function RevenueChart({ data }: Props) {
                 x2="0"
                 y2="1"
               >
-                <stop offset="5%" stopColor="#10B981" stopOpacity={0.2} />
-                <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
+                <stop
+                  offset="5%"
+                  stopColor="#963348"
+                  stopOpacity={0.25}
+                />
+                <stop
+                  offset="95%"
+                  stopColor="#963348"
+                  stopOpacity={0}
+                />
               </linearGradient>
             </defs>
 
@@ -46,9 +53,7 @@ export function RevenueChart({ data }: Props) {
             <XAxis dataKey="month" />
 
             <YAxis
-              tickFormatter={(value) =>
-                `₱${value.toLocaleString()}`
-              }
+              tickFormatter={(value) => `₱${value.toLocaleString()}`}
             />
 
             <Tooltip
@@ -68,8 +73,8 @@ export function RevenueChart({ data }: Props) {
             <Area
               type="monotone"
               dataKey="revenue"
-              name={"Revenue"}
-              stroke="#10B981"
+              name="Revenue"
+              stroke="#963348"
               strokeWidth={2}
               fill="url(#colorRevenue)"
             />

@@ -5,13 +5,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { toast } from "sonner";
-
 import { verifyOtpApi, resetPasswordApi } from "@/features/auth/api/auth.api";
+import { theme } from "@/utils/theme";
 
 interface VerifyCodeModalProps {
   open: boolean;
@@ -30,7 +29,7 @@ export function VerifyCodeModal({
   newPassword,
   code,
   setCode,
-  reset
+  reset,
 }: VerifyCodeModalProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -40,31 +39,25 @@ export function VerifyCodeModal({
       setLoading(true);
       setError("");
 
-      // Verify OTP first
       await verifyOtpApi({
         email,
         code,
       });
 
-      // Reset password after OTP success
       await resetPasswordApi({
         email,
         newPassword,
       });
 
-      toast.success("Password changed successfully");
-
+      toast.success("Password changed successfully.");
       setCode("");
       onClose();
-
     } catch (err: any) {
       const message =
-        err?.response?.data?.message ||
-        "Invalid verification code";
+        err?.response?.data?.message || "Invalid verification code";
 
       setError(message);
       toast.error(message);
-
     } finally {
       setLoading(false);
       reset();
@@ -73,53 +66,42 @@ export function VerifyCodeModal({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md rounded-2xl">
+      <DialogContent className="rounded-2xl border-[#E8C7CC] bg-white sm:max-w-md dark:border-stone-700 dark:bg-stone-900">
         <DialogHeader>
-          <DialogTitle>
+          <DialogTitle className="text-xl font-semibold text-slate-800 dark:text-slate-100">
             Verify Identity
           </DialogTitle>
-
-          <DialogDescription>
+          <DialogDescription className="text-slate-500 dark:text-slate-400">
             Enter the 6-digit verification code sent to your email.
           </DialogDescription>
         </DialogHeader>
 
-
         <div className="space-y-5">
-
           <Input
             maxLength={6}
             value={code}
-            onChange={(e) =>
-              setCode(e.target.value.replace(/\D/g, ""))
-            }
+            onChange={(e) => {
+              setError("");
+              setCode(e.target.value.replace(/\D/g, ""));
+            }}
             placeholder="------"
-            className="
-              text-center
-              text-lg
-              tracking-[0.5em]
-              h-12
-            "
+            className="h-12 border-slate-200 bg-white text-center text-lg tracking-[0.5em] text-slate-700 focus-visible:border-[#8B1E2D] focus-visible:ring-[#8B1E2D]/20 dark:border-stone-700 dark:bg-stone-800 dark:text-slate-200"
           />
 
-
           {error && (
-            <p className="text-sm text-red-500 text-center">
+            <p className="text-center text-sm text-red-500">
               {error}
             </p>
           )}
 
-
           <Button
-            className="w-full bg-emerald-500 hover:bg-emerald-600"
+            className={`h-11 w-full ${theme.gradient} text-white `}
             onClick={handleVerifyCode}
             disabled={loading || code.length !== 6}
           >
             {loading ? "Verifying..." : "Verify Code"}
           </Button>
-
         </div>
-
       </DialogContent>
     </Dialog>
   );

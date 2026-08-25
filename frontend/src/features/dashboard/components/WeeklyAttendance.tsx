@@ -7,7 +7,6 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { WeeklyAttendance } from "../types/DashboardTypes";
 
@@ -49,7 +48,7 @@ export function WeeklyAttendance({ data }: WeeklyAttendanceProps) {
             <Bar
               dataKey="presentMembers"
               name="Present Members"
-              fill="#10B981"
+              fill="#963348"
               radius={[6, 6, 0, 0]}
               minPointSize={3}
             />

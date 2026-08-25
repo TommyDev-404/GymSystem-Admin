@@ -1,3 +1,4 @@
+import { theme } from "@/utils/theme";
 import {
   CreditCard,
   Shield,
@@ -15,43 +16,29 @@ export function SettingsSidebar({
   setActive,
 }: {
   active: string;
-  setActive: (v: string) => void;
+  setActive: (value: string) => void;
 }) {
   return (
     <div className="w-48 space-y-1">
-      {sections.map((s) => (
-        <button
-          key={s.id}
-          onClick={() => setActive(s.id)}
-          className={`
-            w-full
-            flex
-            items-center
-            gap-3
-            rounded-xl
-            px-3.5
-            py-2.5
-            text-sm
-            transition-colors
+      {sections.map((section) => {
+        const Icon = section.icon;
+        const isActive = active === section.id;
 
-            ${
-              active === s.id
-                ? "bg-emerald-500 text-white"
-                : `
-                  text-slate-600
-                  dark:text-slate-300
-                  hover:bg-white
-                  dark:hover:bg-stone-800
-                  hover:shadow-sm
-                  dark:hover:shadow-none
-                `
-            }
-          `}
-        >
-          <s.icon size={15} />
-          <span>{s.label}</span>
-        </button>
-      ))}
+        return (
+          <button
+            key={section.id}
+            onClick={() => setActive(section.id)}
+            className={`flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm transition-colors ${
+              isActive
+                ? `${theme.gradient} text-white shadow-sm`
+                : "text-slate-600 hover:bg-[#8B1E2D]/5 hover:text-[#8B1E2D] dark:text-slate-300 dark:hover:bg-[#8B1E2D]/10 dark:hover:text-[#A92B3D]"
+            }`}
+          >
+            <Icon size={15} />
+            <span>{section.label}</span>
+          </button>
+        );
+      })}
     </div>
   );
 }

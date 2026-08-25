@@ -242,7 +242,7 @@ model tutorials {
 model users {
   id        Int         @id @default(autoincrement())
   username  String      @unique(map: "username") @db.VarChar(255)
-  contact   String?     @db.VarChar(11)
+  email     String?     @db.VarChar(255)
   password  String      @db.VarChar(255)
   hash_pass String      @db.Text
   profile   String?     @db.VarChar(255)

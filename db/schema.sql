@@ -13,7 +13,7 @@ CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     
     username VARCHAR(255) NOT NULL UNIQUE,
-    contact varchar(11),
+    email VARCHAR(255) NOT NULL,
     password VARCHAR(255) NOT NULL,
     hash_pass TEXT NOT NULL,
     profile varchar(255),

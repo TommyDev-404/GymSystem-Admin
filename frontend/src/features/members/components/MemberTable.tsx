@@ -1,16 +1,9 @@
 import { useState } from "react";
-import {
-  Mail,
-  RefreshCcw,
-  Repeat2
-} from "lucide-react";
+import { Mail, RefreshCcw, Repeat2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import {
-  Avatar,
-  AvatarFallback,
-} from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   Table,
   TableBody,
@@ -27,26 +20,25 @@ import RenewMembershipDialog from "./RenewMembershipDialog";
 import { UpgradeMembershipModal } from "./UpgradeMembershipModal";
 import { useMembers } from "../hooks/useMember";
 
-
 const planColors: Record<string, string> = {
-  Basic:"bg-slate-100 text-slate-700 hover:bg-slate-100",
-  Premium:"bg-indigo-100 text-indigo-700 hover:bg-indigo-100",
-  Elite:"bg-amber-100 text-amber-700 hover:bg-amber-100",
+  Basic: "bg-slate-100 text-slate-700 hover:bg-slate-100",
+  Premium: "bg-indigo-100 text-indigo-700 hover:bg-indigo-100",
+  Elite: "bg-amber-100 text-amber-700 hover:bg-amber-100",
 };
 
 const statusColors: Record<string, string> = {
-  Active:"bg-emerald-100 text-emerald-700 border-emerald-200",
-  Inactive:"bg-slate-100 text-slate-600 border-slate-200",
-  Suspended:"bg-red-100 text-red-600 border-red-200",
+  Active: "border-emerald-200 bg-emerald-100 text-emerald-700",
+  Inactive: "border-slate-200 bg-slate-100 text-slate-600",
+  Suspended: "border-red-200 bg-red-100 text-red-600",
 };
 
 interface Props {
-  params: MemberFilters
+  params: MemberFilters;
 }
 
 export function MemberTable({ params }: Props) {
   const { data: members = [], isLoading } = useMembers(params);
-  
+
   const [resendMember, setResendMember] = useState<Member | null>(null);
   const [openMemberModal, setOpenMemberModal] = useState(false);
   const [renewMember, setRenewMember] = useState<Member | null>(null);
@@ -57,17 +49,22 @@ export function MemberTable({ params }: Props) {
     setSelectedMember(member);
     setOpenMemberModal(true);
   };
-  
-  const TH_CLASS = "text-left text-xs uppercase tracking-wide text-slate-400 dark:text-slate-500 font-semibold px-5 py-4";
+
+  const TH_CLASS =
+    "px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500";
+
+  const currencyFormatter = new Intl.NumberFormat("en-PH", {
+    style: "currency",
+    currency: "PHP",
+  });
 
   return (
     <>
-      <Card className="rounded-2xl shadow-sm overflow-hidden p-0">
+      <Card className="overflow-hidden rounded-2xl p-0 shadow-sm">
         <CardContent className="p-0">
           <Table>
-            {/* HEADER */}
             <TableHeader>
-              <TableRow className="hover:bg-transparent bg-slate-50/70 dark:bg-stone-900/50">
+              <TableRow className="bg-slate-50/70 hover:bg-transparent dark:bg-stone-900/50">
                 <TableHead className={TH_CLASS}>Member</TableHead>
                 <TableHead className={TH_CLASS}>Age</TableHead>
                 <TableHead className={TH_CLASS}>Gender</TableHead>
@@ -95,22 +92,12 @@ export function MemberTable({ params }: Props) {
                 members.map((member: Member) => (
                   <TableRow
                     key={member.id}
-                    className="hover:bg-slate-50 dark:hover:bg-slate-800 transition"
+                    className="transition hover:bg-slate-50 dark:hover:bg-slate-800"
                   >
-                    {/* MEMBER */}
                     <TableCell className="p-5">
                       <div className="flex items-center gap-3">
                         <Avatar className="h-9 w-9">
-                          <AvatarFallback
-                            className="
-                              bg-emerald-100
-                              text-emerald-700
-                              dark:bg-emerald-900/40
-                              dark:text-emerald-300
-                              text-xs
-                              font-semibold
-                            "
-                          >
+                          <AvatarFallback className="bg-[#963348] text-xs font-semibold text-white dark:bg-[#7A1F31]">
                             {getInitials(member.fullname)}
                           </AvatarFallback>
                         </Avatar>
@@ -121,85 +108,66 @@ export function MemberTable({ params }: Props) {
                       </div>
                     </TableCell>
 
-                    {/* AGE */}
-                    <TableCell className="text-left p-5 text-slate-600 dark:text-slate-300">
+                    <TableCell className="p-5 text-left text-slate-600 dark:text-slate-300">
                       {member.age}
                     </TableCell>
 
-                    {/* GENDER */}
-                    <TableCell className="text-left p-5 text-slate-600 dark:text-slate-300">
+                    <TableCell className="p-5 text-left text-slate-600 dark:text-slate-300">
                       {member.gender}
                     </TableCell>
 
-                    {/* PLAN */}
-                    <TableCell className="text-left p-5">
+                    <TableCell className="p-5 text-left">
                       <Badge
-                        className={`
-                          px-3 py-1
-                          ${planColors[
-                            member.plan_name
-                          ]}
-                        `}
+                        className={`px-3 py-1 ${
+                          planColors[member.plan_name] ??
+                          "bg-slate-100 text-slate-700"
+                        }`}
                       >
-                        {`${member.plan_name} (${member.duration} ${member.duration_type}) - ${new Intl.NumberFormat(
-												"en-PH",
-												{
-													style: "currency",
-													currency: "PHP",
-												}
-											).format(Number(member.plan_price))}`}
+                        {member.plan_name} ({member.duration}{" "}
+                        {member.duration_type}) -{" "}
+                        {currencyFormatter.format(Number(member.plan_price))}
                       </Badge>
                     </TableCell>
 
-                    {/* MEMBERSHIP START */}
-                    <TableCell className="text-left p-5 text-slate-500 dark:text-slate-400">
-                      {new Date(member.membership_start!).toLocaleDateString("en-PH", {
+                    <TableCell className="p-5 text-left text-slate-500 dark:text-slate-400">
+                      {new Date(
+                        member.membership_start!,
+                      ).toLocaleDateString("en-PH", {
                         month: "short",
                         day: "2-digit",
                         year: "numeric",
                       })}
                     </TableCell>
 
-                    {/* MEMBERSHIP END */}
-                    <TableCell className="text-left p-5 text-slate-500 dark:text-slate-400">
-                      {new Date(member.membership_end!).toLocaleDateString("en-PH", {
-                        month: "short",
-                        day: "2-digit",
-                        year: "numeric",
-                      })}
+                    <TableCell className="p-5 text-left text-slate-500 dark:text-slate-400">
+                      {new Date(member.membership_end!).toLocaleDateString(
+                        "en-PH",
+                        {
+                          month: "short",
+                          day: "2-digit",
+                          year: "numeric",
+                        },
+                      )}
                     </TableCell>
 
-                    {/* STATUS */}
-                    <TableCell className="text-left p-5">
+                    <TableCell className="p-5 text-left">
                       <span
-                        className={`
-                          inline-flex
-                          items-center
-                          rounded-md
-                          px-2.5
-                          py-1
-                          text-xs
-                          font-medium
-                          ${statusColors[member.status!]}
-                        `}
+                        className={`inline-flex items-center rounded-md px-2.5 py-1 text-xs font-medium ${
+                          statusColors[member.status!] ??
+                          "border-slate-200 bg-slate-100 text-slate-600"
+                        }`}
                       >
                         {member.status}
                       </span>
                     </TableCell>
 
-                    {/* ACTIONS */}
                     <TableCell>
-                      <div className="flex justify-left gap-1">
-
-                        {/* RENEW */}
-                        {member.status !== "Active" && 
+                      <div className="flex justify-start gap-1">
+                        {member.status !== "Active" && (
                           <Button
                             size="icon"
                             variant="ghost"
-                            className="
-                              hover:bg-emerald-50
-                              dark:hover:bg-emerald-900/30
-                            "
+                            className="hover:bg-[#963348]/10 dark:hover:bg-[#963348]/20"
                             onClick={() => {
                               setRenewMember(member);
                               setRenewOpen(true);
@@ -207,85 +175,60 @@ export function MemberTable({ params }: Props) {
                           >
                             <RefreshCcw
                               size={16}
-                              className="
-                                text-emerald-600
-                                dark:text-emerald-400
-                              "
+                              className="text-[#963348] dark:text-[#C45A6F]"
                             />
-                            </Button>
-                        }
-                        
-                        {/* RESEND ACTIVATION CODE */}
+                          </Button>
+                        )}
+
                         <Button
                           size="icon"
                           variant="ghost"
-                          className="
-                            hover:bg-emerald-50
-                            dark:hover:bg-emerald-900/30
-                          "
+                          className="hover:bg-[#963348]/10 dark:hover:bg-[#963348]/20"
                           onClick={() => setResendMember(member)}
                         >
                           <Mail
                             size={16}
-                            className="
-                              text-blue-600
-                              dark:text-blue-400
-                            "
+                            className="text-[#963348] dark:text-[#C45A6F]"
                           />
                         </Button>
 
-                        {/* Update MEMBERSHIP PLAN */}
                         <Button
                           size="icon"
                           variant="ghost"
-                          className="
-                            hover:bg-slate-100
-                            dark:hover:bg-slate-800
-                          "
+                          className="hover:bg-slate-100 dark:hover:bg-slate-800"
                           onClick={() => handleEdit(member)}
                         >
                           <Repeat2
                             size={16}
-                            className="
-                              text-slate-700
-                              dark:text-slate-300
-                            "
+                            className="text-slate-700 dark:text-slate-300"
                           />
                         </Button>
-                        
                       </div>
                     </TableCell>
                   </TableRow>
                 ))
               )}
             </TableBody>
-
           </Table>
         </CardContent>
       </Card>
 
-      {/* RESEND */}
       <ResendActivationModal
         open={!!resendMember}
         member={resendMember!}
-        onClose={() =>setResendMember(null)}
+        onClose={() => setResendMember(null)}
       />
 
-      {/* ADD */}
       <UpgradeMembershipModal
         open={openMemberModal}
         setOpen={setOpenMemberModal}
         member={selectedMember}
       />
 
-      {/* RENEW MEMBERSHIP*/}
       <RenewMembershipDialog
         open={renewOpen}
         setOpen={setRenewOpen}
         member={renewMember}
-        onRenew={() => {
-          console.log("renew membership");
-        }}
       />
     </>
   );

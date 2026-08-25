@@ -2,14 +2,14 @@ import { useMemo, useState } from "react";
 import { MemberFilters } from "@/features/members/components/MemberFilter";
 import { MemberTable } from "@/features/members/components/MemberTable";
 import { MemberModal } from "@/features/members/components/MemberModal";
-import { Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { useMembersSummary } from "../hooks/useMember";
 import { debounce } from "@/lib/debounce";
 import { useSearchParams } from "react-router-dom";
 import { MemberSummaryCards } from "../components/MemberSummaryCards";
 import type { MemberSummaryType } from "../types/member";
 import { PageLoader } from "@/components/shared/PageLoader";
+import PageHeader from "@/components/shared/PageHeader";
+import { Plus } from "lucide-react";
 
 export function MembersPage() {
 	const [searchParams] = useSearchParams();
@@ -44,43 +44,13 @@ export function MembersPage() {
 	return (
 		<div className="space-y-5">
 			{/* HEADER */}
-			<div className="flex items-center justify-between">
-				<div>
-					<h1 className="
-						text-slate-800
-						dark:text-slate-100
-						font-bold
-						text-xl
-					">
-						Members
-					</h1>
-
-					<p className="
-						text-slate-500
-						dark:text-slate-400
-						text-sm
-						mt-0.5
-					">
-						Manage members registration
-					</p>
-				</div>
-
-				<Button
-					className="
-						bg-emerald-500
-						dark:bg-emerald-600
-						py-5
-						px-3
-						hover:bg-emerald-600
-						dark:hover:bg-emerald-700
-						text-white
-					"
-					onClick={() => setOpen(true)}
-				>
-					<Plus size={14} />
-					Add Member
-				</Button>
-			</div>
+			<PageHeader
+				title="Member"
+				subtitle="Manage members registration"
+				icon={Plus}
+				setOpen={() => setOpen(true)}
+				actionName="Add Member"
+			/>
 
 			<MemberSummaryCards
 				summary={memberSummary}

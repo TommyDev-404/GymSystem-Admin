@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Eye, EyeOff, Loader } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AuthLayout } from "@/layout/AuthLayout";
 import { useAuth } from "@/context/AuthContext";
 import axios from "axios";
+import Button from "../components/Button";
 
 type LoginForm = {
   email: string;
@@ -136,26 +137,18 @@ export function Login() {
             onClick={() =>
               navigate("/forgot-password")
             }
-            className="text-sm text-emerald-600 hover:underline"
+            className={`text-sm text-red-800 hover:underline`}
           >
             Forgot password?
           </button>
         </div>
 
         {/* Submit */}
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed text-white py-2.5 rounded-xl text-sm font-medium transition mt-4 flex items-center justify-center gap-2"
-        >
-          {loading ? (
-            <>
-              <Loader className="w-5 h-5 animate-spin" />
-            </>
-          ) : (
-            "Login"
-          )}
-        </button>
+        <Button
+          loading={loading}
+          actionName="Login"
+          pendingActionName="Logging in..."
+        />
       </form>
     </AuthLayout>
   );

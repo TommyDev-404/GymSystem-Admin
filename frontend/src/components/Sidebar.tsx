@@ -12,6 +12,7 @@ import {
   PlaySquare,
 } from "lucide-react";
 import { AppLogo } from "./shared/AppLogo";
+import { theme } from "@/utils/theme";
 
 const navItems = [
   { id: "dashboard", label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
@@ -31,7 +32,7 @@ interface SidebarProps {
   onNavigate: (page: string) => void;
 }
 
-export function Sidebar({ activePage, onNavigate }: SidebarProps) {
+export function Sidebar({ onNavigate }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
 
   return (
@@ -65,14 +66,14 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
         {/* Toggle */}
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="
+          className={`
             absolute 
             top-1/2 
             -translate-y-1/2 
             -right-3 
             w-6 
             h-6 
-            bg-emerald-500 
+            ${theme.gradient}
             border 
             border-white
             dark:border-stone-900
@@ -81,7 +82,7 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
             items-center 
             justify-center 
             shadow-md
-          "  
+          `} 
         >
           <ChevronRight
             size={14}
@@ -102,7 +103,7 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
               className={({ isActive }) =>
                 `w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 ${
                   isActive
-                    ? "bg-emerald-500 text-white font-medium shadow-sm"
+                    ? `${theme.gradient} text-white font-medium shadow-sm`
                     : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-stone-800 hover:text-slate-900 dark:hover:text-slate-100"
                 }`
               }
@@ -134,21 +135,21 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
             {/* TOOLTIP when collapsed */}
             {collapsed && (
               <span
-                className="
+                className={`
                   pointer-events-none
                   absolute left-full top-1/2 -translate-y-1/2 ml-2
-                  px-3 py-1.5 bg-emerald-500 text-white text-sm
+                  px-3 py-1.5 ${theme.gradient} text-white text-sm
                   rounded-md shadow-lg whitespace-nowrap
                   opacity-0 scale-95
                   group-hover:opacity-100 group-hover:scale-100
                   transition-opacity duration-200 ease-out
                   z-50
-                "
+                `}
               >
                 {label}
 
                 {/* arrow */}
-                <span className="absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-2 bg-emerald-500 rotate-45" />
+                <span className={`absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-2 ${theme.gradient} rotate-45`} />
               </span>
             )}
           </div>
@@ -191,7 +192,7 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
           ${collapsed ? "opacity-100" : "opacity-0"}
           `}
         >
-          <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <div className={`w-2 h-2 rounded-full ${theme.gradient} animate-pulse`} />
         </div>
 
       </div>

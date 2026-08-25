@@ -6,7 +6,7 @@ import {
   sentCodeApi,
   verifyOtpApi,
 } from "@/features/auth/api/auth.api";
-import { Loader } from "lucide-react";
+import Button from "../components/Button";
 
 type EmailForm = {
   email: string;
@@ -130,19 +130,11 @@ export function ForgotPassword() {
               )}
             </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed text-white py-2.5 rounded-xl text-sm font-medium transition mt-4 flex items-center justify-center gap-2"
-            >
-              {loading ? (
-                <>
-                  <Loader className="w-5 h-5 animate-spin" />
-                </>
-              ) : (
-                "Login"
-              )}
-            </button>
+            <Button
+              loading={loading}
+              actionName="Send Email"
+              pendingActionName="Sending..."
+            />
           </form>
         )}
 
@@ -174,16 +166,12 @@ export function ForgotPassword() {
                 </p>
               )}
             </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white py-2.5 rounded-xl text-sm font-medium transition"
-            >
-              {loading
-                ? "Verifying..."
-                : "Verify Code"}
-            </button>
+            
+            <Button
+              loading={loading}
+              actionName="Verify Code"
+              pendingActionName="Verifying..."
+            />
           </form>
         )}
 

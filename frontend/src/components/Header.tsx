@@ -14,21 +14,21 @@ import {
   Trophy,
   Gift,
   Bell,
-  UserCog,
   Settings,
   LogOut,
   UserRound,
   PlusCircle,
   Sun,
-  Moon
+  Moon,
 } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LogoutConfirmationModal } from "./shared/LogoutConfirmationModal";
 import { Switch } from "@/components/ui/switch";
+import { LogoutConfirmationModal } from "./shared/LogoutConfirmationModal";
+import { useAuth } from "@/context/AuthContext";
+import { theme } from "@/utils/theme";
 
 const searchItems = [
-  // Dashboard
   {
     name: "Dashboard",
     description: "View gym statistics overview",
@@ -36,8 +36,6 @@ const searchItems = [
     category: "Dashboard",
     icon: LayoutDashboard,
   },
-
-  // Members
   {
     name: "Add Member",
     description: "Register a new gym member",
@@ -59,8 +57,6 @@ const searchItems = [
     category: "Members",
     icon: UserX,
   },
-
-  // Attendance
   {
     name: "Attendance History",
     description: "View member attendance records for this month",
@@ -82,8 +78,6 @@ const searchItems = [
     category: "Attendance",
     icon: QrCode,
   },
-
-  // Payments
   {
     name: "Add Payment",
     description: "Record a new member payment",
@@ -112,14 +106,12 @@ const searchItems = [
     category: "Payments",
     icon: UserX,
   },
-
-  // Membership
   {
     name: "Membership Pricing",
     description: "Manage membership plans and prices",
     path: "/settings?filter=pricing",
     category: "Pricing",
-    icon: BadgeDollarSign
+    icon: BadgeDollarSign,
   },
   {
     name: "Add Membership Plan",
@@ -128,8 +120,6 @@ const searchItems = [
     category: "Membership",
     icon: PlusCircle,
   },
-
-  // Rewards
   {
     name: "View Rewards",
     description: "View all member rewards",
@@ -151,8 +141,6 @@ const searchItems = [
     category: "Rewards",
     icon: PlusCircle,
   },
-
-  // Notifications
   {
     name: "Notifications",
     description: "View system notifications",
@@ -160,8 +148,6 @@ const searchItems = [
     category: "Notifications",
     icon: Bell,
   },
-  
-  // Account
   {
     name: "Admin Profile",
     description: "Manage admin profile",
@@ -174,416 +160,238 @@ const searchItems = [
     description: "Manage password, authentication, and security settings",
     path: "/settings?filter=security",
     category: "Settings",
-    icon: UserCog,
-  }
+    icon: Settings,
+  },
 ];
 
 export function Header() {
   const navigate = useNavigate();
+  const { admin, logout } = useAuth();
 
   const [search, setSearch] = useState("");
   const [showSearch, setShowSearch] = useState(false);
-  const [logout, setLogout] = useState(false);
+  const [showLogout, setShowLogout] = useState(false);
+  const [darkMode, setDarkMode] = useState(
+    document.documentElement.classList.contains("dark")
+  );
 
-  const [darkMode, setDarkMode] = useState(false);
+  const filteredItems = useMemo(() => {
+    const query = search.trim().toLowerCase();
 
-  const toggleDarkMode = () => {
-    const next = !darkMode;
-    setDarkMode(next);
+    if (!query) return [];
 
-    document.documentElement.classList.toggle("dark", next);
+    return searchItems.filter(
+      (item) =>
+        item.name.toLowerCase().includes(query) ||
+        item.description.toLowerCase().includes(query) ||
+        item.category.toLowerCase().includes(query)
+    );
+  }, [search]);
+
+  const toggleDarkMode = (checked: boolean) => {
+    setDarkMode(checked);
+    document.documentElement.classList.toggle("dark", checked);
   };
 
+  const handleNavigate = (path: string) => {
+    navigate(path);
+    setSearch("");
+    setShowSearch(false);
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    setShowLogout(false);
+    navigate("/login", { replace: true });
+  };
+
+  const adminName = admin?.username || "Admin";
+
+  const adminInitials = adminName
+    .split(" ")
+    .map((name: string) => name.charAt(0))
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
   return (
-    <header className="h-16 bg-white dark:bg-stone-900 border-b border-slate-100 dark:border-stone-700 flex items-center justify-between px-6 shrink-0 shadow-sm">
-      {/* Greetings */ }
-      <div>
-        <h1 className="text-md font-semibold text-slate-800 dark:text-slate-100">
-          Welcome back, Admin!
-        </h1>
-
-        <p className="text-sm text-slate-400 dark:text-slate-400">
-          Here’s what’s happening in your gym today.
-        </p>
-      </div>
-      
-      {/* Search */}
-      <div className="relative">
-        <Search
-          size={15}
-          className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-        />
-
-        <input
-          value={search}
-          onFocus={() => setShowSearch(true)}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setShowSearch(true);
-          }}
-          className="
-            pl-9 pr-4 py-2 
-            bg-slate-50 
-            dark:bg-stone-800
-            border border-slate-200 
-            dark:border-stone-700
-            rounded-xl 
-            text-sm 
-            text-slate-700 
-            dark:text-slate-200 
-            w-100
-          "
-          placeholder="Search shortcuts..."
-        />
-
-        {showSearch && search && (
-          <div
-            className="
-              absolute top-12 left-0 w-100
-              h-70
-              bg-white
-              dark:bg-stone-900
-              border border-slate-100
-              dark:border-stone-700
-              rounded-xl
-              shadow-xl
-              z-50
-              overflow-scroll
-            "
-          >
-            {searchItems
-              .filter((item) =>
-                item.name
-                  .toLowerCase()
-                  .includes(search.toLowerCase())
-              )
-              .map((item) => {
-                const Icon = item.icon;
-              
-                return (
-                  <button
-                    key={item.name}
-                    onClick={() => {
-                      navigate(item.path);
-                      setSearch("");
-                      setShowSearch(false);
-                    }}
-                    className="
-                      w-full flex items-center gap-3
-                      px-4 py-3
-                      hover:bg-slate-50
-                      dark:hover:bg-stone-800
-                      transition
-                      text-left
-                    "
-                  >
-                    {/* ICON */}
-                    <div
-                      className="
-                        w-9 h-9
-                        rounded-lg
-                        bg-emerald-50
-                        dark:bg-emerald-900/30
-                        flex
-                        items-center
-                        justify-center
-                        shrink-0
-                      "
-                    >
-                      <Icon
-                        size={17}
-                        className="
-                          text-emerald-600
-                          dark:text-emerald-400
-                        "
-                      />
-                    </div>
-
-                    {/* TEXT */}
-                    <div className="flex-1">
-                      <p
-                        className="
-                          text-sm 
-                          font-medium 
-                          text-slate-700
-                          dark:text-slate-100
-                        "
-                      >
-                        {item.name}
-                      </p>
-
-                      <p
-                        className="
-                          text-xs 
-                          text-slate-400
-                          dark:text-slate-500
-                        "
-                      >
-                        {item.description}
-                      </p>
-                    </div>
-
-                    {/* CATEGORY */}
-                    <span
-                      className="
-                        text-[10px]
-                        text-slate-400
-                        dark:text-slate-500
-                      "
-                    >
-                      {item.category}
-                    </span>
-                  </button>
-                );
-              })}
-
-              {searchItems.filter((item) =>
-                item.name
-                  .toLowerCase()
-                  .includes(search.toLowerCase())
-              ).length === 0 && (
-                <div
-                className="
-                    h-full
-                    flex
-                    items-center
-                    justify-center
-                    py-8
-                  "
-                >
-                  <p
-                    className="
-                      text-sm
-                      text-slate-400
-                      dark:text-slate-500
-                    "
-                  >
-                    No matching function found.
-                  </p>
-                </div>
-              )}
-          </div>
-        )}
-      </div>
-
-      {/* Right side */}
-      <div className="flex items-center gap-3">
-        {/* Dark Mode Toggle */}
-        <div className="flex items-center gap-2">
-          <Sun
-            size={16}
-            className={`transition ${
-              darkMode ? "text-slate-500" : "text-amber-500"
-            }`}
-          />
-
-          <Switch
-            checked={darkMode}
-            onCheckedChange={toggleDarkMode}
-            className="data-[state=checked]:bg-stone-700 data-[state=unchecked]:bg-emerald-500"
-          />
-
-          <Moon
-            size={16}
-            className={`transition ${
-              darkMode ? "text-indigo-400" : "text-slate-400"
-            }`}
-          />
-        </div>
-
-        {/* Divider */}
-        <div className="
-          h-6 
-          w-px 
-          bg-slate-200
-          dark:bg-stone-700
-        " />
-
-        {/* Admin */}
-        <div className="relative flex items-center gap-2.5">
-          {/* Avatar */}
-          <div className="
-            w-8 h-8 
-            rounded-full 
-            bg-emerald-500 
-            flex 
-            items-center 
-            justify-center
-          ">
-            <span className="text-white text-xs font-semibold">
-              JD
-            </span>
+    <>
+      <header className="h-16 shrink-0 border-b border-slate-100 bg-white px-6 shadow-sm dark:border-stone-700 dark:bg-stone-900">
+        <div className="flex h-full items-center justify-between">
+          <div>
+            <h1 className="text-md font-semibold text-slate-800 dark:text-slate-100">
+              Welcome back, {adminName}!
+            </h1>
+            <p className="text-sm text-slate-400">
+              Here’s what’s happening in your gym today.
+            </p>
           </div>
 
-          {/* NAME trigger */}
-          <div className="
-            relative 
-            group 
-            hidden sm:block 
-            cursor-pointer
-          ">
+          <div className="relative">
+            <Search
+              size={15}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+            />
+            <input
+              value={search}
+              onFocus={() => setShowSearch(true)}
+              onChange={(event) => {
+                setSearch(event.target.value);
+                setShowSearch(true);
+              }}
+              className="w-100 rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-4 text-sm text-slate-700 outline-none transition focus:border-slate-300 focus:ring-2 focus:ring-slate-100 dark:border-stone-700 dark:bg-stone-800 dark:text-slate-200 dark:focus:border-stone-600 dark:focus:ring-stone-800"
+              placeholder="Search shortcuts..."
+            />
 
-            <p className="
-              text-slate-700
-              dark:text-slate-100
-              text-sm 
-              font-medium 
-              leading-none
-            ">
-              Jhon Doe
-            </p>
+            {showSearch && search.trim() && (
+              <div className="absolute left-0 top-12 z-50 h-70 w-100 overflow-y-auto rounded-xl border border-slate-100 bg-white shadow-xl dark:border-stone-700 dark:bg-stone-900">
+                {filteredItems.length > 0 ? (
+                  filteredItems.map((item) => {
+                    const Icon = item.icon;
 
-            <p className="
-              text-slate-400
-              dark:text-slate-500
-              text-xs 
-              mt-0.5
-            ">
-              Administrator
-            </p>
+                    return (
+                      <button
+                        key={`${item.category}-${item.name}`}
+                        type="button"
+                        onClick={() => handleNavigate(item.path)}
+                        className="flex w-full items-center gap-3 px-4 py-3 text-left transition hover:bg-slate-50 dark:hover:bg-stone-800"
+                      >
+                        <div
+                          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${theme.primaryLight}`}
+                        >
+                          <Icon size={17} className="text-white" />
+                        </div>
 
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium text-slate-700 dark:text-slate-100">
+                            {item.name}
+                          </p>
+                          <p className="truncate text-xs text-slate-400 dark:text-slate-500">
+                            {item.description}
+                          </p>
+                        </div>
 
-            {/* Dropdown */}
-            <div
-              className="
-                absolute 
-                right-0 
-                mt-2 
-                w-52
-                bg-white
-                dark:bg-stone-900
-                border 
-                border-slate-100
-                dark:border-stone-700
-                shadow-xl 
-                rounded-xl
-                opacity-0 
-                invisible
-                group-hover:opacity-100 
-                group-hover:visible
-                transition-all 
-                duration-150 
-                ease-out
-                overflow-hidden
-                z-50
-              "
-            >
-
-              {/* Profile */}
-              <button
-                onClick={() =>
-                  navigate("/settings", {
-                    state: { active: "profile" },
+                        <span className="shrink-0 text-[10px] text-slate-400 dark:text-slate-500">
+                          {item.category}
+                        </span>
+                      </button>
+                    );
                   })
-                }
-                className="
-                  w-full 
-                  flex 
-                  items-center 
-                  gap-3 
-                  px-4 
-                  py-2.5 
-                  text-sm
-                  text-slate-700
-                  dark:text-slate-200
-                  hover:bg-slate-50
-                  dark:hover:bg-stone-800
-                "
+                ) : (
+                  <div className="flex h-full items-center justify-center">
+                    <p className="text-sm text-slate-400 dark:text-slate-500">
+                      No matching function found.
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <Sun
+                size={16}
+                className={`transition ${
+                  darkMode ? "text-slate-500" : "text-amber-500"
+                }`}
+              />
+              <Switch
+                checked={darkMode}
+                onCheckedChange={toggleDarkMode}
+                className="data-[state=checked]:bg-stone-700 data-[state=unchecked]:bg-red-800"
+              />
+              <Moon
+                size={16}
+                className={`transition ${
+                  darkMode ? "text-indigo-400" : "text-slate-400"
+                }`}
+              />
+            </div>
+
+            <div className="h-6 w-px bg-slate-200 dark:bg-stone-700" />
+
+            <div className="relative flex items-center gap-2.5">
+              <div
+                className={`flex h-8 w-8 items-center justify-center rounded-full ${theme.gradient}`}
               >
-                <User 
-                  size={16} 
-                  className="text-slate-500 dark:text-slate-400" 
-                />
-
-                <span>
-                  Profile
+                <span className="text-xs font-semibold text-white">
+                  {adminInitials}
                 </span>
+              </div>
 
-                <ChevronRight 
-                  size={14} 
-                  className="
-                    ml-auto 
-                    text-slate-400
-                  " 
-                />
-              </button>
+              <div className="group relative hidden cursor-pointer sm:block">
+                <p className="text-sm font-medium leading-none text-slate-700 dark:text-slate-100">
+                  {adminName}
+                </p>
+                <p className="mt-0.5 text-xs text-slate-400 dark:text-slate-500">
+                  Administrator
+                </p>
 
+                <div className="invisible absolute right-0 top-full z-50 mt-2 w-52 overflow-hidden rounded-xl border border-slate-100 bg-white opacity-0 shadow-xl transition-all duration-150 ease-out group-hover:visible group-hover:opacity-100 dark:border-stone-700 dark:bg-stone-900">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      navigate("/settings", {
+                        state: { active: "profile" },
+                      })
+                    }
+                    className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-stone-800"
+                  >
+                    <User
+                      size={16}
+                      className="text-slate-500 dark:text-slate-400"
+                    />
+                    <span>Profile</span>
+                    <ChevronRight
+                      size={14}
+                      className="ml-auto text-slate-400"
+                    />
+                  </button>
 
-              {/* Settings */}
-              <button
-                onClick={() => navigate("/settings")}
-                className="
-                  w-full 
-                  flex 
-                  items-center 
-                  gap-3 
-                  px-4 
-                  py-2.5 
-                  text-sm
-                  text-slate-700
-                  dark:text-slate-200
-                  hover:bg-slate-50
-                  dark:hover:bg-stone-800
-                "
-              >
-                <Settings 
-                  size={16} 
-                  className="text-slate-500 dark:text-slate-400" 
-                />
+                  <button
+                    type="button"
+                    onClick={() => navigate("/settings")}
+                    className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-stone-800"
+                  >
+                    <Settings
+                      size={16}
+                      className="text-slate-500 dark:text-slate-400"
+                    />
+                    <span>Settings</span>
+                    <ChevronRight
+                      size={14}
+                      className="ml-auto text-slate-400"
+                    />
+                  </button>
 
-                <span>
-                  Settings
-                </span>
-              </button>
+                  <div className="my-1 h-px bg-slate-100 dark:bg-stone-700" />
 
-
-              {/* Divider */}
-              <div className="
-                h-px 
-                bg-slate-100
-                dark:bg-stone-700
-                my-1
-              " />
-
-
-              {/* Logout */}
-              <button
-                onClick={() => setLogout(!logout)}
-                className="
-                  w-full 
-                  flex 
-                  items-center 
-                  gap-3 
-                  px-4 
-                  py-2.5 
-                  text-sm 
-                  text-red-500
-                  hover:bg-red-50
-                  dark:hover:bg-red-900/30
-                "
-              >
-                <LogOut size={16} />
-
-                <span>
-                  Logout
-                </span>
-              </button>
-
+                  <button
+                    type="button"
+                    onClick={() => setShowLogout(true)}
+                    className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30"
+                  >
+                    <LogOut size={16} />
+                    <span>Logout</span>
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </header>
 
       <LogoutConfirmationModal
-        open={logout}
-        onOpenChange={() => setLogout(!logout)}
+        open={showLogout}
+        onOpenChange={setShowLogout}
         title="Logout"
         description="Are you sure you want to log out from your account?"
         confirmText="Logout"
         cancelText="Stay Logged In"
         variant="destructive"
-        onConfirm={() => navigate("/login")}
+        onConfirm={handleLogout}
       />
-    </header>
+    </>
   );
 }

@@ -1,10 +1,11 @@
+import { theme } from "@/utils/theme";
 import { Dumbbell } from "lucide-react";
 
 export function AppLogo({ collapsed = false}: { collapsed?: boolean}) {
   return (
     <div className="flex items-center gap-3">
       {/* Icon */}
-      <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-emerald-500">
+      <div className={`flex items-center justify-center w-9 h-9 rounded-xl ${theme.gradient}`}>
         <Dumbbell size={18} className="text-white" />
       </div>
 

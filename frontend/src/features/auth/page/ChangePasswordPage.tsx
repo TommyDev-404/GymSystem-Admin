@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { resetPasswordApi } from "@/features/auth/api/auth.api";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
+import Button from "../components/Button";
 
 type FormData = {
   newPassword: string;
@@ -181,15 +182,11 @@ export function ChangePassword() {
         </div>
 
         {/* SUBMIT */}
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white py-2.5 rounded-xl text-sm font-medium transition"
-        >
-          {loading
-            ? "Updating..."
-            : "Change Password"}
-        </button>
+        <Button
+          loading={loading}
+          actionName="Change Password"
+          pendingActionName="Updating..."
+        />
       </form>
     </AuthLayout>
   );

@@ -25,6 +25,8 @@ import userProfileRoutes from "./modules/users/profile/profile.routes";
 import userPaymentRoutes from "./modules/users/payment-history/payment.routes";
 import userRewardRoutes from "./modules/users/reward/reward.routes";
 import userReferralRoutes from "./modules/users/referral-program/referral.routes";
+import cookieParser from "cookie-parser";
+
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -51,6 +53,7 @@ app.use(
     credentials: true,
   })
 );
+app.use(cookieParser());
 app.use(express.json());
 
 // ==================== Admin Routes ===================

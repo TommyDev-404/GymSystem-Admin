@@ -32,8 +32,7 @@ export const updateAdminProfileService = async (adminId: number, data: Partial<U
   return {
     id: updatedAdmin.id,
     username: updatedAdmin.username,
-    email: updatedAdmin.email,
-    contact: updatedAdmin.contact
+    email: updatedAdmin.email
    };
 }
 

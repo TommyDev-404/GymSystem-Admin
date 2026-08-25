@@ -2,19 +2,18 @@ import { Outlet } from "react-router-dom";
 import { Sidebar } from "@/components/Sidebar";
 import { Header } from "@/components/Header";
 import { useState } from "react";
+import { theme } from "@/utils/theme";
 
 export function RootLayout() {
    const [activePage, setActivePage] = useState("dashboard");
 
    return (
-      <div className="
-         flex 
-         h-screen 
-         bg-[#F8FAFC]
+      <div className={`flex h-screen 
+         ${theme.bg}
          dark:bg-stone-800
          overflow-hidden 
          font-sans
-      ">
+      `}>
          {/* Sidebar */}
          <Sidebar 
             activePage={activePage} 

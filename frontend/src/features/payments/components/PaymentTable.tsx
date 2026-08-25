@@ -125,7 +125,7 @@ export function PaymentsTable({ params }: Props) {
 										<TableCell className={TD_CLASS}>
 											<div className="flex items-center gap-3">
 												<Avatar className="h-9 w-9 shrink-0">
-													<AvatarFallback className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300 text-xs font-semibold">
+													<AvatarFallback className="bg-[#963348] text-xs font-semibold text-white dark:bg-[#7A1F31]">
 														{getInitials(
 															p.memberName
 														)}

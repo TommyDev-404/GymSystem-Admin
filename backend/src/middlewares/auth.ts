@@ -5,7 +5,10 @@ import { AppError } from "./errorHandler";
 declare global {
   namespace Express {
     interface Request {
-      user?: { id: number; email: string };
+      user?: {
+        id: number;
+        role: string;
+      };
     }
   }
 }
@@ -16,19 +19,25 @@ export const authMiddleware = (
   next: NextFunction
 ) => {
   try {
-    const token = req.headers.authorization?.split(" ")[1];
+    const token = req.cookies?.admin_token;
 
     if (!token) {
       throw new AppError("No token provided", 401);
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as {
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET as string
+    ) as {
       id: number;
       email: string;
+      role: string;
     };
+
     req.user = decoded;
+
     next();
   } catch (error) {
-    throw new AppError("Invalid token", 401);
+    throw new AppError("Invalid or expired token", 401);
   }
 };

@@ -8,6 +8,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { Trash2, AlertTriangle } from "lucide-react";
+import { theme } from "@/utils/theme";
 
 interface Props {
   open: boolean;
@@ -75,7 +76,7 @@ export function ConfirmationDialog({
           <Button
             onClick={onConfirm}
             disabled={isPending}
-            className="flex-1 h-11 bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 text-white disabled:opacity-60"
+            className={`flex-1 h-11 ${theme.gradient} text-white disabled:opacity-60`}
           >
             <Trash2 size={16} className="mr-2" />
             {isPending ? "Deleting..." : "Delete"}

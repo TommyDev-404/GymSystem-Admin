@@ -5,11 +5,10 @@ import {
   ResponsiveContainer,
   Tooltip,
 } from "recharts";
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { MemberStatus } from "../types/DashboardTypes";
 
-const COLORS = ["#10B981", "#334155", "#94a3b8"];
+const COLORS = ["#963348", "#5E1626", "#B86A7A"];
 
 interface MembershipStatusProps {
   data: MemberStatus[];
@@ -20,9 +19,7 @@ export function MembershipStatus({ data }: MembershipStatusProps) {
     <Card>
       <CardHeader>
         <CardTitle>Membership Status</CardTitle>
-        <p className="text-sm text-muted-foreground">
-          Active vs Expired
-        </p>
+        <p className="text-sm text-muted-foreground">Active vs Expired</p>
       </CardHeader>
 
       <CardContent>
@@ -35,7 +32,7 @@ export function MembershipStatus({ data }: MembershipStatusProps) {
               dataKey="value"
             >
               {data.map((_, i) => (
-                <Cell key={i} fill={COLORS[i]} />
+                <Cell key={i} fill={COLORS[i % COLORS.length]} />
               ))}
             </Pie>
 
@@ -46,24 +43,19 @@ export function MembershipStatus({ data }: MembershipStatusProps) {
                 borderRadius: "10px",
               }}
             />
-            
           </PieChart>
         </ResponsiveContainer>
 
-        {/* Legend */}
-        <div className="space-y-2 mt-4">
+        <div className="mt-4 space-y-2">
           {data.map((item, i) => (
             <div key={i} className="flex justify-between text-sm">
               <div className="flex items-center gap-2">
                 <div
-                  className="w-2.5 h-2.5 rounded-full"
-                  style={{ backgroundColor: COLORS[i] }}
+                  className="h-2.5 w-2.5 rounded-full"
+                  style={{ backgroundColor: COLORS[i % COLORS.length] }}
                 />
-                <span className="text-muted-foreground">
-                  {item.name}
-                </span>
+                <span className="text-muted-foreground">{item.name}</span>
               </div>
-
               <span className="font-medium">{item.value}</span>
             </div>
           ))}

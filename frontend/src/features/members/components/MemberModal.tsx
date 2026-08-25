@@ -22,6 +22,7 @@ import type {
 } from "@/features/members/types/member";
 import { useCreateMember } from "../hooks/useMember";
 import { usePlans } from "@/features/settings/sections/membership_plans/hook/usePlan";
+import { theme } from "@/utils/theme";
 
 interface Props {
   open: boolean;
@@ -290,7 +291,7 @@ export function MemberModal({ open, setOpen }: Props) {
             </Button>
             <Button
               type="submit"
-              className="flex-1 h-11 bg-emerald-500 hover:bg-emerald-600 text-white"
+						  className={`flex-1 h-11 ${theme.gradient} text-white`}
               disabled={creating || !selectedPlan}
             >
               {creating ? "Adding..." : "Add Member"}

@@ -15,7 +15,7 @@ export function AuthLayout({
 
         {/* Header (fixed position for all auth pages) */}
         <div className="flex flex-col items-center text-center space-y-3">
-          <AppLogo color="text-emerald-600"/>
+          <AppLogo/>
 
           <div className="mt-6">
             <h1 className="text-xl font-semibold text-slate-800">

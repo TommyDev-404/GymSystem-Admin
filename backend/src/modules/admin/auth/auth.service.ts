@@ -6,50 +6,65 @@ import { prisma } from "../../../lib/prisma";
 
 export const login = async (username: string, password: string) => {
 	const user = await prisma.users.findFirst({
-		where: {
-		  username,
-		  role: "ADMIN",
-		},
-		select: {
-		  id: true,
-		  username: true,
-		  email: true,
-		  contact: true,
-		  role: true,
-		  hash_pass: true,
-		},
+	  where: {
+		 username,
+		 role: "ADMIN",
+	  },
+	  select: {
+		 id: true,
+		 username: true,
+		 email: true,
+		 role: true,
+		 hash_pass: true,
+	  },
 	});
-
+ 
 	if (!user) throw new Error("User not found");
-
-	if (user.role !== "ADMIN") {
-		throw new Error("Not authorized");
-	}
-
+ 
 	const isValid = await comparePassword(password, user.hash_pass);
-
+ 
 	if (!isValid) {
-		throw new Error("Invalid password");
+	  throw new Error("Invalid password");
 	}
-
+ 
 	const token = signToken({
-		id: user.id,
-		role: user.role,
+	  id: user.id,
+	  role: user.role,
 	});
-
+ 
 	return {
-		token,
-		user: {
-			id: user.id,
-			username: user.username,
-			email: user.email,
-			contact: user.contact,
-		}
+	  token,
+	  user: {
+		 id: user.id,
+		 username: user.username,
+		 email: user.email,
+	  },
 	};
 };
 
+export const getCurrentAdminService = async (adminId: number) => {
+  const admin = await prisma.users.findUnique({
+    where: {
+      id: adminId,
+      role: "ADMIN",
+    },
+    select: {
+      id: true,
+      username: true,
+      email: true,
+      role: true,
+    },
+  });
+
+  if (!admin) {
+    throw new Error("Admin not found");
+  }
+
+  return admin;
+};
+
 export const sendResetOTP = async (email: string) => {
-	const user = await prisma.users.findUnique({
+	const user = await prisma.users.findFirst({
 		where: { email },
 	});
 
@@ -160,7 +175,7 @@ export const sendResetOTP = async (email: string) => {
 };
 
 export const verifyOTP = async (email: string, code: string) => {
-	const user = await prisma.users.findUnique({
+	const user = await prisma.users.findFirst({
 		where: { email },
 	});
 
@@ -188,7 +203,7 @@ export const verifyOTP = async (email: string, code: string) => {
 };
 
 export const resetPassword = async (email: string, newPassword: string) => {
-	const user = await prisma.users.findUnique({
+	const user = await prisma.users.findFirst({
 		where: { email },
 	});
 

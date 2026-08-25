@@ -1,22 +1,10 @@
 import { api } from "@/lib/axios";
 
-/* ---------------- LOGIN ---------------- */
-type LoginPayload = {
+export const loginApi = async (data: {
   username: string;
   password: string;
-};
-
-type LoginResponse = {
-  token: string;
-  user: {
-    id: number;
-    username: string;
-    email: string;
-  };
-};
-
-export const loginApi = async (data: LoginPayload) => {
-  const res = await api.post<LoginResponse>("/auth/login", data);
+}) => {
+  const res = await api.post("/auth/login", data);
   return res.data;
 };
 
@@ -25,24 +13,29 @@ export const sentCodeApi = async (data: { email: string }) => {
   return res.data;
 };
 
-/* ---------------- VERIFY OTP ---------------- */
-type VerifyOTPPayload = {
+export const verifyOtpApi = async (data: {
   email: string;
   code: string;
-};
-
-export const verifyOtpApi = async (data: VerifyOTPPayload) => {
+}) => {
   const res = await api.post("/auth/verify-otp", data);
   return res.data;
 };
 
-/* ---------------- RESET PASSWORD ---------------- */
-type ResetPasswordPayload = {
+export const resetPasswordApi = async (data: {
   email: string;
   newPassword: string;
+}) => {
+  const res = await api.post("/auth/reset-password", data);
+  return res.data;
 };
 
-export const resetPasswordApi = async (data: ResetPasswordPayload) => {
-  const res = await api.post("/auth/reset-password", data);
+export const getCurrentAdminApi = async () => {
+  const res = await api.get("/auth/me");
+  return res.data;
+};
+
+export const logoutApi = async () => {
+  const res = await api.post("/auth/logout");
+  console.log(res);
   return res.data;
 };

@@ -1,14 +1,22 @@
+import { useState } from "react";
+import {
+  Backpack,
+  Dumbbell,
+  Pencil,
+  Salad,
+  Sparkles,
+  Trash2,
+  Zap,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Dumbbell, Salad, Backpack, Sparkles, Zap, Pencil, Trash2 } from "lucide-react";
-import { useState } from "react";
-import { RewardModal } from "./RewardModal";
-import type { Rewards } from "../types/RewardsType";
 import { ConfirmationDialog } from "../../../components/shared/ConfirmationDialog";
 import { EmptyReward } from "./EmptyReward";
-import { toast } from "sonner";
+import { RewardModal } from "./RewardModal";
+import type { Rewards } from "../types/RewardsType";
 import { useDeleteReward } from "../hook/useRewards";
+import { toast } from "sonner";
 
 const iconMap = {
   Fitness: Dumbbell,
@@ -17,86 +25,78 @@ const iconMap = {
   Special: Sparkles,
 };
 
-const iconBg: Record<string, string> = {
-  Fitness: "bg-emerald-500 text-white",
-  Nutrition: "bg-green-500 text-white",
-  Loyalty: "bg-indigo-500 text-white",
-  Special: "bg-purple-500 text-white",
-};
+const iconBg = "bg-[#963348] text-white";
 
-const catColors: Record<string, string> = {
-  Fitness: "bg-emerald-100 text-emerald-700 hover:bg-emerald-100",
-  Nutrition: "bg-green-100 text-green-700 hover:bg-green-100",
-  Loyalty: "bg-indigo-100 text-indigo-700 hover:bg-indigo-100",
-  Special: "bg-purple-100 text-purple-700 hover:bg-purple-100",
-};
+const categoryStyle =
+  "bg-[#963348]/10 text-[#963348] hover:bg-[#963348]/10";
 
 export function RewardsList({ rewards }: { rewards: Rewards[] }) {
   const { mutate: deleteReward, isPending } = useDeleteReward();
 
   const [open, setOpen] = useState<"Edit" | "Delete" | null>(null);
-  const [selectedReward, setSelected] = useState<Rewards | undefined>(undefined);
+  const [selectedReward, setSelectedReward] = useState<Rewards | undefined>();
 
   const handleEdit = (reward: Rewards) => {
-    setSelected(reward);
+    setSelectedReward(reward);
     setOpen("Edit");
   };
 
   const handleDelete = (reward: Rewards) => {
-    setSelected(reward);
+    setSelectedReward(reward);
     setOpen("Delete");
+  };
+
+  const handleClose = () => {
+    setOpen(null);
+    setSelectedReward(undefined);
   };
 
   return (
     <>
-      <div className="lg:col-span-2 space-y-3">
-
+      <div className="space-y-3 lg:col-span-2">
         {rewards.length > 0 ? (
-          rewards.map((r) => {
-            const Icon = iconMap[r.category as keyof typeof iconMap] ?? Zap;
+          rewards.map((reward) => {
+            const Icon =
+              iconMap[reward.category as keyof typeof iconMap] ?? Zap;
 
             return (
               <Card
-                key={r.id}
-                className="rounded-2xl shadow-sm hover:shadow-md transition-shadow"
+                key={reward.id}
+                className="rounded-2xl shadow-sm transition-shadow hover:shadow-md"
               >
-                <CardContent className="p-5 flex gap-4">
-                  {/* ICON */}
+                <CardContent className="flex gap-4 p-5">
                   <div
-                    className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${
-                      iconBg[r.category]
-                    }`}
+                    className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${iconBg}`}
                   >
                     <Icon className="h-5 w-5" />
                   </div>
 
-                  {/* CONTENT */}
-                  <div className="flex-1 min-w-0">
+                  <div className="min-w-0 flex-1">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <h4 className="font-medium text-slate-800 dark:text-slate-100 truncate">
-                          {r.name}
+                        <h4 className="truncate font-medium text-slate-800 dark:text-slate-100">
+                          {reward.name}
                         </h4>
-                        <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
-                          {r.description}
+
+                        <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
+                          {reward.description}
                         </p>
                       </div>
 
-                      <Badge className={`shrink-0 ${catColors[r.category]}`}>
-                        {r.category}
+                      <Badge className={`shrink-0 ${categoryStyle}`}>
+                        {reward.category}
                       </Badge>
                     </div>
 
-                    {/* FOOTER */}
-                    <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+                    <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-3 dark:border-slate-800">
                       <div className="flex items-center gap-4">
-                        <span className="text-sm font-semibold text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                        <span className="flex items-center gap-1 text-sm font-semibold text-amber-600 dark:text-amber-400">
                           <Zap size={13} />
-                          {r.points_required} pts
+                          {reward.points_required} pts
                         </span>
 
                         <span className="text-xs text-muted-foreground">
-                          {r.total_claim} claimed
+                          {reward.total_claim} claimed
                         </span>
                       </div>
 
@@ -104,19 +104,25 @@ export function RewardsList({ rewards }: { rewards: Rewards[] }) {
                         <Button
                           size="icon"
                           variant="ghost"
-                          className="h-8 w-8 hover:bg-emerald-50 dark:hover:bg-emerald-900/30"
-                          onClick={() => handleEdit(r)}
+                          className="h-8 w-8 hover:bg-[#963348]/10 dark:hover:bg-[#963348]/20"
+                          onClick={() => handleEdit(reward)}
                         >
-                          <Pencil size={15} className="text-emerald-600 dark:text-emerald-400" />
+                          <Pencil
+                            size={15}
+                            className="text-[#963348] dark:text-[#C45A6D]"
+                          />
                         </Button>
 
                         <Button
                           size="icon"
                           variant="ghost"
                           className="h-8 w-8 hover:bg-red-50 dark:hover:bg-red-900/30"
-                          onClick={() => handleDelete(r)}
+                          onClick={() => handleDelete(reward)}
                         >
-                          <Trash2 size={15} className="text-red-500 dark:text-red-400" />
+                          <Trash2
+                            size={15}
+                            className="text-red-500 dark:text-red-400"
+                          />
                         </Button>
                       </div>
                     </div>
@@ -126,29 +132,31 @@ export function RewardsList({ rewards }: { rewards: Rewards[] }) {
             );
           })
         ) : (
-            <div className="flex min-h-[400px] items-center justify-center">
-              <EmptyReward />
-            </div>
+          <div className="flex min-h-[400px] items-center justify-center">
+            <EmptyReward />
+          </div>
         )}
       </div>
 
       <RewardModal
         reward={selectedReward}
         open={open === "Edit"}
-        onClose={() => setOpen(null)}
+        onClose={handleClose}
       />
 
       <ConfirmationDialog
         open={open === "Delete"}
         name={selectedReward?.name}
-        onClose={() => setOpen(null)}
+        onClose={handleClose}
         type="Reward"
         isPending={isPending}
         onConfirm={() => {
-          deleteReward(selectedReward!.id, {
+          if (!selectedReward) return;
+
+          deleteReward(selectedReward.id, {
             onSuccess: () => {
-              toast.success(`Reward deleted successfully!`);
-              setOpen(null);
+              toast.success("Reward deleted successfully!");
+              handleClose();
             },
           });
         }}

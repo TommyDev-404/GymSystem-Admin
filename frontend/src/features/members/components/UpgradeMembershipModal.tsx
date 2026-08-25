@@ -1,6 +1,6 @@
 import { toast } from "sonner";
 import { useEffect, useMemo } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import {
   Dialog,
   DialogContent,
@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { usePlans } from "@/features/settings/sections/membership_plans/hook/usePlan";
 import type { Member, MemberPlan } from "../types/member";
 import { useUpgradeMembership } from "../hooks/useMember";
+import { theme } from "@/utils/theme";
 
 interface UpgradeMembershipModalProps {
   open: boolean;
@@ -27,7 +28,7 @@ interface UpgradeMembershipModalProps {
 
 interface ChangePlanForm {
   plan_id?: number;
-  payment_method: "Cash" | "GCash";
+  payment_method: "Cash" | "GCash" | "Bank";
 }
 
 export function UpgradeMembershipModal({
@@ -35,10 +36,8 @@ export function UpgradeMembershipModal({
   setOpen,
   member,
 }: UpgradeMembershipModalProps) {
-
   const { data: plans = [], isLoading: plansLoading } = usePlans();
   const { mutate: upgradeMembership, isPending } = useUpgradeMembership();
-
 
   const { control, handleSubmit, watch, reset } = useForm<ChangePlanForm>({
     defaultValues: {
@@ -48,24 +47,30 @@ export function UpgradeMembershipModal({
   });
 
   useEffect(() => {
-    if (open) {
-      reset({
-        plan_id: undefined,
-        payment_method: "Cash",
-      });
-    }
+    if (!open) return;
+
+    reset({
+      plan_id: undefined,
+      payment_method: "Cash",
+    });
   }, [open, member?.id, reset]);
 
   const selectedPlanId = watch("plan_id");
 
   const currentPlan = useMemo(() => {
     if (!member?.plan_id) return undefined;
-    return plans.find((plan: MemberPlan) => plan.id === Number(member.plan_id));
+
+    return plans.find(
+      (plan: MemberPlan) => plan.id === Number(member.plan_id)
+    );
   }, [plans, member?.plan_id]);
 
   const selectedPlan = useMemo(() => {
     if (!selectedPlanId) return undefined;
-    return plans.find((plan: MemberPlan) => plan.id === Number(selectedPlanId));
+
+    return plans.find(
+      (plan: MemberPlan) => plan.id === Number(selectedPlanId)
+    );
   }, [plans, selectedPlanId]);
 
   const currentPrice = Number(currentPlan?.price ?? 0);
@@ -73,9 +78,13 @@ export function UpgradeMembershipModal({
   const additionalAmount = Math.max(newPrice - currentPrice, 0);
   const isUpgrade = !!selectedPlan && newPrice > currentPrice;
 
-  const availablePlans = useMemo(() => {
-    return plans.filter((plan: MemberPlan) => Number(plan.price) > currentPrice);
-  }, [plans, currentPrice]);
+  const availablePlans = useMemo(
+    () =>
+      plans.filter(
+        (plan: MemberPlan) => Number(plan.price) > currentPrice
+      ),
+    [plans, currentPrice]
+  );
 
   const onSubmit = (data: ChangePlanForm) => {
     if (!member) {
@@ -119,23 +128,11 @@ export function UpgradeMembershipModal({
         },
       }
     );
-    
-
-    console.log("Change membership:", {
-      member_id: member.id,
-      membership_id: member.membership_id,
-      current_plan_id: currentPlan.id,
-      new_plan_id: selectedPlan.id,
-      current_price: currentPrice,
-      new_price: newPrice,
-      additional_amount: additionalAmount,
-      payment_method: data.payment_method,
-    });
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-md rounded-2xl bg-white dark:bg-stone-900 border-stone-200 dark:border-stone-700">
+      <DialogContent className="sm:max-w-md rounded-2xl bg-white border-stone-200 dark:bg-stone-900 dark:border-stone-700">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold text-slate-800 dark:text-slate-100">
             Upgrade Membership Plan
@@ -149,15 +146,14 @@ export function UpgradeMembershipModal({
         ) : (
           <form
             onSubmit={handleSubmit(onSubmit)}
-            className="flex flex-col gap-5 mt-3"
+            className="mt-3 flex flex-col gap-5"
           >
-            {/*  CURRENT PLAN */}
-            <div className="rounded-xl bg-slate-50 dark:bg-stone-800 p-4">
+            <div className="rounded-xl bg-slate-50 p-4 dark:bg-stone-800">
               <p className="text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">
                 Current Plan
               </p>
 
-              <div className="flex items-center justify-between mt-2">
+              <div className="mt-2 flex items-center justify-between">
                 <div>
                   <p className="font-semibold text-slate-800 dark:text-slate-100">
                     {currentPlan?.plan_name ?? "No plan found"}
@@ -176,28 +172,26 @@ export function UpgradeMembershipModal({
               </div>
             </div>
 
-            {/* AVAILABLE PLANS */}
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-slate-700 dark:text-slate-200">
                 Available Plans
               </label>
 
-              <p className="text-xs text-slate-500 dark:text-slate-400"> 
-               Only membership plans with a higher price than the current plan are shown. 
-               </p>
-              
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Only membership plans with a higher price than the current
+                plan are shown.
+              </p>
+
               <Controller
                 control={control}
                 name="plan_id"
                 render={({ field }) => (
                   <Select
                     value={field.value ? String(field.value) : ""}
-                    onValueChange={(value) => {
-                      field.onChange(Number(value));
-                    }}
+                    onValueChange={(value) => field.onChange(Number(value))}
                     disabled={plansLoading || availablePlans.length === 0}
                   >
-                    <SelectTrigger className="w-full py-5.5 bg-white dark:bg-stone-800 border-slate-200 dark:border-stone-700 text-slate-700 dark:text-slate-200">
+                    <SelectTrigger className="w-full bg-white py-5.5 text-slate-700 border-slate-200 dark:bg-stone-800 dark:border-stone-700 dark:text-slate-200">
                       <SelectValue
                         placeholder={
                           plansLoading
@@ -211,13 +205,16 @@ export function UpgradeMembershipModal({
 
                     <SelectContent
                       position="popper"
-                      className="z-[100] bg-white dark:bg-stone-900 border-slate-200 dark:border-stone-700"
+                      className="z-[100] bg-white border-slate-200 dark:bg-stone-900 dark:border-stone-700"
                     >
-                      {availablePlans.map((p: MemberPlan) => (
-                        <SelectItem key={p.id} value={String(p.id)}>
-                          {p.plan_name} ({p.duration}{" "}
-                          {p.duration_type.toLowerCase()}) — ₱
-                          {Number(p.price).toLocaleString("en-PH", {
+                      {availablePlans.map((plan: MemberPlan) => (
+                        <SelectItem
+                          key={plan.id}
+                          value={String(plan.id)}
+                        >
+                          {plan.plan_name} ({plan.duration}{" "}
+                          {plan.duration_type.toLowerCase()}) — ₱
+                          {Number(plan.price).toLocaleString("en-PH", {
                             minimumFractionDigits: 2,
                           })}
                         </SelectItem>
@@ -228,10 +225,8 @@ export function UpgradeMembershipModal({
               />
             </div>
 
-            {/* PAYMENT SUMMARY */}
             {selectedPlan && isUpgrade && (
-              <div className="rounded-xl border border-emerald-100 dark:border-emerald-900/40 bg-emerald-50 dark:bg-emerald-950/20 p-4 space-y-3">
-                {/* CURRENT PAYMENT */}
+              <div className="space-y-3 rounded-xl border border-emerald-100 bg-emerald-50 p-4 dark:border-emerald-900/40 dark:bg-emerald-950/20">
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-500 dark:text-slate-400">
                     Current payment
@@ -244,7 +239,6 @@ export function UpgradeMembershipModal({
                   </span>
                 </div>
 
-                {/* NEW PLAN */}
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-500 dark:text-slate-400">
                     New plan
@@ -257,8 +251,7 @@ export function UpgradeMembershipModal({
                   </span>
                 </div>
 
-                {/* ADDITIONAL AMOUNT */}
-                <div className="border-t border-emerald-200 dark:border-emerald-900/50 pt-3 flex justify-between items-center">
+                <div className="flex items-center justify-between border-t border-emerald-200 pt-3 dark:border-emerald-900/50">
                   <span className="font-semibold text-slate-700 dark:text-slate-200">
                     Additional Amount
                   </span>
@@ -272,7 +265,6 @@ export function UpgradeMembershipModal({
               </div>
             )}
 
-            {/* PAYMENT METHOD */}
             {selectedPlan && isUpgrade && (
               <div className="space-y-1.5">
                 <label className="text-sm font-medium text-slate-700 dark:text-slate-200">
@@ -287,13 +279,13 @@ export function UpgradeMembershipModal({
                       value={field.value}
                       onValueChange={field.onChange}
                     >
-                      <SelectTrigger className="w-full py-5.5 bg-white dark:bg-stone-800 border-slate-200 dark:border-stone-700 text-slate-700 dark:text-slate-200">
+                      <SelectTrigger className="w-full bg-white py-5.5 text-slate-700 border-slate-200 dark:bg-stone-800 dark:border-stone-700 dark:text-slate-200">
                         <SelectValue placeholder="Select payment method" />
                       </SelectTrigger>
 
                       <SelectContent
                         position="popper"
-                        className="z-[100] bg-white dark:bg-stone-900 border-slate-200 dark:border-stone-700"
+                        className="z-[100] bg-white border-slate-200 dark:bg-stone-900 dark:border-stone-700"
                       >
                         <SelectItem value="Cash">Cash</SelectItem>
                         <SelectItem value="GCash">GCash</SelectItem>
@@ -305,12 +297,11 @@ export function UpgradeMembershipModal({
               </div>
             )}
 
-            {/* ACTIONS */}
-            <div className="flex gap-3 mt-2">
+            <div className="mt-2 flex gap-3">
               <Button
                 type="button"
                 variant="outline"
-                className="flex-1 h-11 border-slate-200 dark:border-stone-700 dark:text-slate-200 dark:hover:bg-stone-800"
+                className="h-11 flex-1 border-slate-200 dark:border-stone-700 dark:text-slate-200 dark:hover:bg-stone-800"
                 onClick={() => setOpen(false)}
               >
                 Cancel
@@ -318,10 +309,12 @@ export function UpgradeMembershipModal({
 
               <Button
                 type="submit"
-                className="flex-1 h-11 bg-emerald-500 hover:bg-emerald-600 text-white"
-                disabled={!isUpgrade || isPending }
+                className={`h-11 flex-1 ${theme.gradient} text-white`}
+                disabled={!isUpgrade || isPending}
               >
-                Confirm Payment & Change Plan
+                {isPending
+                  ? "Processing..."
+                  : "Confirm Payment & Change Plan"}
               </Button>
             </div>
           </form>

@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { RootLayout } from "./layout/RootLayout";
-
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { Login } from "@/features/auth/page/LoginPage";
 import { ForgotPassword } from "@/features/auth/page/ForgotPasswordPage";
 import { DashboardPage } from "@/features/dashboard/page/DashboardPage";
@@ -15,12 +15,13 @@ import { TutorialsPage } from "./features/tutorial/screen/TutorialPage";
 
 export default function App() {
   return (
-      <BrowserRouter>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/change-password" element={<ChangePassword />} />
+    <BrowserRouter>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/change-password" element={<ChangePassword />} />
 
+        <Route element={<ProtectedRoute />}>
           <Route element={<RootLayout />}>
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/members" element={<MembersPage />} />
@@ -31,7 +32,8 @@ export default function App() {
             <Route path="/notifications" element={<NotificationsPage />} />
             <Route path="/settings" element={<SettingsPage />} />
           </Route>
-        </Routes>
-      </BrowserRouter>
+        </Route>
+      </Routes>
+    </BrowserRouter>
   );
 }
