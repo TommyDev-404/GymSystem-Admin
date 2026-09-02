@@ -57,7 +57,12 @@ export function AddPlanModal({ open, onClose }: Props) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={closeModal}>
+    <Dialog
+      open={open}
+      onOpenChange={(value) => {
+        if (!value) closeModal();
+      }}
+    >
       <DialogContent className="rounded-2xl border-[#E8C7CC] bg-white sm:max-w-md dark:border-stone-700 dark:bg-stone-900">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold text-slate-800 dark:text-slate-100">

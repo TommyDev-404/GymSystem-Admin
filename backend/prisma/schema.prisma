@@ -25,7 +25,8 @@ model attendance {
   member_id        Int
   session_id       String             @db.VarChar(36)
   check_in_time    DateTime           @default(now()) @db.DateTime(0)
-  status           attendance_status? @default(PRESENT)
+  status           attendance_status? @default(CHECK_IN)
+  checkout_time    DateTime?          @db.DateTime(0)
   members          members            @relation(fields: [member_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_member")
   checkin_sessions checkin_sessions   @relation(fields: [session_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_session")
 
@@ -220,8 +221,8 @@ model rewards {
   description        String               @db.Text
   points_required    Int
   category           String               @db.VarChar(255)
-  createdAt          DateTime?            @default(now()) @db.Timestamp(0)
-  updatedAt          DateTime?            @default(now()) @db.Timestamp(0)
+  created_at         DateTime?            @default(now()) @db.Timestamp(0)
+  updated_at         DateTime?            @default(now()) @db.Timestamp(0)
   reward_redemptions reward_redemptions[]
 }
 
@@ -240,17 +241,17 @@ model tutorials {
 }
 
 model users {
-  id        Int         @id @default(autoincrement())
-  username  String      @unique(map: "username") @db.VarChar(255)
-  email     String?     @db.VarChar(255)
-  password  String      @db.VarChar(255)
-  hash_pass String      @db.Text
-  profile   String?     @db.VarChar(255)
-  role      users_role  @default(MEMBER)
-  createdAt DateTime?   @default(now()) @db.Timestamp(0)
-  updatedAt DateTime?   @default(now()) @db.Timestamp(0)
-  members   members?
-  otp_codes otp_codes[]
+  id         Int         @id @default(autoincrement())
+  username   String      @unique(map: "username") @db.VarChar(255)
+  email      String?     @db.VarChar(255)
+  password   String      @db.VarChar(255)
+  hash_pass  String      @db.Text
+  profile    String?     @db.VarChar(255)
+  role       users_role  @default(MEMBER)
+  created_at DateTime?   @default(now()) @db.Timestamp(0)
+  updated_at DateTime?   @default(now()) @db.Timestamp(0)
+  members    members?
+  otp_codes  otp_codes[]
 }
 
 model member_memberships {
@@ -343,10 +344,6 @@ enum otp_codes_purpose {
   VERIFY_EMAIL
 }
 
-enum attendance_status {
-  PRESENT
-}
-
 enum membership_plans_duration_type {
   Week
   Month
@@ -431,6 +428,11 @@ enum notifications_category {
   ATTENDANCE
 }
 
+enum attendance_status {
+  CHECK_IN
+  CHECK_OUT
+}
+
 enum notifications_type {
   MEMBERSHIP_EXPIRED
   MEMBERSHIP_EXPIRING
@@ -443,4 +445,6 @@ enum notifications_type {
   REWARD_CLAIMED
   ATTENDANCE_POINTS
   REWARD_CANCELLED
+  MEMBER_CHECK_IN
+  MEMBER_CHECK_OUT
 }

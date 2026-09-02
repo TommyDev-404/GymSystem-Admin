@@ -74,7 +74,7 @@ export const getSummaryDataService = async () => {
       // Today's attendance
       const currentlyPresent = await tx.attendance.count({
          where: {
-            status: "PRESENT",
+            status: "CHECK_IN",
             check_in_time: {
                gte: startOfToday,
                lte: endOfToday
@@ -85,7 +85,7 @@ export const getSummaryDataService = async () => {
       // Yesterday attendance
       const yesterdayPresent = await tx.attendance.count({
          where: {
-            status: "PRESENT",
+            status: "CHECK_IN",
             check_in_time: {
                gte: startOfYesterday,
                lte: endOfYesterday
@@ -101,7 +101,7 @@ export const getSummaryDataService = async () => {
       // Attendance by gender (all time)
       const totalMalePresent = await tx.attendance.count({
          where: {
-            status: "PRESENT",
+            status: "CHECK_IN",
             members: {
                gender: "Male"
             },
@@ -114,7 +114,7 @@ export const getSummaryDataService = async () => {
 
       const totalFemalePresent = await tx.attendance.count({
          where: {
-            status: "PRESENT",
+            status: "CHECK_IN",
             members: {
                gender: "Female"
             },

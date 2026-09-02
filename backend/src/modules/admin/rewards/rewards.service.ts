@@ -19,7 +19,7 @@ export const getAllRewardsService = async () => {
 		},
 
 		orderBy: {
-			createdAt: "desc",
+			created_at: "desc",
 		},
 	});
 

@@ -39,43 +39,50 @@ export const getMemberRedeemedRewardsController = async (req: Request, res: Resp
 };
 
 export const redeemRewardController = async (req: Request, res: Response) => {
-	try {
-		const member_id = Number(req.params.member_id);
-		const reward_id = Number(req.params.reward_id);
+   try {
+      const member_id = Number(req.params.member_id);
+      const reward_id = Number(req.params.reward_id);
 
-		if(!member_id || !reward_id){
-			return res.status(400).json({
-				success:false,
-				message:"Member ID and Reward ID are required"
-			});
-		}
+      if (!member_id || !reward_id) {
+         return res.status(400).json({
+            success: false,
+            message: "Member ID and Reward ID are required",
+         });
+      }
 
-		const result = await service.redeemRewardService(member_id, reward_id);
+      const result = await service.redeemRewardService(
+         member_id,
+         reward_id
+      );
 
-		return res.status(201).json(result);
-	} catch(error:any){
-		console.error(error);
+      return res.status(result.success ? 201 : 400).json(result);
+   } catch (error: any) {
+      console.error(error);
 
-		return res.status(400).json({
-			success:false,
-			message:error.message || "Failed to redeem reward"
-		});
-	}
+      return res.status(500).json({
+         success: false,
+         message: error.message || "Internal server error",
+      });
+   }
 };
 
 export const cancelRedeemedRewardController = async (req: Request, res: Response) => {
-	try {
-		const redemption_id = Number(req.params.redemption_id);
-		const member_id = Number(req.params.member_id);
+   try {
+      const redemption_id = Number(req.params.redemption_id);
+      const member_id = Number(req.params.member_id);
 
-		const result = await service.cancelRedeemedRewardService(redemption_id, member_id);
+      const result = await service.cancelRedeemedRewardService(
+         redemption_id,
+         member_id
+      );
 
-		return res.status(200).json(result);
-	} catch (error: any) {
-		console.error(error);
+      return res.status(result.success ? 200 : 400).json(result);
+   } catch (error) {
+      console.error(error);
 
-		return res.status(400).json({
-			message: error.message,
-		});
-	}
+      return res.status(500).json({
+         success: false,
+         message: "Internal server error",
+      });
+   }
 };

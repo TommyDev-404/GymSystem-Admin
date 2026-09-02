@@ -24,7 +24,7 @@ export const checkInController = async (req: Request, res: Response) => {
     const { sessionId } = req.body;
     const result = await service.checkInService(memberId, sessionId);
     
-    return res.status(200).json(result);
+    return res.status(result ? 200 : 400).json(result);
   } catch (error: any) {
     console.log(error);
     

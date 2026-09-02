@@ -474,22 +474,69 @@ export const createMemberService = async (data: CreateMemberDTO) => {
 	// Email
 	await sendMail({
 		to: result.email,
-		subject:"Your Gym Activation Code",
-		html:`
-			<div style="font-family:Arial,sans-serif;">
-				<h2>Hello ${result.fullname},</h2>
-
-				<p>Welcome to the gym system!</p>
-
-				<p>Your activation code is:</p>
-
-				<h1 style="letter-spacing:4px;color:#16a34a;">
-					${activationCode}
-				</h1>
-
-				<p>This code will expire in 24 hours.</p>
+		subject: "Your Gym Activation Code",
+		html: `
+			<div style="margin:0;padding:40px 16px;background-color:#f5f6f8;font-family:Arial,Helvetica,sans-serif;color:#17181a;">
+				<div style="max-width:560px;margin:0 auto;background:#ffffff;border:1px solid #e5e7eb;border-radius:16px;overflow:hidden;">
+	
+					<div style="background:#8B1E2D;padding:28px 32px;text-align:center;">
+						<h1 style="margin:0;color:#ffffff;font-size:24px;font-weight:700;">
+							Gym Membership
+						</h1>
+						<p style="margin:6px 0 0;color:#F9DFE3;font-size:13px;">
+							Account Activation
+						</p>
+					</div>
+	
+					<div style="padding:36px 32px;">
+						<p style="margin:0 0 8px;color:#4B5563;font-size:15px;">
+							Hello <strong style="color:#17181A;">${result.fullname}</strong>,
+						</p>
+	
+						<h2 style="margin:0 0 16px;color:#17181A;font-size:25px;">
+							Welcome to the gym!
+						</h2>
+	
+						<p style="margin:0 0 24px;color:#4B5563;font-size:15px;line-height:1.7;">
+							Your membership account has been created successfully. Use the activation code below to activate your account and get started.
+						</p>
+	
+						<div style="margin-bottom:24px;padding:24px;background:#FAF6F7;border:1px solid #E8C7CC;border-radius:12px;text-align:center;">
+							<p style="margin:0 0 10px;color:#6B7280;font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;">
+								Activation Code
+							</p>
+	
+							<div style="color:#8B1E2D;font-size:32px;font-weight:700;letter-spacing:7px;">
+								${activationCode}
+							</div>
+						</div>
+	
+						<div style="margin-bottom:24px;padding:14px 16px;background:#F5F6F8;border-radius:10px;">
+							<p style="margin:0;color:#6B7280;font-size:13px;line-height:1.6;">
+								<strong style="color:#4B5563;">Important:</strong>
+								This activation code will expire in <strong style="color:#17181A;">24 hours</strong>.
+							</p>
+						</div>
+	
+						<p style="margin:0;color:#4B5563;font-size:14px;line-height:1.6;">
+							If you did not expect to receive this email, you can safely ignore it.
+						</p>
+	
+						<p style="margin:28px 0 0;color:#4B5563;font-size:14px;line-height:1.6;">
+							Stay strong,<br>
+							<strong style="color:#8B1E2D;">The Gym Team</strong>
+						</p>
+					</div>
+	
+					<div style="padding:20px 32px;background:#FAFAFA;border-top:1px solid #E5E7EB;text-align:center;">
+						<p style="margin:0;color:#9CA3AF;font-size:12px;">
+							This is an automated message. Please do not reply to this email.
+						</p>
+					</div>
+	
+				</div>
 			</div>
-		`
+		`,
 	});
 
 	return {

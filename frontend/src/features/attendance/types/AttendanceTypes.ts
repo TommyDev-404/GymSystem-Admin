@@ -4,11 +4,13 @@ export type QrResponse = {
 }
  
 export type Attendance = {
+   attendance_id: number,
    name: string;
    gender: "Male" | "Female";
    status: string;
    plan: string;
-   checkin_time: string
+   checkin_time: string;
+   checkout_time: string | null;
 };
 
 export type Filters = {

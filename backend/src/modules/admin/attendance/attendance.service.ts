@@ -51,7 +51,9 @@ export const getAttendanceService = async (filters: {
       },
     },
     select: {
+      id: true,
       check_in_time: true,
+      checkout_time: true,
       status: true,
       members: {
         select: {
@@ -75,13 +77,78 @@ export const getAttendanceService = async (filters: {
   });
 
   const newResult = result.map((r) => ({
+    attendance_id: r.id,
     name: r.members.fullname,
     gender: r.members.gender,
     status: r.status,
     plan: r.members.member_memberships[0].membership_plans.plan_name,
     checkin_time: r.check_in_time,
+    checkout_time: r.checkout_time,
   }));
   
   return newResult;
 
+};
+
+export const markCheckoutService = async (attendance_id: number) => {
+  const formatPhilippineTime = (date: Date) => {
+    return new Intl.DateTimeFormat("en-PH", {
+      timeZone: "Asia/Manila",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true
+    }).format(date);
+  };
+
+  const checkoutDateTime = new Date();
+
+  return await prisma.$transaction(async (tx) => {
+    const res = await tx.attendance.update({
+      where: {
+        id: attendance_id
+      },
+      data: {
+        status: "CHECK_OUT",
+        checkout_time: checkoutDateTime
+      }
+    });
+
+    if (!res.checkout_time) {
+      throw new Error("Checkout time was not recorded.");
+    }
+
+    const member = await tx.members.findFirst({
+      where: {
+        id: res.member_id
+      },
+      select: {
+        fullname: true
+      }
+    });
+
+    await tx.activities.create({
+      data: {
+        category: "ATTENDANCE",
+        recipient_type: "ADMIN",
+        title: "Checked Out",
+        description: `${member?.fullname} checked out successfully at ${formatPhilippineTime(res.checkout_time)}.`,
+        recipient_id: res.member_id
+      }
+    });
+
+    await tx.activities.create({
+      data: {
+        category: "ATTENDANCE",
+        recipient_type: "MEMBER",
+        title: "Checked Out",
+        description: "You checked out successfully.",
+        recipient_id: res.member_id
+      }
+    });
+
+    return {
+      success: true,
+      message: "Checkout successfully."
+    };
+  });
 };

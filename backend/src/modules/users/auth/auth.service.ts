@@ -46,7 +46,7 @@ export const loginUser = async (username: string, password: string) => {
 
 	const token = jwt.sign(
 		{
-			id: user.id,
+			user_id: user.id,
 			memberId,
 			username: user.username,
 			role: user.role,
@@ -62,12 +62,8 @@ export const loginUser = async (username: string, password: string) => {
 		token,
 
 		user: {
-			id: user.id,
-			memberId,
-			username: user.username,
-			email,
-			profile: user.profile,
-			pass_last_changed: user.updatedAt,
+			user_id: user.id,
+			member_id: memberId
 		},
 	};
 };
@@ -166,7 +162,7 @@ export const completeRegistration = async (member_id: number, username: string, 
 
 	const token = jwt.sign(
 		{
-			id: result.id,
+			user_id: result.id,
 			memberId: member.id,
 			username: result.username,
 			role: result.role,
@@ -182,12 +178,8 @@ export const completeRegistration = async (member_id: number, username: string, 
 		message: "Account created successfully",
 		token,
 		user: {
-			id: result.id,
-			memberId: member.id,
-			username: result.username,
-			email: member.email,
-			profile: result.profile,
-			pass_last_changed: result.updatedAt,
+			user_id: result.id,
+			member_id: member_id
 		},
 	};
 };
@@ -308,7 +300,7 @@ export const resetPassword = async (email: string, newPassword: string) => {
 		10
 	);
 
-	const result = await prisma.$transaction(async (tx) => {
+	await prisma.$transaction(async (tx) => {
 		const user = await tx.users.update({
 			where: {
 				id: member.user_id!,
@@ -334,9 +326,6 @@ export const resetPassword = async (email: string, newPassword: string) => {
 
 	return {
 		success: true,
-		message: "Password reset successful",
-		data: {
-			updated_at: result.updatedAt,
-		},
+		message: "Password reset successful"
 	};
 };

@@ -54,7 +54,7 @@ export const markAllNotificationsAsReadService = async(member_id: number) => {
 		},
 	});
 	
-	if (!result) throw new Error("Failed to mark all read");
+	if (!result) return { status: false, message: "Failed to mark all read" };
 
 	return {
 		success: true,

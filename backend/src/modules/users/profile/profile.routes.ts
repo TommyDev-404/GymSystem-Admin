@@ -8,6 +8,8 @@ const upload = multer({
    storage: multer.memoryStorage(),
  });
  
+ 
+router.get("/info/:user_id", controller.getProfileInfoController);
 router.patch("/update-profile-info/:user_id", controller.updateProfileInfoController);
 router.patch(
   "/update-profile-image/:user_id",

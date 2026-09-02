@@ -86,7 +86,7 @@ export function RewardsLeaderboard({
         {memberProgress.length > 0 ? (
           <div className="h-full overflow-y-auto px-5 py-4">
             <div className="space-y-5">
-              {memberProgress.map((member) => {
+              {memberProgress.map((member, index) => {
                 const points = Number(member.points ?? 0);
                 const progress = Math.min(
                   (points / MAX_POINTS) * 100,
@@ -97,7 +97,7 @@ export function RewardsLeaderboard({
                   tierName !== "Starter" ? tierConfig[tierName] : null;
 
                 return (
-                  <div key={member.id} className="group">
+                  <div key={index} className="group">
                     <div className="flex items-center gap-3">
                       <Avatar className="h-9 w-9 shrink-0">
                         <AvatarFallback className="bg-[#963348] text-white text-xs font-semibold">

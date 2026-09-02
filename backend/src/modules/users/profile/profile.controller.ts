@@ -1,6 +1,22 @@
 import { Request, Response } from "express";
 import * as service from "./profile.service";
 
+export const getProfileInfoController = async (req: Request, res: Response) => {
+	try {
+		const userId = Number(req.params.user_id);
+
+		const result = await service.getProfileService(userId);
+
+		res.status(result ? 200 : 400).json(result);
+	} catch (error: any) {
+		console.log(error);
+
+		res.status(500).json({
+			message: error.message,
+		});
+	}
+};
+
 export const updateProfileInfoController = async (req: Request, res: Response) => {
 	try {
 		const userId = Number(req.params.user_id);
@@ -12,7 +28,7 @@ export const updateProfileInfoController = async (req: Request, res: Response) =
 			email,
 		});
 
-		res.status(200).json(result);
+		res.status(result ? 200 : 400).json(result);
 	} catch (error: any) {
 		console.log(error);
 
@@ -34,7 +50,7 @@ export const updateProfileImageController = async (req: Request, res: Response) 
 
 		const result = await service.updateProfileImageService(userId, req.file);
 
-		return res.status(200).json(result);
+		return res.status(result ? 200 : 400).json(result);
 	} catch (err: any) {
 		console.log(err);
 		

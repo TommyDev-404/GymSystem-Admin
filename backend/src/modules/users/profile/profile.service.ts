@@ -1,6 +1,31 @@
 import { prisma } from "../../../lib/prisma";
 import { uploadImageToSupabase } from "../../admin/tutorials/tutorials.service";
 
+
+export const getProfileService = async (userId: number) => {
+	const user = await prisma.users.findUnique({
+      where: {
+         id: userId,
+      },
+      include: {
+         members: true,
+      },
+   });
+
+   if (!user) {
+		return { success: false, message: "User not found" };
+   }
+
+   return {
+		user_id: user.id,
+		member_id: user.members?.id,
+		username: user.username,
+		email: user.members?.email ?? user.email,
+		profile: user.profile,
+		pass_last_changed: user.updated_at ?? null
+   };
+};
+
 export const updateProfileInfoService = async (
    userId: number,
    data: {
@@ -18,7 +43,7 @@ export const updateProfileInfoService = async (
 	});
 
 	if (!user) {
-		throw new Error("User not found");
+		return { success: false, message: "User not found" };
 	}
 
 	const result = await prisma.$transaction(async (tx) => {
@@ -53,7 +78,7 @@ export const updateProfileInfoService = async (
 
 export const updateProfileImageService = async (userId: number, file: Express.Multer.File) => {
 	if (!file) {
-	  throw new Error("Profile image is required");
+		return { success: false, message: "Profile image is required." };
 	}
  
 	// Upload image to Supabase

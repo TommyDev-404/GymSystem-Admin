@@ -1,4 +1,5 @@
 import "dotenv/config";
+
 import { PrismaMariaDb } from "@prisma/adapter-mariadb";
 import { PrismaClient } from "../generated/prisma/client";
 
@@ -14,3 +15,18 @@ const adapter = new PrismaMariaDb({
 const prisma = new PrismaClient({ adapter });
 
 export { prisma };
+
+/*
+
+import { PrismaPg } from "@prisma/adapter-pg";
+import { PrismaClient } from "../generated/prisma/client";
+
+const adapter = new PrismaPg({
+  connectionString: process.env.SUPABASE_DB_URL!,
+});
+
+const prisma = new PrismaClient({ adapter });
+
+export { prisma };
+
+*/

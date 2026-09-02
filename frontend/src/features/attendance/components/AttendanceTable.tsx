@@ -12,6 +12,10 @@ import {
 import type { Attendance } from "../types/AttendanceTypes";
 import { getInitials } from "@/utils/initials";
 import { TableLoader } from "@/components/shared/TableLoader";
+import { LoaderCircle, LogOut } from "lucide-react";
+import { useCheckoutMember } from "../hooks/useAttendance";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 
 type Props = {
 	members: Attendance[];
@@ -19,7 +23,19 @@ type Props = {
 };
 
 export function AttendanceTable({ members, isLoading }: Props) {
-	const formatPhilippineTime = (date: string) => {
+	const { mutate: checkout, isPending } = useCheckoutMember();
+
+	const handleCheckout = async (attendance_id: number) => {
+		checkout(attendance_id, {
+			onSuccess: (data) => {
+				toast.success(data.message);
+			}
+		})
+	};
+
+	const formatPhilippineTime = (date: string | null) => {
+		if (!date) return "--";
+
 		return new Intl.DateTimeFormat("en-PH", {
 			timeZone: "Asia/Manila",
 			hour: "2-digit",
@@ -38,9 +54,11 @@ export function AttendanceTable({ members, isLoading }: Props) {
 						<TableRow className="hover:bg-transparent bg-slate-50/70 dark:bg-stone-900/50">
 							<TableHead className={TH_CLASS}>Name</TableHead>
 							<TableHead className={TH_CLASS}>Gender</TableHead>
-							<TableHead className={TH_CLASS}>Check-in Time</TableHead>
 							<TableHead className={TH_CLASS}>Plan</TableHead>
+							<TableHead className={TH_CLASS}>Check-in</TableHead>
+							<TableHead className={TH_CLASS}>Check-out</TableHead>
 							<TableHead className={TH_CLASS}>Status</TableHead>
+							<TableHead className={TH_CLASS}>Action</TableHead>
 						</TableRow>
 					</TableHeader>
 
@@ -76,21 +94,46 @@ export function AttendanceTable({ members, isLoading }: Props) {
 									<TableCell className="px-5 py-4 text-slate-600">
 										{m.gender ?? "N/A"}
 									</TableCell>
-
-									<TableCell className="px-5 py-4 text-slate-600">
-										{formatPhilippineTime(m.checkin_time)}
-									</TableCell>
-
+									
 									<TableCell className="px-5 py-4">
 										<Badge className="bg-indigo-100 text-indigo-700 hover:bg-indigo-100">
 										{m.plan ?? "No Plan"}
 										</Badge>
 									</TableCell>
+									
+									<TableCell className="px-5 py-4 text-slate-600">
+										{formatPhilippineTime(m.checkin_time)}
+									</TableCell>
+									
+									<TableCell className="px-5 py-4 text-slate-600">
+										{formatPhilippineTime(m.checkout_time)}
+									</TableCell>
 
 									<TableCell className="px-5 py-4">
 										<Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100">
-										Present
+										{m.status}
 										</Badge>
+									</TableCell>
+
+									<TableCell className="px-2 py-4">
+										{m.status === "CHECK_IN" && (
+
+											<Button
+												size="icon"
+												variant="ghost"
+												className="hover:bg-[#963348]/10 dark:hover:bg-[#963348]/20"
+												onClick={() => handleCheckout(m.attendance_id)}
+											>
+												{isPending ? (
+													<LoaderCircle className="animate-spin text-red-500"/>
+												) : (
+													<LogOut
+														size={16}
+														className="text-[#963348] dark:text-[#C45A6F]"
+													/>
+												)}
+											</Button>
+										)}
 									</TableCell>
 								</TableRow>
 							))

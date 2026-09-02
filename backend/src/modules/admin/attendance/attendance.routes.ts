@@ -1,9 +1,10 @@
 import { Router } from "express";
-import { getAttendanceController} from "./attendance.controller";
+import * as controller from "./attendance.controller";
 //import { authMiddleware } from "../../middlewares/auth.middleware";
 
 const router = Router();
 
-router.get("/", getAttendanceController);
+router.get("/", controller.getAttendanceController);
+router.post("/checkout/:attendance_id", controller.markCheckoutController);
 
 export default router;

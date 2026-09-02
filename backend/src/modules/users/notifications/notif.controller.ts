@@ -37,7 +37,7 @@ export const markAllNotifAsReadController = async (req: Request, res: Response) 
 	try {
 		const result = await service.markAllNotificationsAsReadService(Number(req.params.member_id));
 
-		return res.status(200).json(result);
+		return res.status(result ? 200 : 400).json(result);
 	} catch (err: any) {
 		console.log(err);
 		return res.status(400).json({

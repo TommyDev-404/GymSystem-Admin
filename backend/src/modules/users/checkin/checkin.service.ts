@@ -53,7 +53,7 @@ export const getMemberWeeklyAttendanceService = async (memberId: number) => {
 export const checkInService = async (memberId: number, sessionId: string) => {
 
 	if (!sessionId) {
-		throw { status: 400, message: "sessionId is required" };
+		return { status: 400, message: "sessionId is required" };
 	}
 
 	const session = await prisma.checkin_sessions.findUnique({
@@ -63,11 +63,11 @@ export const checkInService = async (memberId: number, sessionId: string) => {
 	});
 
 	if (!session) {
-		throw { status: 404, message: "Invalid QR code" };
+		return { status: 404, message: "Invalid QR code" };
 	}
 
 	if (session.expires_at < new Date()) {
-		throw { status: 400, message: "QR code expired" };
+		return { status: 400, message: "QR code expired" };
 	}
 
 	const existing = await prisma.attendance.findFirst({
@@ -78,7 +78,7 @@ export const checkInService = async (memberId: number, sessionId: string) => {
 	});
 
 	if (existing) {
-		throw { status: 400, message: "Already checked in" };
+		return { status: 400, message: "Already checked in" };
 	}
 
 	const member = await prisma.members.findUnique({
@@ -92,7 +92,7 @@ export const checkInService = async (memberId: number, sessionId: string) => {
 	});
 
 	if (!member) {
-		throw {status: 404, message: "Member not found"};
+		return {status: 404, message: "Member not found"};
 	}
 
 	const result = await prisma.$transaction(async (tx) => {
@@ -101,8 +101,7 @@ export const checkInService = async (memberId: number, sessionId: string) => {
 		const attendance = await tx.attendance.create({
 			data: {
 				member_id: memberId,
-				session_id: sessionId,
-				status: "PRESENT"
+				session_id: sessionId
 			}
 		});
 
@@ -135,7 +134,7 @@ export const checkInService = async (memberId: number, sessionId: string) => {
 				category: "ATTENDANCE",
 				recipient_type: "MEMBER",
 				title: "Checked in",
-				description: "You checked in today",
+				description: "You successfully checked in",
 				recipient_id: memberId
 			}
 		});
