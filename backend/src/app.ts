@@ -25,6 +25,8 @@ import userProfileRoutes from "./modules/users/profile/profile.routes";
 import userPaymentRoutes from "./modules/users/payment-history/payment.routes";
 import userRewardRoutes from "./modules/users/reward/reward.routes";
 import userReferralRoutes from "./modules/users/referral-program/referral.routes";
+import chatbotRoutes from "./modules/users/ai/ai.route";
+
 import cookieParser from "cookie-parser";
 
 import dotenv from "dotenv";
@@ -80,6 +82,7 @@ app.use("/notifications", notificationRoutes);
 app.use("/profile", userProfileRoutes);
 app.use("/reward", userRewardRoutes);
 app.use("/referral", userReferralRoutes);
+app.use("/chat", chatbotRoutes);
 
 // ==================== Health Check ====================
 app.get("/health", (_req, res) => {
