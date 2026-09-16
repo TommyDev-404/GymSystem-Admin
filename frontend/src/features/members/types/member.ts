@@ -12,6 +12,7 @@ export interface Member {
   membership_end: Date;
   duration_type: string;
   duration: number;
+  daily_hours_limit: number;
   status?: string;
   points?: number;
 }
@@ -65,6 +66,7 @@ export type MemberPlan = {
   id: number;
   plan_name: string;
   duration: number;
+  daily_hours_limit: number;
   duration_type: string;
   price: number
 };

@@ -63,7 +63,8 @@ export const getAttendanceService = async (filters: {
             select: {
               membership_plans: {
                 select: {
-                  plan_name: true
+                  plan_name: true,
+                  daily_hours_limit: true
                 }
               }
             }
@@ -82,6 +83,7 @@ export const getAttendanceService = async (filters: {
     gender: r.members.gender,
     status: r.status,
     plan: r.members.member_memberships[0].membership_plans.plan_name,
+    daily_limit: r.members.member_memberships[0].membership_plans.daily_hours_limit,
     checkin_time: r.check_in_time,
     checkout_time: r.checkout_time,
   }));

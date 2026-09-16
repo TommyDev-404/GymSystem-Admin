@@ -145,7 +145,7 @@ export function MemberModal({ open, setOpen }: Props) {
                     Gender
                   </label>
 						
-                  <Controller
+              <Controller
 							control={control}
 							name="gender"
 							render={({ field }) => (
@@ -211,10 +211,28 @@ export function MemberModal({ open, setOpen }: Props) {
 									position="popper"
 									className="z-[100] bg-white dark:bg-stone-900 border-slate-200 dark:border-stone-700 py-2"
 								>
-									{plans.map((p: MemberPlan) => (
-										<SelectItem key={p.id} value={String(p.id)}>
-											{p.plan_name} ({p.duration} {p.duration_type.toLowerCase()}) — ₱{Number(p.price).toLocaleString("en-PH", { minimumFractionDigits: 2 })}
-										</SelectItem>
+                  {plans.map((p: MemberPlan) => (
+                    <SelectItem
+                      key={p.id}
+                      value={String(p.id)}
+                      className="py-3"
+                    >
+                      <div className="flex w-full flex-col gap-1">
+                        <span className="font-medium text-slate-800 dark:text-slate-100">
+                          {p.plan_name}
+                        </span>
+                    
+                        <span className="text-xs text-slate-500 dark:text-slate-400">
+                          {p.duration} {p.duration_type.toLowerCase()} membership
+                          {" · "}
+                          {p.daily_hours_limit} hrs/day
+                          {" · "}
+                          ₱{Number(p.price).toLocaleString("en-PH", {
+                            minimumFractionDigits: 2,
+                          })}
+                        </span>
+                      </div>
+                    </SelectItem>
 									))}
 								</SelectContent>
 							</Select>

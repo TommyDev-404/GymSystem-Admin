@@ -30,7 +30,6 @@ function calculateDuration(duration_type: string, duration: number) {
 	};
 }
 
-
 export const getMemberSummaryService = async () => {
 	const now = new Date();
 
@@ -244,6 +243,7 @@ export const getMembersService = async (filters: MemberFilters) => {
 							plan_name: true,
 							duration_type: true,
 							duration: true,
+							daily_hours_limit: true,
 							price: true
 						}
 					}
@@ -272,6 +272,7 @@ export const getMembersService = async (filters: MemberFilters) => {
 		membership_end: m.member_memberships[0].end_date,
 		duration_type: m.member_memberships[0].membership_plans.duration_type,
 		duration: m.member_memberships[0].membership_plans.duration,
+		daily_hours_limit: m.member_memberships[0].membership_plans.daily_hours_limit,
 		status: m.member_memberships[0].status
 	})) ?? [];
 	
@@ -338,7 +339,7 @@ export const createMemberService = async (data: CreateMemberDTO) => {
 				referral_code: referralCode
 			}
 		});
-
+		
 		// Create referral record
 		if(referrer){
 			await tx.referrals.create({
@@ -373,6 +374,31 @@ export const createMemberService = async (data: CreateMemberDTO) => {
 					}
 				}
 			});
+
+			await tx.notifications.create({
+				data: {
+				  recipient_id: referrer.id,
+				  recipient_type: "MEMBER",
+				  category: "REWARD",
+				  type: "REFERRAL_POINTS",
+				  title: "Referral Points Earned",
+				  description:
+					 "You earned 100 points for referring a new member to JFitness.",
+				},
+			 });
+		  
+			 // Create notification for referee
+			 await tx.notifications.create({
+				data: {
+				  recipient_id: member.id,
+				  recipient_type: "MEMBER",
+				  category: "REWARD",
+				  type: "REFERRAL_POINTS",
+				  title: "Welcome Bonus Earned",
+				  description:
+					 "You earned 50 points for joining JFitness using a referral code.",
+				},
+			 });
 		}
 
 		// Create membership record
@@ -409,6 +435,37 @@ export const createMemberService = async (data: CreateMemberDTO) => {
 			},
 		});
 
+		if (plan.duration_type === "Month") {
+			
+			// Add 100 membership points
+			await tx.members.update({
+				where: {
+					id: member.id
+				},
+				data: {
+					points: {
+						increment: 100,
+					},
+				}
+			});
+
+			// Create member notification for membership points
+			await tx.notifications.create({
+				data: {
+					recipient_id: member.id,
+					recipient_type: "MEMBER",
+					category: "REWARD",
+					type: "MEMBERSHIP_POINTS",
+					title: "Membership Points Earned",
+					description: `You earned 100 points from your ${plan.plan_name} membership payment of ₱${Number(
+						payment.amount
+					).toLocaleString("en-PH", {
+						minimumFractionDigits: 2,
+					})}.`,
+				},
+			});
+		}
+
 		// Create admin notification
 		await tx.notifications.create({
 			data: {
@@ -418,23 +475,6 @@ export const createMemberService = async (data: CreateMemberDTO) => {
 				type: "MEMBER_ADDED",
 				title: "New Member Added",
 				description: `${member.fullname} was added as a new member with a ${plan.plan_name} membership.`
-			}
-		});
- 
-		// Create member notification
-		await tx.notifications.create({
-			data: {
-				recipient_id: payment.member_id,
-				recipient_type: 'MEMBER',
-				category: "PAYMENT",
-				type: "PAYMENT_RECORDED",
-				title: "Payment Recorded",
-				description: `Your payment of ₱${Number(payment.amount).toLocaleString(
-					"en-PH",
-					{
-						minimumFractionDigits: 2,
-					}
-				)} for ${plan.plan_name} membership has been successfully recorded.`,
 			}
 		});
 		

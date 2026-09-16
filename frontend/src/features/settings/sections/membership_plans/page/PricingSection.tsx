@@ -28,12 +28,14 @@ export function PricingSection() {
   const urlAction = searchParams.get("action");
 
   const { data: plansData = [], isLoading } = usePlans();
+
   const { mutate: deletePlan, isPending: deleting } = useDeletePlan();
   const { mutate: updatePlan, isPending: updating } = useUpdatePlan();
 
   const [open, setOpen] = useState<"Add" | "Delete" | null>(
     urlAction === "add" ? "Add" : null
   );
+
   const [selectedPlan, setSelectedPlan] = useState<{
     id: number;
     name: string;
@@ -158,6 +160,7 @@ export function PricingSection() {
                     <h4 className="font-semibold text-slate-800 dark:text-slate-100">
                       {field.plan_name}
                     </h4>
+
                     <p className="text-sm text-slate-500 dark:text-slate-400">
                       Edit membership details
                     </p>
@@ -180,11 +183,12 @@ export function PricingSection() {
                   </Button>
                 </div>
 
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-4 gap-4">
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-slate-700 dark:text-slate-200">
                       Price (₱)
                     </label>
+
                     <Input
                       type="number"
                       {...register(`plans.${index}.price`, {
@@ -198,9 +202,26 @@ export function PricingSection() {
                     <label className="text-sm font-medium text-slate-700 dark:text-slate-200">
                       Duration
                     </label>
+
                     <Input
                       type="number"
                       {...register(`plans.${index}.duration`, {
+                        valueAsNumber: true,
+                      })}
+                      className="h-11 border-slate-200 bg-white dark:border-stone-700 dark:bg-stone-800"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                      Daily Hours Limit
+                    </label>
+
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.5"
+                      {...register(`plans.${index}.daily_hours_limit`, {
                         valueAsNumber: true,
                       })}
                       className="h-11 border-slate-200 bg-white dark:border-stone-700 dark:bg-stone-800"
@@ -220,7 +241,7 @@ export function PricingSection() {
                           value={field.value}
                           onValueChange={field.onChange}
                         >
-                          <SelectTrigger className="h-11 border-slate-200 bg-white text-slate-700 dark:border-stone-700 dark:bg-stone-800 dark:text-slate-200">
+                          <SelectTrigger className="h-11 px-22 py-5.5 border-slate-200 bg-white text-slate-700 dark:border-stone-700 dark:bg-stone-800 dark:text-slate-200">
                             <SelectValue />
                           </SelectTrigger>
 

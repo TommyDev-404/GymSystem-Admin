@@ -2,6 +2,7 @@ export type Plan = {
   id: number;
   plan_name: string;
   price: number;
+  daily_hours_limit: number;
   duration: number;
   duration_type: "Day" | "Week" | "Month" | "Year";
   created_at?: string;
@@ -11,6 +12,7 @@ export type Plan = {
 export type CreatePlanDTO = {
   plan_name: string;
   price: number;
+  daily_hours_limit: number;
   duration: number;
   duration_type: "Day" | "Week" | "Month" | "Year";
 };

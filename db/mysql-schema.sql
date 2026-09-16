@@ -4,6 +4,7 @@ CREATE TABLE membership_plans (
     plan_name VARCHAR(100) NOT NULL,
     price DECIMAL(10,2) NOT NULL,
     duration INT NOT NULL,
+    duration_hours_limit INT NOT NULL,
     duration_type ENUM('Week', 'Month', 'Day') NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -135,7 +136,8 @@ CREATE TABLE member_memberships (
     status ENUM(
         'Active',
         'Expired',
-        'Cancelled'
+        'Cancelled',
+        'Deactivated'
     ) DEFAULT 'Active',
 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -249,15 +251,18 @@ CREATE TABLE notifications (
         "ATTENDANCE"
     ),
     type ENUM(
+        "MEMBERSHIP_POINTS",
         "MEMBERSHIP_EXPIRED",
         "MEMBERSHIP_EXPIRING",
         "MEMBERSHIP_UPGRADE",
+        "MEMBERSHIP_DEACTIVATED",
         "PAYMENT_RECORDED",
         "MEMBER_ADDED",
         "MEMBER_INACTIVE_3_DAYS",
         "MEMBER_INACTIVE_7_DAYS",
         "MEMBER_INACTIVE_14_DAYS",
         "REWARD_CLAIMED",
+        "REFERRAL_POINTS",
         "ATTENDANCE_POINTS",
         "MEMBER_CHECK_IN",
         "MEMBER_CHECK_OUT"

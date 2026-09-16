@@ -9,6 +9,7 @@ export type Attendance = {
    gender: "Male" | "Female";
    status: string;
    plan: string;
+   daily_limit: number;
    checkin_time: string;
    checkout_time: string | null;
 };

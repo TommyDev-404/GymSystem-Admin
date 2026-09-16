@@ -38,6 +38,7 @@ export function AddPlanModal({ open, onClose }: Props) {
       price: 0,
       duration: 1,
       duration_type: "Month",
+      daily_hours_limit: 2,
     },
   });
 
@@ -83,6 +84,7 @@ export function AddPlanModal({ open, onClose }: Props) {
               <label className="text-sm font-medium text-slate-700 dark:text-slate-200">
                 Plan Name
               </label>
+
               <Input
                 placeholder="e.g. Premium Plan"
                 {...register("plan_name")}
@@ -94,8 +96,11 @@ export function AddPlanModal({ open, onClose }: Props) {
               <label className="text-sm font-medium text-slate-700 dark:text-slate-200">
                 Price (₱)
               </label>
+
               <Input
                 type="number"
+                min="0"
+                step="0.01"
                 placeholder="Enter price"
                 {...register("price", {
                   valueAsNumber: true,
@@ -109,8 +114,10 @@ export function AddPlanModal({ open, onClose }: Props) {
                 <label className="text-sm font-medium text-slate-700 dark:text-slate-200">
                   Duration
                 </label>
+
                 <Input
                   type="number"
+                  min="1"
                   placeholder="e.g. 2"
                   {...register("duration", {
                     valueAsNumber: true,
@@ -123,6 +130,7 @@ export function AddPlanModal({ open, onClose }: Props) {
                 <label className="text-sm font-medium text-slate-700 dark:text-slate-200">
                   Duration Type
                 </label>
+
                 <Controller
                   name="duration_type"
                   control={control}
@@ -134,6 +142,7 @@ export function AddPlanModal({ open, onClose }: Props) {
                       <SelectTrigger className="h-11 w-full border-slate-200 bg-white text-slate-700 focus:ring-[#8B1E2D]/20 dark:border-stone-700 dark:bg-stone-800 dark:text-slate-200">
                         <SelectValue placeholder="Select" />
                       </SelectTrigger>
+
                       <SelectContent className="border-[#E8C7CC] bg-white dark:border-stone-700 dark:bg-stone-900">
                         <SelectItem value="Day">Day</SelectItem>
                         <SelectItem value="Week">Week</SelectItem>
@@ -143,6 +152,27 @@ export function AddPlanModal({ open, onClose }: Props) {
                   )}
                 />
               </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                Daily Gym Hours Limit
+              </label>
+
+              <Input
+                type="number"
+                min="0.5"
+                step="0.5"
+                placeholder="e.g. 2"
+                {...register("daily_hours_limit", {
+                  valueAsNumber: true,
+                })}
+                className="h-11 border-slate-200 bg-white text-slate-700 focus-visible:border-[#8B1E2D] focus-visible:ring-[#8B1E2D]/20 dark:border-stone-700 dark:bg-stone-800 dark:text-slate-200"
+              />
+
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Maximum number of hours a member can use the gym per day.
+              </p>
             </div>
           </div>
 

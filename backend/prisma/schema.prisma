@@ -114,6 +114,7 @@ model membership_plans {
   plan_name          String                         @db.VarChar(100)
   price              Decimal                        @db.Decimal(10, 2)
   duration           Int
+  daily_hours_limit  Int
   duration_type      membership_plans_duration_type
   created_at         DateTime?                      @default(now()) @db.Timestamp(0)
   updated_at         DateTime?                      @default(now()) @db.Timestamp(0)
@@ -366,12 +367,6 @@ enum payments_payment_method {
   Bank_Transfer @map("Bank Transfer")
 }
 
-enum member_memberships_status {
-  Active
-  Expired
-  Cancelled
-}
-
 enum reward_redemptions_status {
   Pending
   Claimed
@@ -433,6 +428,13 @@ enum attendance_status {
   CHECK_OUT
 }
 
+enum member_memberships_status {
+  Active
+  Expired
+  Deactivated
+  Cancelled
+}
+
 enum notifications_type {
   MEMBERSHIP_EXPIRED
   MEMBERSHIP_EXPIRING
@@ -447,4 +449,7 @@ enum notifications_type {
   REWARD_CANCELLED
   MEMBER_CHECK_IN
   MEMBER_CHECK_OUT
+  MEMBERSHIP_POINTS
+  REFERRAL_POINTS
+  MEMBERSHIP_DEACTIVATED
 }

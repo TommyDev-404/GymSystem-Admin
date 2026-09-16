@@ -12,7 +12,7 @@ import {
 import type { Attendance } from "../types/AttendanceTypes";
 import { getInitials } from "@/utils/initials";
 import { TableLoader } from "@/components/shared/TableLoader";
-import { LoaderCircle, LogOut } from "lucide-react";
+import { CircleCheck, LoaderCircle } from "lucide-react";
 import { useCheckoutMember } from "../hooks/useAttendance";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -24,6 +24,20 @@ type Props = {
 
 export function AttendanceTable({ members, isLoading }: Props) {
 	const { mutate: checkout, isPending } = useCheckoutMember();
+
+	const canCheckout = (
+		checkinTime: string | null,
+		dailyLimit: number | null
+	) => {
+		if (!checkinTime || !dailyLimit) return false;
+	
+		const checkin = new Date(checkinTime);
+		const now = new Date();
+	
+		const elapsedHours = (now.getTime() - checkin.getTime()) / (1000 * 60 * 60);
+	
+		return elapsedHours >= dailyLimit;
+	};
 
 	const handleCheckout = async (attendance_id: number) => {
 		checkout(attendance_id, {
@@ -53,8 +67,8 @@ export function AttendanceTable({ members, isLoading }: Props) {
 					<TableHeader>
 						<TableRow className="hover:bg-transparent bg-slate-50/70 dark:bg-stone-900/50">
 							<TableHead className={TH_CLASS}>Name</TableHead>
-							<TableHead className={TH_CLASS}>Gender</TableHead>
 							<TableHead className={TH_CLASS}>Plan</TableHead>
+							<TableHead className={TH_CLASS}>Daily Limit</TableHead>
 							<TableHead className={TH_CLASS}>Check-in</TableHead>
 							<TableHead className={TH_CLASS}>Check-out</TableHead>
 							<TableHead className={TH_CLASS}>Status</TableHead>
@@ -68,7 +82,7 @@ export function AttendanceTable({ members, isLoading }: Props) {
 						) : members.length === 0 ? (
 							<TableRow>
 								<TableCell
-									colSpan={5}
+									colSpan={7}
 									className="text-center py-10 text-slate-400"
 								>
 									No attendance found
@@ -91,14 +105,14 @@ export function AttendanceTable({ members, isLoading }: Props) {
 										</div>
 									</TableCell>
 
-									<TableCell className="px-5 py-4 text-slate-600">
-										{m.gender ?? "N/A"}
-									</TableCell>
-									
 									<TableCell className="px-5 py-4">
 										<Badge className="bg-indigo-100 text-indigo-700 hover:bg-indigo-100">
 										{m.plan ?? "No Plan"}
 										</Badge>
+									</TableCell>
+									
+									<TableCell className="px-5 py-4 text-slate-600">
+										{m.daily_limit ?? 0} hrs
 									</TableCell>
 									
 									<TableCell className="px-5 py-4 text-slate-600">
@@ -116,23 +130,32 @@ export function AttendanceTable({ members, isLoading }: Props) {
 									</TableCell>
 
 									<TableCell className="px-2 py-4">
-										{m.status === "CHECK_IN" && (
-
+										{m.status === "CHECK_IN" && canCheckout(m.checkin_time, m.daily_limit) ? (
 											<Button
-												size="icon"
+												size="sm"
 												variant="ghost"
-												className="hover:bg-[#963348]/10 dark:hover:bg-[#963348]/20"
+												title="Mark checkout"
+												className="h-8 gap-2 rounded-lg px-3 bg-red-500 text-white hover:bg-red-600 hover:text-white"
 												onClick={() => handleCheckout(m.attendance_id)}
+												disabled={isPending}
 											>
 												{isPending ? (
-													<LoaderCircle className="animate-spin text-red-500"/>
+													<LoaderCircle className="h-4 w-4 animate-spin" />
 												) : (
-													<LogOut
+													<CircleCheck
 														size={16}
-														className="text-[#963348] dark:text-[#C45A6F]"
+														strokeWidth={1.8}
 													/>
 												)}
+
+												<span className="text-xs font-medium">
+													{isPending ? "Checking out..." : "Mark Checkout"}
+												</span>
 											</Button>
+										) : (
+											<span className="text-xs text-slate-300 dark:text-stone-600">
+												No available actions.
+											</span>
 										)}
 									</TableCell>
 								</TableRow>

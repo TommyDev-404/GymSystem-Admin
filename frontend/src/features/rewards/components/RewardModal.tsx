@@ -27,7 +27,7 @@ interface Props {
   onClose: () => void;
 }
 
-const CATEGORIES = ["Fitness", "Nutrition", "Loyalty", "Special", "Custom"];
+const CATEGORIES = ["Fitness", "Nutrition", "Loyalty", "Special", "Referral", "Membership", "Custom"];
 
 type RewardForm = Omit<Rewards, "id"> & {
   customCategory: string;
