@@ -30,7 +30,7 @@ export const sendMail = async ({ to, subject, html }: SendMailOptions) => {
       subject,
       html,
     });
-    console.log("Email sent successfully to:", to);
+    
   } catch (error) {
     console.error("Email sending failed:", error);
     throw new Error("Failed to send email");

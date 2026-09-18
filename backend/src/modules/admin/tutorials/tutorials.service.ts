@@ -71,6 +71,7 @@ export const createTutorialService = async (
   const urls = await Promise.all(
     files.map((file) => uploadImageToSupabase(file))
   );
+
   
   // 2. save to DB
   const tutorial = await prisma.tutorials.create({
@@ -87,6 +88,8 @@ export const createTutorialService = async (
       demo_images: JSON.stringify(urls),
     }
   });
+
+  console.log("TUTORIAL: ", tutorial);
 
   // Socket events
   getIO().to("members-room").emit("tutorial:new", {

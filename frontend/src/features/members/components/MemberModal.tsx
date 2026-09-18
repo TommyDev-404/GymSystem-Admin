@@ -73,8 +73,10 @@ export function MemberModal({ open, setOpen }: Props) {
         setOpen(false);
         reset();
       },
-      onError: () => {
-        toast.error("Failed to create member");
+      onError: (error: any) => {
+        toast.error(
+          error.response?.data?.message || "Failed to create member",
+        );
       },
     });
   };

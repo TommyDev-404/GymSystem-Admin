@@ -104,7 +104,7 @@ export function PricingSection() {
 
   return (
     <Card className="rounded-2xl border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-900">
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 p-6">
+      <form className="space-y-6 p-6">
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
@@ -127,6 +127,7 @@ export function PricingSection() {
             </Button>
 
             <Button
+              onClick={handleSubmit(onSubmit)}
               type="submit"
               disabled={updating}
               className="bg-[#8B1E2D] text-white hover:bg-[#6D1825]"

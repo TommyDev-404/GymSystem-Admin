@@ -37,48 +37,53 @@ export const getMemberReferralDataService = async (member_id: number) => {
 	};
 };
  
-export const getMemberReferralRecordsService = async (member_id: number) => {
-   const referrals = await prisma.referrals.findMany({
-      where:{
-         referrer_id: member_id
-      },
-
-      select:{
-         referee_points:true,
-			referred_at: true,
-			
-         members_referrals_referee_idTomembers:{
-            select:{
-               fullname:true,
-					join_date: true, 
-
-					member_memberships: {
-						select: {
-							status: true
-						}
-					},
-
-					users: {
-						select: {
-							profile: true
-						}
-					}
-            }
-         }
-      },
-
-      orderBy:{
-         referred_at:"desc"
-      }
-
-   });
-
-   return referrals.map((r)=>({
-      name: r.members_referrals_referee_idTomembers.fullname,
-		status: r.members_referrals_referee_idTomembers.member_memberships[0].status,
-		profile: r.members_referrals_referee_idTomembers.users?.profile,
-      points_earned: r.referee_points,
-      joined_date: r.members_referrals_referee_idTomembers.join_date,
-      referred_at: r.referred_at
-   }));
-};
+export const getMemberReferralRecordsService = async (
+	member_id: number,
+ ) => {
+	const referrals = await prisma.referrals.findMany({
+	  where: {
+		 referrer_id: member_id,
+	  },
+	  select: {
+		 referee_points: true,
+		 referred_at: true,
+		 members_referrals_referee_idTomembers: {
+			select: {
+			  fullname: true,
+			  join_date: true,
+			  member_memberships: {
+				 orderBy: {
+					created_at: "desc",
+				 },
+				 take: 1,
+				 select: {
+					status: true,
+				 },
+			  },
+			  users: {
+				 select: {
+					profile: true,
+				 },
+			  },
+			},
+		 },
+	  },
+	  orderBy: {
+		 referred_at: "desc",
+	  },
+	});
+ 
+	return referrals.map((r) => {
+	  const member = r.members_referrals_referee_idTomembers;
+	  const latestMembership = member.member_memberships[0];
+ 
+	  return {
+		 name: member.fullname,
+		 status: latestMembership?.status ?? "No Membership",
+		 profile: member.users?.profile,
+		 points_earned: r.referee_points,
+		 joined_date: member.join_date,
+		 referred_at: r.referred_at,
+	  };
+	});
+ };

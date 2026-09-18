@@ -276,14 +276,8 @@ export const updateRewardRedemptionStatusService = async (
 	});
 	
 	// Socket events
-	getIO()
-	.to(`member-${result.memberId}`)
-	.emit(
-		"reward:claimed",
-		{
-			memberId: result.memberId
-		}
-	);
+	getIO().to("members-room").emit("reward:claimed");
+	
 
 	return result;
 };

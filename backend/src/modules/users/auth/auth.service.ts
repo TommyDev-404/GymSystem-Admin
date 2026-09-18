@@ -13,7 +13,10 @@ export const loginUser = async (username: string, password: string) => {
 	});
 
 	if (!user) {
-		throw new Error("Invalid username or password");
+		return {
+			success: false,
+			message: "Invalid username or password"
+		};
 	}
 
 	const isMatch = await bcrypt.compare(
@@ -22,7 +25,10 @@ export const loginUser = async (username: string, password: string) => {
 	);
 
 	if (!isMatch) {
-		throw new Error("Invalid username or password");
+		return {
+			success: false,
+			message: "Invalid username or password"
+		};
 	}
 
 	let memberId: number | null = null;
@@ -33,11 +39,17 @@ export const loginUser = async (username: string, password: string) => {
 		const member = user.members;
 
 		if (!member) {
-			throw new Error("Member profile not found");
+			return {
+				success: false,
+				message: "Member profile not found"
+			};
 		}
 
 		if (!member.is_activated) {
-			throw new Error("Account not activated");
+			return {
+				success: false,
+				message: "Account not activated"
+			};
 		}
 
 		memberId = member.id;
@@ -58,6 +70,7 @@ export const loginUser = async (username: string, password: string) => {
 	);
 
 	return {
+		success: true,
 		message: "Login successful",
 		token,
 
@@ -82,8 +95,13 @@ export const verifyActivationCode = async (code: string) => {
 		},
 	});
 
+	console.log("Activation: ", activation);
+	
 	if (!activation) {
-		throw new Error("Invalid or expired activation code");
+		return {
+			success: false,
+			message: "Invalid or expired activation code"
+		};
 	}
 
 	await prisma.member_activations.update({
@@ -96,6 +114,7 @@ export const verifyActivationCode = async (code: string) => {
 	});
 
 	return {
+		success: true,
 		memberId: activation.member_id,
 		username: activation.members.fullname,
 	};
@@ -109,11 +128,17 @@ export const completeRegistration = async (member_id: number, username: string, 
 	});
 
 	if (!member) {
-		throw new Error("Member not found");
+		return {
+			success: false,
+			message: "Member not found"
+		};
 	}
 
 	if (member.is_activated) {
-		throw new Error("Account already activated");
+		return {
+			success: false,
+			message: "Account already activated"
+		};
 	}
 
 	const existingUsername = await prisma.users.findUnique({
@@ -123,7 +148,10 @@ export const completeRegistration = async (member_id: number, username: string, 
 	});
 
 	if (existingUsername) {
-		throw new Error("Username is already taken");
+		return {
+			success: false,
+			message: "Username already taken"
+		};
 	}
 
 	const hashedPassword = await bcrypt.hash(password, 10);
@@ -198,11 +226,17 @@ export const sendForgotPasswordOtp = async (email: string) => {
 	});
 
 	if (!member) {
-		throw new Error("Email not found");
+		return {
+			success: false,
+			message: "Email not found"
+		};
 	}
 
 	if (!member.user_id) {
-		throw new Error("Member account is not activated");
+		return {
+			success: false,
+			message: "Member account not activated"
+		};
 	}
 
 	const code = Math.floor(100000 + Math.random() * 900000).toString();
@@ -247,7 +281,10 @@ export const verifyForgotPasswordOtp = async (email: string, code: string) => {
 	});
 
 	if (!member?.user_id) {
-		throw new Error("Account not found");
+		return {
+			success: false,
+			message: "Account not found"
+		};
 	}
 
 	const otp = await prisma.otp_codes.findFirst({
@@ -263,7 +300,10 @@ export const verifyForgotPasswordOtp = async (email: string, code: string) => {
 	});
 
 	if (!otp) {
-		throw new Error("Invalid or expired OTP");
+		return {
+			success: false,
+			message: "Invalid or expired code"
+		};
 	}
 
 	await prisma.otp_codes.update({
@@ -292,7 +332,10 @@ export const resetPassword = async (email: string, newPassword: string) => {
 	});
 
 	if (!member?.user_id) {
-		throw new Error("User account not found");
+		return {
+			success: false,
+			message: "Account not found"
+		};
 	}
 
 	const hashedPassword = await bcrypt.hash(

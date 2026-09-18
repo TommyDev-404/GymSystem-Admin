@@ -25,8 +25,8 @@ model attendance {
   member_id        Int
   session_id       String             @db.VarChar(36)
   check_in_time    DateTime           @default(now()) @db.DateTime(0)
-  status           attendance_status? @default(CHECK_IN)
   checkout_time    DateTime?          @db.DateTime(0)
+  status           attendance_status? @default(CHECK_IN)
   members          members            @relation(fields: [member_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_member")
   checkin_sessions checkin_sessions   @relation(fields: [session_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_session")
 
@@ -423,33 +423,33 @@ enum notifications_category {
   ATTENDANCE
 }
 
-enum attendance_status {
-  CHECK_IN
-  CHECK_OUT
-}
-
-enum member_memberships_status {
-  Active
-  Expired
-  Deactivated
-  Cancelled
-}
-
 enum notifications_type {
+  MEMBERSHIP_POINTS
   MEMBERSHIP_EXPIRED
   MEMBERSHIP_EXPIRING
   MEMBERSHIP_UPGRADE
+  MEMBERSHIP_DEACTIVATED
   PAYMENT_RECORDED
   MEMBER_ADDED
   MEMBER_INACTIVE_3_DAYS
   MEMBER_INACTIVE_7_DAYS
   MEMBER_INACTIVE_14_DAYS
   REWARD_CLAIMED
+  REFERRAL_POINTS
   ATTENDANCE_POINTS
-  REWARD_CANCELLED
   MEMBER_CHECK_IN
   MEMBER_CHECK_OUT
-  MEMBERSHIP_POINTS
-  REFERRAL_POINTS
-  MEMBERSHIP_DEACTIVATED
+  REWARD_CANCELLED
+}
+
+enum member_memberships_status {
+  Active
+  Expired
+  Cancelled
+  Deactivated
+}
+
+enum attendance_status {
+  CHECK_IN  @map("CHECK-IN")
+  CHECK_OUT @map("CHECK-OUT")
 }

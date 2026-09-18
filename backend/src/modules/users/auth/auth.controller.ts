@@ -24,10 +24,7 @@ export const verifyActivationController = async (req: Request, res: Response) =>
 
 		const result = await service.verifyActivationCode(activation_code);
 
-		return res.json({
-			success: true,
-			data: result,
-		});
+		return res.json(result);
 	} catch (error: any) {
 		console.log(error);
 		return res.status(400).json({

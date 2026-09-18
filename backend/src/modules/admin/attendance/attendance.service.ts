@@ -1,4 +1,5 @@
 import { prisma } from "../../../lib/prisma";
+import { getIO } from "../../../lib/socket";
 
 export const getAttendanceService = async (filters: {
   year?: number;
@@ -49,6 +50,14 @@ export const getAttendanceService = async (filters: {
         gte: start,
         lte: end,
       },
+
+      members: {
+        member_memberships: {
+          some: {
+            status: "Active",
+          },
+        },
+      },
     },
     select: {
       id: true,
@@ -60,6 +69,9 @@ export const getAttendanceService = async (filters: {
           fullname: true,
           gender: true,
           member_memberships: {
+            where: {
+              status: "Active",
+            },
             select: {
               membership_plans: {
                 select: {
@@ -104,7 +116,7 @@ export const markCheckoutService = async (attendance_id: number) => {
 
   const checkoutDateTime = new Date();
 
-  return await prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx) => {
     const res = await tx.attendance.update({
       where: {
         id: attendance_id
@@ -147,10 +159,26 @@ export const markCheckoutService = async (attendance_id: number) => {
         recipient_id: res.member_id
       }
     });
+    
+    await tx.notifications.create({
+      data: {
+        recipient_id: res.member_id,
+        recipient_type: "MEMBER",
+        category: "ATTENDANCE",
+        type: "MEMBER_CHECK_OUT",
+        title: "Checked Out",
+        description: `You checked out successfully at ${formatPhilippineTime(res.checkout_time)}.`,
+      },
+    });
 
     return {
       success: true,
       message: "Checkout successfully."
     };
   });
+  
+  // Socket events
+  getIO().to("members-room").emit("attendance:checkout");
+
+  return result;
 };

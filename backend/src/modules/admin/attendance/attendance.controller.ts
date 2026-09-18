@@ -20,8 +20,7 @@ export const getAttendanceController = async (req: Request, res: Response) => {
 };
 
 export const markCheckoutController = async (req: Request, res: Response) => {
-  console.log("Reach here: ", req.params.attendance_id)
-  try {
+ try {
     const result = await service.markCheckoutService(Number(req.params.attendance_id));
     console.log(result);
     return res.status(200).json(result);

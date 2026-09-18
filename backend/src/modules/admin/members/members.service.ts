@@ -399,6 +399,7 @@ export const createMemberService = async (data: CreateMemberDTO) => {
 					 "You earned 50 points for joining JFitness using a referral code.",
 				},
 			 });
+			
 		}
 
 		// Create membership record
@@ -436,7 +437,6 @@ export const createMemberService = async (data: CreateMemberDTO) => {
 		});
 
 		if (plan.duration_type === "Month") {
-			
 			// Add 100 membership points
 			await tx.members.update({
 				where: {
@@ -506,7 +506,8 @@ export const createMemberService = async (data: CreateMemberDTO) => {
 
 		return {
 			...member,
-			plan:plan.plan_name
+			plan:plan.plan_name,
+			referrerId: referrer?.id ?? null,
 		};
 
 	});
@@ -578,6 +579,12 @@ export const createMemberService = async (data: CreateMemberDTO) => {
 			</div>
 		`,
 	});
+	
+	if (result.referrerId) {
+		console.log("Referral event triggered...");
+		// Socket events
+		getIO().to("members-room").emit("referral:notif");
+	}
 
 	return {
 		success: true,
@@ -775,9 +782,10 @@ export const upgradeMembershipPlanService = async (
 		};
 	});
 	
-	getIO()
-	.to(`member-${id}`)
-	.emit("membership:upgrade", { memberId: id });
+	// Socket events
+	getIO().to("members-room").emit("membership:upgrade", {
+		memberId: id
+	});
 
 	return result;
 };
@@ -962,14 +970,9 @@ export const renewMembershipServiceService = async (data: {
 	});
 	
 	// Socket events
-	getIO()
-	.to(`member-${data.member_id}`)
-	.emit(
-		"membership:renew",
-		{
-			membershipId: result.membership.id
-		}
-	);
+	getIO().to("members-room").emit("membership:renew", {
+		memberId: data.member_id
+	});
 
 	return result;
 };

@@ -4,7 +4,7 @@ CREATE TABLE membership_plans (
     plan_name VARCHAR(100) NOT NULL,
     price DECIMAL(10,2) NOT NULL,
     duration INT NOT NULL,
-    duration_hours_limit INT NOT NULL,
+    daily_hours_limit INT NOT NULL,
     duration_type ENUM('Week', 'Month', 'Day') NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -265,7 +265,7 @@ CREATE TABLE notifications (
         "REFERRAL_POINTS",
         "ATTENDANCE_POINTS",
         "MEMBER_CHECK_IN",
-        "MEMBER_CHECK_OUT"
+        "MEMBER_CHECK_OUT",
         "REWARD_CANCELLED"
     ) NOT NULL,
 
@@ -445,4 +445,19 @@ CREATE TABLE referrals (
         ON DELETE CASCADE,
 
     UNIQUE (referee_id)
+);
+
+INSERT INTO users (
+   username, 
+   email, 
+   password, 
+   hash_pass, 
+   role
+)
+VALUES (
+   'admin', 
+   'rustomgalicia253@gmail.com', 
+   '123456', 
+   '$2b$10$v5zYeel3Xgf8bnp8kpzhme0huMvoHS99z8L9CnoBzp2Ucw0qezL4S', 
+   'ADMIN'
 );

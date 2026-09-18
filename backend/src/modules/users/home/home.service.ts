@@ -290,7 +290,8 @@ export const getTabBadgeCounts = async (memberId: number) => {
 		  recipient_type: "MEMBER",
         is_read: false
       },
-    }),
+	 }),
+	  
     prisma.posts.count({
       where: {
         created_at: {
