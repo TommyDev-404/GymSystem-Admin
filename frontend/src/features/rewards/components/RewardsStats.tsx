@@ -9,7 +9,7 @@ import {
 
 interface Props {
 	summaryData: {
-		active: number;
+		mostClaimed: string;
 		averagePoints: number;
 		totalRewards: number;
 		totalClaimed: number;
@@ -39,9 +39,9 @@ export function RewardsStats({ summaryData }: Props) {
 				"bg-emerald-50 dark:bg-emerald-950/40",
 		},
 		{
-			label: "Active Rewards",
-			value: summaryData.active ?? 0,
-			description: "Currently available",
+			label: "Most Claimed Rewards",
+			value: summaryData.mostClaimed ?? "Nothing",
+			description: "Popular reward",
 			icon: Star,
 			iconColor:
 				"text-indigo-600 dark:text-indigo-400",

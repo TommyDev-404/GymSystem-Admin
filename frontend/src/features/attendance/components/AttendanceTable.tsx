@@ -16,6 +16,7 @@ import { CircleCheck, LoaderCircle } from "lucide-react";
 import { useCheckoutMember } from "../hooks/useAttendance";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
 
 type Props = {
 	members: Attendance[];
@@ -25,6 +26,17 @@ type Props = {
 export function AttendanceTable({ members, isLoading }: Props) {
 	const { mutate: checkout, isPending } = useCheckoutMember();
 
+	const [, setTimeTick] = useState(0);
+
+	useEffect(() => {
+	const interval = setInterval(() => {
+		setTimeTick((tick) => tick + 1);
+	}, 60_000);
+
+	return () => clearInterval(interval);
+	}, []);
+	
+	/*
 	const canCheckout = (
 		checkinTime: string | null,
 		dailyLimit: number | null
@@ -38,7 +50,38 @@ export function AttendanceTable({ members, isLoading }: Props) {
 	
 		return elapsedHours >= dailyLimit;
 	};
+	*/
 
+	const getRemainingTime = (
+		checkinTime: string | null,
+		dailyLimit: number | null
+	 ) => {
+		if (!checkinTime) return "--";
+		if (dailyLimit === null || dailyLimit === 0) return "--";
+	 
+		const checkin = new Date(checkinTime);
+		const now = new Date();
+	 
+		if (Number.isNaN(checkin.getTime())) {
+		  return "--";
+		}
+	 
+		const elapsedMinutes = Math.floor(
+		  (now.getTime() - checkin.getTime()) / 60000
+		);
+	 
+		const totalLimitMinutes = dailyLimit * 60;
+		const remainingMinutes = Math.max(
+		  0,
+		  totalLimitMinutes - elapsedMinutes
+		);
+	 
+		const hours = Math.floor(remainingMinutes / 60);
+		const minutes = remainingMinutes % 60;
+	 
+		return `${hours}h ${minutes}m`;
+	 };
+	
 	const handleCheckout = async (attendance_id: number) => {
 		checkout(attendance_id, {
 			onSuccess: (data) => {
@@ -69,6 +112,7 @@ export function AttendanceTable({ members, isLoading }: Props) {
 							<TableHead className={TH_CLASS}>Name</TableHead>
 							<TableHead className={TH_CLASS}>Plan</TableHead>
 							<TableHead className={TH_CLASS}>Daily Limit</TableHead>
+							<TableHead className={TH_CLASS}>Remaining Time</TableHead>
 							<TableHead className={TH_CLASS}>Check-in</TableHead>
 							<TableHead className={TH_CLASS}>Check-out</TableHead>
 							<TableHead className={TH_CLASS}>Status</TableHead>
@@ -112,9 +156,13 @@ export function AttendanceTable({ members, isLoading }: Props) {
 									</TableCell>
 									
 									<TableCell className="px-5 py-4 text-slate-600">
-										{m.daily_limit ?? 0} hrs
+										{m.daily_limit !== 0 ? `${m.daily_limit} hrs` : "Unlimited"}
 									</TableCell>
-									
+
+									<TableCell className="px-5 py-4 text-slate-600">
+										{getRemainingTime(m.checkin_time, m.daily_limit)}
+									</TableCell>
+																		
 									<TableCell className="px-5 py-4 text-slate-600">
 										{formatPhilippineTime(m.checkin_time)}
 									</TableCell>
@@ -130,33 +178,23 @@ export function AttendanceTable({ members, isLoading }: Props) {
 									</TableCell>
 
 									<TableCell className="px-2 py-4">
-										{m.status === "CHECK_IN" && canCheckout(m.checkin_time, m.daily_limit) ? (
-											<Button
-												size="sm"
-												variant="ghost"
-												title="Mark checkout"
-												className="h-8 gap-2 rounded-lg px-3 bg-red-500 text-white hover:bg-red-600 hover:text-white"
-												onClick={() => handleCheckout(m.attendance_id)}
-												disabled={isPending}
-											>
-												{isPending ? (
-													<LoaderCircle className="h-4 w-4 animate-spin" />
-												) : (
-													<CircleCheck
-														size={16}
-														strokeWidth={1.8}
-													/>
-												)}
-
-												<span className="text-xs font-medium">
-													{isPending ? "Checking out..." : "Mark Checkout"}
-												</span>
-											</Button>
-										) : (
-											<span className="text-xs text-slate-300 dark:text-stone-600">
-												No available actions.
-											</span>
-										)}
+										<Button
+											size="sm"
+											variant="ghost"
+											title="Mark checkout"
+											className="h-8 gap-2 rounded-lg px-3 bg-red-500 text-white hover:bg-red-600 hover:text-white"
+											onClick={() => handleCheckout(m.attendance_id)}
+											disabled={isPending}
+										>
+											{isPending ? (
+												<LoaderCircle className="h-4 w-4 animate-spin" />
+											) : (
+												<CircleCheck
+													size={16}
+													strokeWidth={1.8}
+												/>
+											)}
+										</Button>
 									</TableCell>
 								</TableRow>
 							))

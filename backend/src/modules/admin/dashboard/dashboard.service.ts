@@ -1,196 +1,264 @@
 import { prisma } from "../../../lib/prisma";
 
 export const getSummaryDataService = async () => {
-   const now = new Date();
+	const now = new Date();
 
-   const startOfCurrentMonth = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      1
-   );
+	const startOfCurrentMonth = new Date(
+		now.getFullYear(),
+		now.getMonth(),
+		1
+	);
 
-   const startOfPreviousMonth = new Date(
-      now.getFullYear(),
-      now.getMonth() - 1,
-      1
-   );
+	const startOfPreviousMonth = new Date(
+		now.getFullYear(),
+		now.getMonth() - 1,
+		1
+	);
 
-   const startOfNextMonth = new Date(
-      now.getFullYear(),
-      now.getMonth() + 1,
-      1
-   );
+	const startOfNextMonth = new Date(
+		now.getFullYear(),
+		now.getMonth() + 1,
+		1
+	);
 
-   const startOfToday = new Date();
-   startOfToday.setHours(0, 0, 0, 0);
+	const startOfToday = new Date();
+	startOfToday.setHours(0, 0, 0, 0);
 
-   const endOfToday = new Date();
-   endOfToday.setHours(23, 59, 59, 999);
+	const endOfToday = new Date();
+	endOfToday.setHours(23, 59, 59, 999);
 
-   const startOfYesterday = new Date();
-   startOfYesterday.setDate(startOfYesterday.getDate() - 1);
-   startOfYesterday.setHours(0, 0, 0, 0);
+	const startOfYesterday = new Date();
+	startOfYesterday.setDate(startOfYesterday.getDate() - 1);
+	startOfYesterday.setHours(0, 0, 0, 0);
 
-   const endOfYesterday = new Date(startOfYesterday);
-   endOfYesterday.setHours(23, 59, 59, 999);
+	const endOfYesterday = new Date(startOfYesterday);
+	endOfYesterday.setHours(23, 59, 59, 999);
 
-   const getTrend = (current: number, previous: number) => {
-      if (previous === 0) {
-         return current > 0 ? 100 : 0;
-      }
+	const getTrend = (current: number, previous: number) => {
+		if (previous === 0) {
+			return current > 0 ? 100 : 0;
+		}
 
-      return Number(
-         (((current - previous) / previous) * 100).toFixed(1)
-      );
-   };
+		return Number(
+			(((current - previous) / previous) * 100).toFixed(1)
+		);
+	};
 
-   return await prisma.$transaction(async (tx) => {
-      const totalMembers = await tx.members.count();
+	return await prisma.$transaction(async (tx) => {
+		const totalMembers = await tx.members.count();
 
-      // New members this month
-      const newMembersThisMonth = await tx.members.count({
-         where: {
-            join_date: {
-               gte: startOfCurrentMonth
-            }
-         }
-      });
+		// ==========================================
+		// NEW MEMBERS
+		// ==========================================
 
-      // New members previous month
-      const newMembersPreviousMonth = await tx.members.count({
-         where: {
-            join_date: {
-               gte: startOfPreviousMonth,
-               lt: startOfCurrentMonth
-            }
-         }
-      });
+		const newMembersThisMonth = await tx.members.count({
+			where: {
+				join_date: {
+					gte: startOfCurrentMonth,
+				},
+			},
+		});
 
-      const memberTrend = getTrend(
-         newMembersThisMonth,
-         newMembersPreviousMonth
-      );
+		const newMembersPreviousMonth = await tx.members.count({
+			where: {
+				join_date: {
+					gte: startOfPreviousMonth,
+					lt: startOfCurrentMonth,
+				},
+			},
+		});
 
-      // Today's attendance
-      const currentlyPresent = await tx.attendance.count({
-         where: {
-            status: "CHECK_IN",
-            check_in_time: {
-               gte: startOfToday,
-               lte: endOfToday
-            }
-         }
-      });
+		const memberTrend = getTrend(
+			newMembersThisMonth,
+			newMembersPreviousMonth
+		);
 
-      // Yesterday attendance
-      const yesterdayPresent = await tx.attendance.count({
-         where: {
-            status: "CHECK_IN",
-            check_in_time: {
-               gte: startOfYesterday,
-               lte: endOfYesterday
-            }
-         }
-      });
+		// ==========================================
+		// TODAY'S ATTENDANCE
+		// ==========================================
 
-      const presentTrend = getTrend(
-         currentlyPresent,
-         yesterdayPresent
-      );
+		const currentlyPresent = await tx.attendance.count({
+			where: {
+				status: "CHECK_IN",
+				check_in_time: {
+					gte: startOfToday,
+					lte: endOfToday,
+				},
+			},
+		});
 
-      // Attendance by gender (all time)
-      const totalMalePresent = await tx.attendance.count({
-         where: {
-            status: "CHECK_IN",
-            members: {
-               gender: "Male"
-            },
-            check_in_time: {
-               gte: startOfToday,
-               lte: endOfToday
-            }
-         }
-      });
+		const yesterdayPresent = await tx.attendance.count({
+			where: {
+				status: "CHECK_IN",
+				check_in_time: {
+					gte: startOfYesterday,
+					lte: endOfYesterday,
+				},
+			},
+		});
 
-      const totalFemalePresent = await tx.attendance.count({
-         where: {
-            status: "CHECK_IN",
-            members: {
-               gender: "Female"
-            },
-            check_in_time: {
-               gte: startOfToday,
-               lte: endOfToday
-            }
-         }
-      });
+		const presentTrend = getTrend(
+			currentlyPresent,
+			yesterdayPresent
+		);
 
-      // Expired memberships - current month
-      const expiredMembershipsThisMonth = await tx.member_memberships.count({
-         where: {
-            status: "Expired",
-            end_date: {
-               gte: startOfCurrentMonth,
-               lt: startOfNextMonth,
-            },
-         },
-      });
+		// ==========================================
+		// ATTENDANCE BY GENDER
+		// ==========================================
 
-      // Expired memberships - previous month
-      const expiredMembershipsPreviousMonth = await tx.member_memberships.count({
-         where: {
-            status: "Expired",
-            end_date: {
-               gte: startOfPreviousMonth,
-               lt: startOfCurrentMonth,
-            },
-         },
-      });
+		const totalMalePresent = await tx.attendance.count({
+			where: {
+				status: "CHECK_IN",
+				members: {
+					gender: "Male",
+				},
+				check_in_time: {
+					gte: startOfToday,
+					lte: endOfToday,
+				},
+			},
+		});
 
-      const expiredMembershipTrend = expiredMembershipsThisMonth - expiredMembershipsPreviousMonth;
-      
-      // Payments by this month
-      const totalPaidThisMonth = await tx.payments.aggregate({
-         _sum: { amount: true }, 
-         where: {
-            status: "Paid",
-            paid_at: {
-               gte: startOfCurrentMonth
-            }
-         }
-      })
+		const totalFemalePresent = await tx.attendance.count({
+			where: {
+				status: "CHECK_IN",
+				members: {
+					gender: "Female",
+				},
+				check_in_time: {
+					gte: startOfToday,
+					lte: endOfToday,
+				},
+			},
+		});
 
-      const totalPaidPreviousMonth = await tx.payments.aggregate({
-         _sum: { amount: true }, 
-         where: {
-            status: "Paid",
-            paid_at: {
-               gte: startOfPreviousMonth,
-               lt: startOfCurrentMonth
-            }
-         }
-      })
+		// ==========================================
+		// LATEST MEMBERSHIP PER MEMBER
+		// ==========================================
 
-      const paymentTrendThisMonth = getTrend(
-         Number(totalPaidThisMonth._sum.amount ?? 0),
-         Number(totalPaidPreviousMonth._sum.amount ?? 0)
-      );
+		const memberships = await tx.member_memberships.findMany({
+			select: {
+				member_id: true,
+				start_date: true,
+				end_date: true,
+				status: true,
+				created_at: true,
+			},
+			orderBy: [
+				{
+					member_id: "asc",
+				},
+				{
+					start_date: "desc",
+				},
+				{
+					created_at: "desc",
+				},
+			],
+		});
 
-      return {
-         totalMembers,
-         newMembersThisMonth,
-         memberTrend,
-         currentlyPresent,
-         presentTrend,
-         totalMalePresent,
-         totalFemalePresent,
-         totalPaidThisMonth: totalPaidThisMonth._sum.amount ?? 0,
-         paymentTrendThisMonth,
-         totalExpiredMemberships: expiredMembershipsThisMonth,
-         expiredMembershipTrend
-      };
-   });
+		const latestMemberships = new Map<
+			number,
+			(typeof memberships)[number]
+		>();
 
+		for (const membership of memberships) {
+			if (!latestMemberships.has(membership.member_id)) {
+				latestMemberships.set(
+					membership.member_id,
+					membership
+				);
+			}
+		}
+
+		// ==========================================
+		// EXPIRED MEMBERSHIPS
+		// ==========================================
+
+		let expiredMembershipsThisMonth = 0;
+		let expiredMembershipsPreviousMonth = 0;
+
+		for (const membership of latestMemberships.values()) {
+			if (membership.status !== "Expired") {
+				continue;
+			}
+
+			if (
+				membership.end_date >= startOfCurrentMonth &&
+				membership.end_date < startOfNextMonth
+			) {
+				expiredMembershipsThisMonth++;
+			}
+
+			if (
+				membership.end_date >= startOfPreviousMonth &&
+				membership.end_date < startOfCurrentMonth
+			) {
+				expiredMembershipsPreviousMonth++;
+			}
+		}
+
+		const expiredMembershipTrend =
+			expiredMembershipsThisMonth -
+			expiredMembershipsPreviousMonth;
+
+		// ==========================================
+		// PAYMENTS
+		// ==========================================
+
+		const totalPaidThisMonth = await tx.payments.aggregate({
+			_sum: {
+				amount: true,
+			},
+			where: {
+				status: "Paid",
+				paid_at: {
+					gte: startOfCurrentMonth,
+				},
+			},
+		});
+
+		const totalPaidPreviousMonth = await tx.payments.aggregate({
+			_sum: {
+				amount: true,
+			},
+			where: {
+				status: "Paid",
+				paid_at: {
+					gte: startOfPreviousMonth,
+					lt: startOfCurrentMonth,
+				},
+			},
+		});
+
+		const paymentTrendThisMonth = getTrend(
+			Number(totalPaidThisMonth._sum.amount ?? 0),
+			Number(totalPaidPreviousMonth._sum.amount ?? 0)
+		);
+
+		return {
+			totalMembers,
+
+			newMembersThisMonth,
+			memberTrend,
+
+			currentlyPresent,
+			presentTrend,
+
+			totalMalePresent,
+			totalFemalePresent,
+
+			totalPaidThisMonth:
+				totalPaidThisMonth._sum.amount ?? 0,
+
+			paymentTrendThisMonth,
+
+			totalExpiredMemberships:
+				expiredMembershipsThisMonth,
+
+			expiredMembershipTrend,
+		};
+	});
 };
 
 export async function getMonthlyRevenueTrendService() {
@@ -264,12 +332,17 @@ export const getMembershipsExpiringSoonService = async () => {
 
    return memberships.map((membership) => {
       const endDate = new Date(membership.end_date);
-
-      const diffMs = endDate.getTime() - todayStart.getTime();
-      const daysRemaining = Math.ceil(
+      endDate.setHours(0, 0, 0, 0);
+   
+      const today = new Date(todayStart);
+      today.setHours(0, 0, 0, 0);
+   
+      const diffMs = endDate.getTime() - today.getTime();
+   
+      const daysRemaining = Math.round(
          diffMs / (1000 * 60 * 60 * 24)
       );
-
+   
       return {
          id: membership.id,
          fullname: membership.members.fullname,

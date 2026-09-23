@@ -84,7 +84,7 @@ import {
 					  {member?.fullname}
 					</p>
 					<p className="text-sm text-slate-500 dark:text-slate-400">
-					  Current Plan: {member?.plan_name ?? "None"}
+					  Previous Plan: {member?.plan_name ?? "None"}
 					</p>
 				 </div>
 			  </div>

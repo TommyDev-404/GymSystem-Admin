@@ -38,7 +38,7 @@ export function AddPlanModal({ open, onClose }: Props) {
       price: 0,
       duration: 1,
       duration_type: "Month",
-      daily_hours_limit: 2,
+      daily_hours_limit: 0,
     },
   });
 
@@ -156,7 +156,7 @@ export function AddPlanModal({ open, onClose }: Props) {
 
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-slate-700 dark:text-slate-200">
-                Daily Gym Hours Limit
+                Daily Gym Hours Limit (0 - Unlimited)
               </label>
 
               <Input

@@ -45,12 +45,6 @@ export const getMemberProgressService = async () => {
 
 export const getSummaryDataService = async () => {
    return await prisma.$transaction(async (tx) => { 
-      const totalRedeemed = await prisma.reward_redemptions.count({
-         where: {
-            status: "Pending"
-         }
-      });
-
       const averagePoints = await prisma.members.aggregate({
          _avg: { points: true }
       });
@@ -63,10 +57,37 @@ export const getSummaryDataService = async () => {
 			where: {
 				status: "Claimed"
 			}
-      });
+		});
+		
+		const mostClaimed = await prisma.reward_redemptions.groupBy({
+			by: ["reward_id"],
+			where: {
+			  status: "Claimed",
+			},
+			_count: {
+			  reward_id: true,
+			},
+			orderBy: {
+			  _count: {
+				 reward_id: "desc",
+			  },
+			},
+			take: 1,
+		 });
+		 
+		 const reward = mostClaimed[0]
+			? await prisma.rewards.findUnique({
+				 where: {
+					id: mostClaimed[0].reward_id,
+				 },
+				 select: {
+					name: true,
+				 },
+			  })
+			: null;
 
       return {
-         totalRedeemed,
+         mostClaimed: reward ? reward.name : "Nothing",
          totalClaimed,
          averagePoints: averagePoints._avg.points,
          totalRewards: totalRewards._count.id

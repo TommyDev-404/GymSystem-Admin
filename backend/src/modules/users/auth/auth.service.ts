@@ -125,6 +125,23 @@ export const completeRegistration = async (member_id: number, username: string, 
 		where: {
 			id: member_id,
 		},
+		select: {
+			id: true,
+			user_id: true,
+			is_activated: true,
+			fullname: true,
+
+			member_memberships: {
+				select: {
+					membership_plans: {
+						select: {
+							plan_name: true,
+							price: true
+						}
+					}
+				}
+			}
+		}
 	});
 
 	if (!member) {
@@ -183,6 +200,21 @@ export const completeRegistration = async (member_id: number, username: string, 
 			data: {
 				is_used: true,
 			},
+		});
+
+		// Create user notification
+		await tx.notifications.create({
+			data: {
+				recipient_id: member_id,
+				recipient_type: "MEMBER",
+				category: "MEMBER",
+				type: "MEMBER_ADDED",
+				title: "Welcome to JFitness!",
+				description: `Welcome, ${username}! You’ve been added as a JFitness member with the ${member.member_memberships[0].membership_plans.plan_name} membership for ₱${Number(member.member_memberships[0].membership_plans.price).toLocaleString("en-PH", {
+					minimumFractionDigits: 2,
+					maximumFractionDigits: 2
+				})}. We’re excited to have you with us!`
+			}
 		});
 
 		return user;

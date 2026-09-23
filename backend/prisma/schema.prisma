@@ -423,6 +423,18 @@ enum notifications_category {
   ATTENDANCE
 }
 
+enum member_memberships_status {
+  Active
+  Expired
+  Cancelled
+  Deactivated
+}
+
+enum attendance_status {
+  CHECK_IN  @map("CHECK-IN")
+  CHECK_OUT @map("CHECK-OUT")
+}
+
 enum notifications_type {
   MEMBERSHIP_POINTS
   MEMBERSHIP_EXPIRED
@@ -440,16 +452,5 @@ enum notifications_type {
   MEMBER_CHECK_IN
   MEMBER_CHECK_OUT
   REWARD_CANCELLED
-}
-
-enum member_memberships_status {
-  Active
-  Expired
-  Cancelled
-  Deactivated
-}
-
-enum attendance_status {
-  CHECK_IN  @map("CHECK-IN")
-  CHECK_OUT @map("CHECK-OUT")
+  MEMBERSHIP_RENEWAL
 }

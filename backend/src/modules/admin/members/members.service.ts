@@ -33,11 +33,48 @@ function calculateDuration(duration_type: string, duration: number) {
 export const getMemberSummaryService = async () => {
 	const now = new Date();
 
-	// Start of today
+	const memberships = await prisma.member_memberships.findMany({
+		include: {
+			members: {
+				select: {
+					gender: true,
+				},
+			},
+		},
+		orderBy: [
+			{
+				member_id: "asc",
+			},
+			{
+				created_at: "desc",
+			},
+		],
+	});
+
+	// Get only the latest membership for each member
+	const latestMemberships = new Map<number, (typeof memberships)[number]>();
+
+	for (const membership of memberships) {
+		if (!latestMemberships.has(membership.member_id)) {
+			latestMemberships.set(membership.member_id, membership);
+		}
+	}
+
+	let active = 0;
+	let activeMale = 0;
+	let activeFemale = 0;
+
+	let expired = 0;
+	let expiredMale = 0;
+	let expiredFemale = 0;
+
+	let expiringTomorrow = 0;
+	let expiringWithin3Days = 0;
+	let expiringWithin7Days = 0;
+
 	const startOfToday = new Date(now);
 	startOfToday.setHours(0, 0, 0, 0);
 
-	// Tomorrow
 	const startOfTomorrow = new Date(startOfToday);
 	startOfTomorrow.setDate(startOfTomorrow.getDate() + 1);
 
@@ -45,147 +82,69 @@ export const getMemberSummaryService = async () => {
 	endOfTomorrow.setDate(endOfTomorrow.getDate() + 1);
 	endOfTomorrow.setMilliseconds(-1);
 
-	// End of day 3 days from today
 	const endOf3Days = new Date(startOfToday);
 	endOf3Days.setDate(endOf3Days.getDate() + 3);
 	endOf3Days.setHours(23, 59, 59, 999);
 
-	// End of day 7 days from today
 	const endOf7Days = new Date(startOfToday);
 	endOf7Days.setDate(endOf7Days.getDate() + 7);
 	endOf7Days.setHours(23, 59, 59, 999);
 
-	const [
-		active,
-		activeMale,
-		activeFemale,
+	for (const membership of latestMemberships.values()) {
+		const isExpired =
+			membership.status === "Expired" ||
+			membership.end_date < now;
 
-		expired,
-		expiredMale,
-		expiredFemale,
+		const isActive =
+			membership.status === "Active" &&
+			membership.end_date >= now;
 
-		expiringTomorrow,
-		expiringWithin3Days,
-		expiringWithin7Days,
-	] = await prisma.$transaction([
-		// ==========================================
-		// ACTIVE MEMBERS
-		// ==========================================
+		if (isActive) {
+			active++;
 
-		prisma.member_memberships.count({
-			where: {
-				status: "Active",
-				end_date: {
-					gte: now,
-				},
-			},
-		}),
+			if (membership.members.gender === "Male") {
+				activeMale++;
+			}
 
-		prisma.member_memberships.count({
-			where: {
-				status: "Active",
-				end_date: {
-					gte: now,
-				},
-				members: {
-					gender: "Male",
-				},
-			},
-		}),
+			if (membership.members.gender === "Female") {
+				activeFemale++;
+			}
 
-		prisma.member_memberships.count({
-			where: {
-				status: "Active",
-				end_date: {
-					gte: now,
-				},
-				members: {
-					gender: "Female",
-				},
-			},
-		}),
+			if (
+				membership.end_date >= startOfTomorrow &&
+				membership.end_date <= endOfTomorrow
+			) {
+				expiringTomorrow++;
+			} else if (
+				membership.end_date > endOfTomorrow &&
+				membership.end_date <= endOf3Days
+			) {
+				expiringWithin3Days++;
+			} else if (
+				membership.end_date > endOf3Days &&
+				membership.end_date <= endOf7Days
+			) {
+				expiringWithin7Days++;
+			}
+		}
 
-		// ==========================================
-		// EXPIRED MEMBERS
-		// ==========================================
+		if (isExpired) {
+			expired++;
 
-		prisma.member_memberships.count({
-			where: {
-				status: "Expired",
-				end_date: {
-					lt: now,
-				},
-			},
-		}),
+			if (membership.members.gender === "Male") {
+				expiredMale++;
+			}
 
-		prisma.member_memberships.count({
-			where: {
-				status: "Expired",
-				end_date: {
-					lt: now,
-				},
-				members: {
-					gender: "Male",
-				},
-			},
-		}),
+			if (membership.members.gender === "Female") {
+				expiredFemale++;
+			}
+		}
+	}
 
-		prisma.member_memberships.count({
-			where: {
-				status: "Expired",
-				end_date: {
-					lt: now,
-				},
-				members: {
-					gender: "Female",
-				},
-			},
-		}),
-
-		// ==========================================
-		// EXPIRING TOMORROW
-		// ==========================================
-
-		prisma.member_memberships.count({
-			where: {
-				status: "Active",
-				end_date: {
-					gte: startOfTomorrow,
-					lte: endOfTomorrow,
-				},
-			},
-		}),
-
-		// ==========================================
-		// EXPIRING IN 2–3 DAYS
-		// ==========================================
-
-		prisma.member_memberships.count({
-			where: {
-				status: "Active",
-				end_date: {
-					gt: endOfTomorrow,
-					lte: endOf3Days,
-				},
-			},
-		}),
-
-		// ==========================================
-		// EXPIRING IN 4–7 DAYS
-		// ==========================================
-
-		prisma.member_memberships.count({
-			where: {
-				status: "Active",
-				end_date: {
-					gt: endOf3Days,
-					lte: endOf7Days,
-				},
-			},
-		}),
-	]);
-
-	const expiringSoon = expiringTomorrow + expiringWithin3Days + expiringWithin7Days;
+	const expiringSoon =
+		expiringTomorrow +
+		expiringWithin3Days +
+		expiringWithin7Days;
 
 	return {
 		active,
@@ -736,17 +695,6 @@ export const upgradeMembershipPlanService = async (
 			},
 		});
 
-		// Member activity
-		await tx.activities.create({
-			data: {
-				recipient_id: member.id,
-				recipient_type: "MEMBER",
-				category: "MEMBER",
-				title: "Membership Upgraded",
-				description: `You upgrade your membership from ${currentPlan.plan_name} to ${plan.plan_name}. Additional payment: ₱${additionalAmount.toFixed(2)}.`,
-			},
-		});
-
 		// Create member notification for membership upgrade
 		await tx.notifications.create({
 			data: {
@@ -933,11 +881,12 @@ export const renewMembershipServiceService = async (data: {
 		});
 
 		// Member Recent activity
-		await tx.activities.create({
+		await tx.notifications.create({
 			data:{
 				recipient_id: data.member_id,
-				recipient_type: 'ADMIN',
-				category:"MEMBER",
+				recipient_type: 'MEMBER',
+				category:"MEMBERSHIP",
+				type: "MEMBERSHIP_RENEWAL",
 				title:"Membership Renewed",
 				description:
 					`Your ${plan.plan_name} membership has been renewed until ${endDate.toLocaleDateString(

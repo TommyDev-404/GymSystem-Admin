@@ -76,6 +76,8 @@ export function useUpdateRewardRedemptionsStatus() {
 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['rewards-redemptions'] });
+      queryClient.invalidateQueries({ queryKey: ['rewards-summary-data'] });
+      queryClient.invalidateQueries({ queryKey: ['rewards'] });
     },
   });
 }

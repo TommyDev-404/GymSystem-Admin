@@ -75,7 +75,7 @@ export function TutorialsPage() {
         title="Tutorials"
         subtitle="Manage members workout tutorials"
         icon={Plus}
-        actionName="Create Reward"
+        actionName="Create Tutorial"
         setOpen={() => {
           setEditTarget(null);
           setModalOpen(true);

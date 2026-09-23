@@ -227,7 +227,12 @@ export function MemberModal({ open, setOpen }: Props) {
                         <span className="text-xs text-slate-500 dark:text-slate-400">
                           {p.duration} {p.duration_type.toLowerCase()} membership
                           {" · "}
-                          {p.daily_hours_limit} hrs/day
+                          {p.daily_hours_limit !== 0 ? (
+                            `${p.daily_hours_limit} hrs/day`
+                          ) : (
+                              "Unlimited hrs per day"
+                          )}
+                          
                           {" · "}
                           ₱{Number(p.price).toLocaleString("en-PH", {
                             minimumFractionDigits: 2,

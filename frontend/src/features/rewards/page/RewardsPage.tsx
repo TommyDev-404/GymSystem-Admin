@@ -54,7 +54,7 @@ export function RewardsPage() {
 
 			<section className="grid grid-cols-1 xl:grid-cols-3 gap-5 items-start">
 				<div className=" xl:col-span-2 h-[450px] overflow-hidden">
-					<h3 className="text-slate-700 dark:text-slate-200 font-medium">Available Rewards</h3>	
+					<h3 className="text-slate-700 dark:text-slate-200 font-medium">Rewards</h3>	
 					
 					<div className="h-full overflow-y-auto p-2">
 						<RewardsList rewards={rewards}/>
