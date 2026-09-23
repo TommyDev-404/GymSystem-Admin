@@ -184,7 +184,7 @@ export function AttendanceTable({ members, isLoading }: Props) {
 											title="Mark checkout"
 											className="h-8 gap-2 rounded-lg px-3 bg-red-500 text-white hover:bg-red-600 hover:text-white"
 											onClick={() => handleCheckout(m.attendance_id)}
-											disabled={isPending}
+											disabled={isPending || m.status == "CHECK_OUT"}
 										>
 											{isPending ? (
 												<LoaderCircle className="h-4 w-4 animate-spin" />
