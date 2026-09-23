@@ -391,30 +391,60 @@ export async function getWeeklyGuestAttendanceService() {
 }
 
 export async function getMembershipStatusService() {
-   const data = await prisma.member_memberships.groupBy({
-      by: ["status"],
-      _count: {
-         status: true,
-      },
-   });
- 
-   const statusMap = new Map(
-      data.map((item) => [
-         item.status,
-         item._count.status,
-      ])
-   );
- 
-   return [
-      {
-         name: "Active",
-         value: statusMap.get("Active") ?? 0,
-      },
-      {
-         name: "Expired",
-         value: statusMap.get("Expired") ?? 0,
-      }
-   ];
+	const memberships = await prisma.member_memberships.findMany({
+		select: {
+			member_id: true,
+			status: true,
+			start_date: true,
+			created_at: true,
+		},
+		orderBy: [
+			{
+				member_id: "asc",
+			},
+			{
+				start_date: "desc",
+			},
+			{
+				created_at: "desc",
+			},
+		],
+	});
+
+	const latestMemberships = new Map<
+		number,
+		(typeof memberships)[number]
+	>();
+
+	for (const membership of memberships) {
+		if (!latestMemberships.has(membership.member_id)) {
+			latestMemberships.set(membership.member_id, membership);
+		}
+	}
+
+	let active = 0;
+	let expired = 0;
+
+	for (const membership of latestMemberships.values()) {
+		if (membership.status === "Active") {
+			active++;
+		}
+
+		if (membership.status === "Expired") {
+			expired++;
+		}
+	}
+
+	return [
+		{
+			name: "Active",
+			value: active,
+		},
+		{
+			name: "Expired",
+			value: expired,
+		},
+	];
 }
 
 export async function getGenderDistributionService() {
