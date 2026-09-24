@@ -43,13 +43,13 @@ export function TutorialsPage() {
         }),
       []
   );
-  
-  const params = useMemo(() => ({
+
+  const params = {
     search: search || undefined,
     level: filterLevel !== "All" ? filterLevel : undefined,
-    category: filterCat !== "All" ? filterCat : undefined,
-  }), [search, filterLevel, filterCat]);
-
+    category: filterCat !== "All" ? filterCat : "All",
+  };
+  
   const { data: tutorialsData = [], isLoading } = useGetAllTutorials(params);
   
   const tutorials = tutorialsData?.map((tutorial: WorkoutResponse) => ({
@@ -67,6 +67,8 @@ export function TutorialsPage() {
       },
     });
   };
+
+  console.log("TUTORIAL: ", tutorials);
 
   return (
     <div className="space-y-5">

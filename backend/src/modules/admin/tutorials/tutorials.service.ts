@@ -29,21 +29,36 @@ export const uploadImageToSupabase = async (file: Express.Multer.File) => {
 
 export const getAllTutorialsService = async (filters: WorkoutFilters) => {
   const { search, level, category } = filters;
-  
+
+  type TutorialLevel =
+    | "Beginner"
+    | "Intermediate"
+    | "Advanced";
+
+  const trimmedSearch = search?.trim();
   const trimmedCategory = category?.trim();
+  const trimmedLevel = level?.trim();
 
-  return await prisma.tutorials.findMany({
-    where: {
-      ...(level && { level }),
-
-      ...(search && {
-        name: {
-          contains: search,
-        },
+  const where = {
+    ...(trimmedLevel &&
+      trimmedLevel !== "All" && {
+        level: trimmedLevel as TutorialLevel,
       }),
 
-      ...(category && { category: trimmedCategory })
-    },
+    ...(trimmedSearch && {
+      name: {
+        contains: trimmedSearch,
+      },
+    }),
+
+    ...(trimmedCategory &&
+      trimmedCategory !== "All" && {
+        category: trimmedCategory,
+      }),
+  };
+
+  const res = await prisma.tutorials.findMany({
+    where,
     select: {
       id: true,
       name: true,
@@ -60,9 +75,13 @@ export const getAllTutorialsService = async (filters: WorkoutFilters) => {
       created_at: "desc",
     },
   });
-  
-};
 
+  console.log("Filters:", filters);
+  console.log("Where:", where);
+  console.log("Tutorials:", res);
+
+  return res;
+};
 export const createTutorialService = async (
   body: any,
   files: Express.Multer.File[]
