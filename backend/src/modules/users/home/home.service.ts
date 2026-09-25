@@ -140,38 +140,52 @@ export const getMemberDashboardDataService = async (member_id: number) => {
    };
 };
  
-export const getMemberAttendanceHistoryService = async (member_id: number) => {
+export const getMemberAttendanceHistoryService = async (
+	member_id: number
+ ) => {
 	const attendance = await prisma.attendance.findMany({
-		where: {
-			member_id,
-		},
-		orderBy: {
-			check_in_time: "desc",
-		},
-		select: {
-			id: true,
-			check_in_time: true,
-		},
+	  where: {
+		 member_id,
+	  },
+	  orderBy: {
+		 check_in_time: "desc",
+	  },
+	  select: {
+		 id: true,
+		 check_in_time: true,
+		 checkout_time: true,
+	  },
 	});
-
+ 
 	return attendance.map((item) => ({
-		id: item.id,
-		date: item.check_in_time
-			? new Date(item.check_in_time).toLocaleDateString("en-PH", {
-				timeZone: "Asia/Manila",
-				month: "short",
-				day: "2-digit",
-				year: "numeric",
-			}) : null,
-		time: item.check_in_time
-			? new Date(item.check_in_time).toLocaleTimeString("en-PH", {
-					timeZone: "Asia/Manila",
-					hour: "2-digit",
-					minute: "2-digit",
-				})
-			: null,
+	  id: item.id,
+ 
+	  date: item.check_in_time
+		 ? new Date(item.check_in_time).toLocaleDateString("en-PH", {
+			  timeZone: "Asia/Manila",
+			  month: "short",
+			  day: "2-digit",
+			  year: "numeric",
+			})
+		 : null,
+ 
+	  checkInTime: item.check_in_time
+		 ? new Date(item.check_in_time).toLocaleTimeString("en-PH", {
+			  timeZone: "Asia/Manila",
+			  hour: "2-digit",
+			  minute: "2-digit",
+			})
+		 : null,
+ 
+	  checkOutTime: item.checkout_time
+		 ? new Date(item.checkout_time).toLocaleTimeString("en-PH", {
+			  timeZone: "Asia/Manila",
+			  hour: "2-digit",
+			  minute: "2-digit",
+			})
+		 : null,
 	}));
-};
+ };
 
 export const getRecentActivityService  = async (member_id: number) => {
 	const activities = await prisma.activities.findMany({

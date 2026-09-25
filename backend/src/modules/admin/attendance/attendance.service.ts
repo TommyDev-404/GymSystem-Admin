@@ -51,13 +51,6 @@ export const getAttendanceService = async (filters: {
         lte: end,
       },
 
-      members: {
-        member_memberships: {
-          some: {
-            status: "Active",
-          },
-        },
-      },
     },
     select: {
       id: true,
@@ -69,9 +62,6 @@ export const getAttendanceService = async (filters: {
           fullname: true,
           gender: true,
           member_memberships: {
-            where: {
-              status: "Active",
-            },
             select: {
               membership_plans: {
                 select: {

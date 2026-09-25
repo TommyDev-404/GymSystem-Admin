@@ -26,6 +26,7 @@ export const getMemberWeeklyAttendanceService = async (memberId: number) => {
 		},
 		select: {
 			check_in_time: true,
+			checkout_time: true
 		},
 		orderBy: {
 			check_in_time: "asc",

@@ -172,8 +172,14 @@ export function AttendanceTable({ members, isLoading }: Props) {
 									</TableCell>
 
 									<TableCell className="px-5 py-4">
-										<Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100">
-										{m.status}
+										<Badge
+											className={
+												m.status === "CHECK_IN"
+												? "bg-emerald-100 text-emerald-700 hover:bg-emerald-100"
+												: "bg-amber-100 text-amber-700 hover:bg-amber-100"
+											}
+										>
+											{m.status}
 										</Badge>
 									</TableCell>
 
