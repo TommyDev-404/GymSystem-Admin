@@ -51,7 +51,7 @@ export function RewardModal({ reward, open, onClose }: Props) {
     reset,
     control,
     watch,
-    formState: { dirtyFields },
+    formState: { errors, dirtyFields },
   } = useForm<RewardForm>({
     defaultValues,
   });
@@ -156,10 +156,11 @@ export function RewardModal({ reward, open, onClose }: Props) {
               </label>
 
               <Input
-                {...register("name")}
+                {...register("name", { required: "Reward title is required" })}
                 placeholder="e.g. Free Protein Shake"
                 className="h-11 bg-white border-slate-200 text-slate-700 dark:bg-stone-800 dark:border-stone-700 dark:text-slate-200"
               />
+              {errors.name && ( <p className="text-xs text-red-500"> {errors.name.message} </p> )}
             </div>
 
             <div className="space-y-1.5">
@@ -168,11 +169,12 @@ export function RewardModal({ reward, open, onClose }: Props) {
               </label>
 
               <Textarea
-                {...register("description")}
+                {...register("description", { required: "Description is required" })}
                 rows={3}
                 placeholder="Brief description..."
                 className="resize-none bg-white border-slate-200 text-slate-700 dark:bg-stone-800 dark:border-stone-700 dark:text-slate-200"
               />
+              {errors.description && ( <p className="text-xs text-red-500"> {errors.description.message} </p> )}
             </div>
           </div>
 
@@ -192,10 +194,17 @@ export function RewardModal({ reward, open, onClose }: Props) {
                   min={0}
                   placeholder="Points"
                   {...register("points_required", {
+                    required: "Points required is required",
                     valueAsNumber: true,
                   })}
                   className="h-11 bg-white border-slate-200 text-slate-700 dark:bg-stone-800 dark:border-stone-700 dark:text-slate-200"
                 />
+                
+                {errors.points_required && (
+                  <p className="text-xs text-red-500">
+                    {errors.points_required.message}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-1.5">
@@ -206,6 +215,7 @@ export function RewardModal({ reward, open, onClose }: Props) {
                 <Controller
                   control={control}
                   name="category"
+                  rules={{ required: "Category is required", }}
                   render={({ field }) => (
                     <Select
                       value={field.value}
@@ -227,6 +237,12 @@ export function RewardModal({ reward, open, onClose }: Props) {
                     </Select>
                   )}
                 />
+
+                {errors.category && (
+                  <p className="text-xs text-red-500">
+                    {errors.category.message}
+                  </p>
+                )}
 
                 {selectedCategory === "Custom" && (
                   <Input

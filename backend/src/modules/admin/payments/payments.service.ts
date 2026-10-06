@@ -2,38 +2,11 @@ import { prisma } from "../../../lib/prisma";
 import { PaymentFilterDTO } from "./payments.types";
 
 export const getPaymentSummaryService = async () => {
-	const now = new Date();
-
-	// Start of current month
-	const startOfMonth = new Date(
-		now.getFullYear(),
-		now.getMonth(),
-		1,
-		0,
-		0,
-		0,
-		0
-	);
-
-	// Start of next month
-	const startOfNextMonth = new Date(
-		now.getFullYear(),
-		now.getMonth() + 1,
-		1,
-		0,
-		0,
-		0,
-		0
-	);
 
 	const [renewal, upgrade, membership] = await prisma.$transaction([
 		prisma.payments.aggregate({
 			where: {
-				payment_type: "Renewal",
-				paid_at: {
-					gte: startOfMonth,
-					lt: startOfNextMonth,
-				},
+				payment_type: "Renewal"
 			},
 			_sum: {
 				amount: true,
@@ -45,11 +18,7 @@ export const getPaymentSummaryService = async () => {
 
 		prisma.payments.aggregate({
 			where: {
-				payment_type: "Upgrade",
-				paid_at: {
-					gte: startOfMonth,
-					lt: startOfNextMonth,
-				},
+				payment_type: "Upgrade"
 			},
 			_sum: {
 				amount: true,
@@ -61,11 +30,7 @@ export const getPaymentSummaryService = async () => {
 
 		prisma.payments.aggregate({
 			where: {
-				payment_type: "Membership",
-				paid_at: {
-					gte: startOfMonth,
-					lt: startOfNextMonth,
-				},
+				payment_type: "Membership"
 			},
 			_sum: {
 				amount: true,

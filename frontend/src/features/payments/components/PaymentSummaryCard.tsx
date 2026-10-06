@@ -175,7 +175,7 @@ export function PaymentSummaryCards({
 									dark:text-slate-500
 								"
 							>
-								{card.description} · This month
+								{card.description}
 							</div>
 						</CardContent>
 					</Card>

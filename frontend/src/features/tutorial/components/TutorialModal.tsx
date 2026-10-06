@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import {
   Dialog,
   DialogContent,
@@ -20,7 +20,12 @@ import {
 } from "@/components/ui/select";
 import { useCreateTutorial, useUpdateTutorial } from "../hook/useTutorial";
 import type { Workout, WorkoutForm } from "../types/TutorialType";
-import { CATEGORIES, EQUIPMENT_OPTIONS, LEVELS, MUSCLES_TARGETED } from "../constants/TutorialConstants";
+import {
+  CATEGORIES,
+  EQUIPMENT_OPTIONS,
+  LEVELS,
+  MUSCLES_TARGETED,
+} from "../constants/TutorialConstants";
 import { parseYouTubeId, ytThumb } from "@/utils/ytParser";
 import { toast } from "sonner";
 import { theme } from "@/utils/theme";
@@ -31,9 +36,28 @@ interface ModalType {
   onClose: () => void;
 }
 
-export function TutorialModal({ open, initial, onClose }: ModalType) {
-  const { mutate: createTutorial, isPending: isCreating } = useCreateTutorial();
-  const { mutate: updateTutorial, isPending: isUpdating } = useUpdateTutorial();
+const defaultValues: WorkoutForm = {
+  name: "",
+  category: "",
+  level: "",
+  video_url: "",
+  instructions: "",
+  equipment: [],
+  muscles_targeted: [],
+  demo_images: [],
+};
+
+export function TutorialModal({
+  open,
+  initial,
+  onClose,
+}: ModalType) {
+  const { mutate: createTutorial, isPending: isCreating } =
+    useCreateTutorial();
+
+  const { mutate: updateTutorial, isPending: isUpdating } =
+    useUpdateTutorial();
+
   const isPending = isCreating || isUpdating;
 
   const {
@@ -41,25 +65,18 @@ export function TutorialModal({ open, initial, onClose }: ModalType) {
     handleSubmit,
     reset,
     setValue,
+    control,
     watch,
-    formState: { dirtyFields },
+    formState: { errors, dirtyFields },
   } = useForm<WorkoutForm>({
-    defaultValues: {
-      name: "",
-      category: "",
-      level: "",
-      video_url: "",
-      instructions: "",
-      equipment: [],
-      muscles_targeted: [],
-      demo_images: [],
-    },
+    defaultValues,
   });
 
   const category = watch("category");
   const video = watch("video_url");
   const equipment = watch("equipment") || [];
   const muscles = watch("muscles_targeted") || [];
+
   const videoId = parseYouTubeId(video);
   const thumb = videoId ? ytThumb(videoId) : null;
 
@@ -80,44 +97,44 @@ export function TutorialModal({ open, initial, onClose }: ModalType) {
     if (initial) {
       const { ...data } = initial;
 
+      const isCustomCategory = !CATEGORIES.includes(data.category);
+
       reset({
         ...data,
+        category: isCustomCategory ? data.category : data.category,
         demo_images: [],
       });
 
       setVideoInput(data.video_url);
       setExistingImages(data.demo_images || []);
       setFiles([]);
-
-      setCustomCategory(!CATEGORIES.includes(data.category));
+      setCustomCategory(isCustomCategory);
 
       setCustomEquipments(
-        data.equipment.filter((x) => !EQUIPMENT_OPTIONS.includes(x))
+        data.equipment.filter(
+          (x) => !EQUIPMENT_OPTIONS.includes(x)
+        )
       );
 
       setCustomMuscles(
-        data.muscles_targeted.filter((x) => !MUSCLES_TARGETED.includes(x))
+        data.muscles_targeted.filter(
+          (x) => !MUSCLES_TARGETED.includes(x)
+        )
       );
 
       setShowEquipment(
-        data.equipment.some((x) => !EQUIPMENT_OPTIONS.includes(x))
+        data.equipment.some(
+          (x) => !EQUIPMENT_OPTIONS.includes(x)
+        )
       );
 
       setShowMuscle(
-        data.muscles_targeted.some((x) => !MUSCLES_TARGETED.includes(x))
+        data.muscles_targeted.some(
+          (x) => !MUSCLES_TARGETED.includes(x)
+        )
       );
     } else {
-      reset({
-        name: "",
-        category: "",
-        level: "",
-        video_url: "",
-        instructions: "",
-        equipment: [],
-        muscles_targeted: [],
-        demo_images: [],
-      });
-
+      reset(defaultValues);
       setVideoInput("");
       setExistingImages([]);
       setFiles([]);
@@ -139,10 +156,14 @@ export function TutorialModal({ open, initial, onClose }: ModalType) {
       ? current.filter((x) => x !== value)
       : [...current, value];
 
-    setValue(field, updated, { shouldDirty: true });
+    setValue(field, updated, {
+      shouldDirty: true,
+    });
   };
 
-  const addCustom = (field: "equipment" | "muscles_targeted") => {
+  const addCustom = (
+    field: "equipment" | "muscles_targeted"
+  ) => {
     const value =
       field === "equipment"
         ? customEquipment.trim()
@@ -174,7 +195,9 @@ export function TutorialModal({ open, initial, onClose }: ModalType) {
   };
 
   const removeCustomEquipment = (value: string) => {
-    setCustomEquipments((prev) => prev.filter((x) => x !== value));
+    setCustomEquipments((prev) =>
+      prev.filter((x) => x !== value)
+    );
 
     setValue(
       "equipment",
@@ -184,7 +207,9 @@ export function TutorialModal({ open, initial, onClose }: ModalType) {
   };
 
   const removeCustomMuscle = (value: string) => {
-    setCustomMuscles((prev) => prev.filter((x) => x !== value));
+    setCustomMuscles((prev) =>
+      prev.filter((x) => x !== value)
+    );
 
     setValue(
       "muscles_targeted",
@@ -196,14 +221,34 @@ export function TutorialModal({ open, initial, onClose }: ModalType) {
   const handleFiles = (list: FileList | null) => {
     if (!list) return;
 
-    setFiles((prev) => [...prev, ...Array.from(list)]);
+    setFiles((prev) => [
+      ...prev,
+      ...Array.from(list),
+    ]);
   };
 
   const removeFile = (index: number) => {
-    setFiles((prev) => prev.filter((_, i) => i !== index));
+    setFiles((prev) =>
+      prev.filter((_, i) => i !== index)
+    );
   };
 
   const submit = (data: WorkoutForm) => {
+    if (equipment.length === 0) {
+      toast.error("Please select at least one equipment.");
+      return;
+    }
+  
+    if (muscles.length === 0) {
+      toast.error("Please select at least one muscle targeted.");
+      return;
+    }
+  
+    if (existingImages.length === 0 && files.length === 0) {
+      toast.error("Please add at least one demonstration image.");
+      return;
+    }
+    
     const formData = new FormData();
 
     if (initial) {
@@ -224,7 +269,10 @@ export function TutorialModal({ open, initial, onClose }: ModalType) {
       }
 
       if (dirtyFields.instructions) {
-        formData.append("instructions", data.instructions);
+        formData.append(
+          "instructions",
+          data.instructions
+        );
       }
 
       if (dirtyFields.equipment) {
@@ -250,7 +298,9 @@ export function TutorialModal({ open, initial, onClose }: ModalType) {
         },
         {
           onSuccess() {
-            toast.success("Tutorial updated successfully!");
+            toast.success(
+              "Tutorial updated successfully!"
+            );
             onClose();
           },
         }
@@ -279,7 +329,9 @@ export function TutorialModal({ open, initial, onClose }: ModalType) {
 
     createTutorial(formData, {
       onSuccess() {
-        toast.success("Tutorial created successfully!");
+        toast.success(
+          "Tutorial created successfully!"
+        );
         onClose();
       },
     });
@@ -292,6 +344,7 @@ export function TutorialModal({ open, initial, onClose }: ModalType) {
           <DialogTitle className="text-xl font-semibold text-slate-800 dark:text-slate-100">
             {initial ? "Update Tutorial" : "Add Tutorial"}
           </DialogTitle>
+
           <p className="text-xs text-slate-400 dark:text-slate-500">
             Fill in workout information
           </p>
@@ -314,9 +367,17 @@ export function TutorialModal({ open, initial, onClose }: ModalType) {
 
                 <Input
                   placeholder="Workout name..."
-                  {...register("name")}
+                  {...register("name", {
+                    required: "Workout name is required",
+                  })}
                   className="h-11 border-slate-200 bg-white text-slate-700 dark:border-stone-700 dark:bg-stone-800 dark:text-slate-200"
                 />
+
+                {errors.name && (
+                  <p className="text-xs text-red-500">
+                    {errors.name.message}
+                  </p>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -325,45 +386,78 @@ export function TutorialModal({ open, initial, onClose }: ModalType) {
                     Category
                   </label>
 
-                  <Select
-                    value={customCategory ? "Custom" : category}
-                    onValueChange={(value) => {
-                      if (value === "Custom") {
-                        setCustomCategory(true);
-                        setValue("category", "", {
-                          shouldDirty: true,
-                        });
-                      } else {
-                        setCustomCategory(false);
-                        setValue("category", value, {
-                          shouldDirty: true,
-                        });
-                      }
+                  <Controller
+                    control={control}
+                    name="category"
+                    rules={{
+                      validate: (value) =>
+                        value.trim()
+                          ? true
+                          : "Category is required",
                     }}
-                  >
-                    <SelectTrigger className="h-11 w-full border-slate-200 bg-white py-5 text-slate-700 dark:border-stone-700 dark:bg-stone-800 dark:text-slate-200">
-                      <SelectValue placeholder="Category" />
-                    </SelectTrigger>
+                    render={({ field }) => (
+                      <Select
+                        value={
+                          customCategory
+                            ? "Custom"
+                            : field.value
+                        }
+                        onValueChange={(value) => {
+                          if (value === "Custom") {
+                            setCustomCategory(true);
 
-                    <SelectContent className="border-slate-200 bg-white dark:border-stone-700 dark:bg-stone-900">
-                      {CATEGORIES.map((x) => (
-                        <SelectItem key={x} value={x}>
-                          {x}
-                        </SelectItem>
-                      ))}
+                            setValue("category", "", {
+                              shouldDirty: true,
+                              shouldValidate: true,
+                            });
+                          } else {
+                            setCustomCategory(false);
 
-                      <SelectItem value="Custom">+ Custom</SelectItem>
-                    </SelectContent>
-                  </Select>
+                            field.onChange(value);
+                          }
+                        }}
+                      >
+                        <SelectTrigger className="h-11 w-full border-slate-200 bg-white py-5 text-slate-700 dark:border-stone-700 dark:bg-stone-800 dark:text-slate-200">
+                          <SelectValue placeholder="Select Category" />
+                        </SelectTrigger>
+
+                        <SelectContent className="border-slate-200 bg-white dark:border-stone-700 dark:bg-stone-900">
+                          {CATEGORIES.map((x) => (
+                            <SelectItem
+                              key={x}
+                              value={x}
+                            >
+                              {x}
+                            </SelectItem>
+                          ))}
+
+                          <SelectItem value="Custom">
+                            + Custom
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+
+                  {errors.category && (
+                    <p className="text-xs text-red-500">
+                      {errors.category.message}
+                    </p>
+                  )}
 
                   {customCategory && (
                     <Input
                       placeholder="Custom category..."
                       value={category}
                       onChange={(e) =>
-                        setValue("category", e.target.value, {
-                          shouldDirty: true,
-                        })
+                        setValue(
+                          "category",
+                          e.target.value,
+                          {
+                            shouldDirty: true,
+                            shouldValidate: true,
+                          }
+                        )
                       }
                       className="mt-2 h-11 border-slate-200 bg-white dark:border-stone-700 dark:bg-stone-800"
                     />
@@ -375,32 +469,40 @@ export function TutorialModal({ open, initial, onClose }: ModalType) {
                     Level
                   </label>
 
-                  <Select
-                    value={watch("level")}
-                    onValueChange={(value) =>
-                      setValue(
-                        "level",
-                        value as
-                          | "Beginner"
-                          | "Intermediate"
-                          | "Advanced"
-                          | "",
-                        { shouldDirty: true }
-                      )
-                    }
-                  >
-                    <SelectTrigger className="h-11 w-full border-slate-200 bg-white py-5 text-slate-700 dark:border-stone-700 dark:bg-stone-800 dark:text-slate-200">
-                      <SelectValue placeholder="Level" />
-                    </SelectTrigger>
+                  <Controller
+                    control={control}
+                    name="level"
+                    rules={{
+                      required: "Level is required",
+                    }}
+                    render={({ field }) => (
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
+                        <SelectTrigger className="h-11 w-full border-slate-200 bg-white py-5 text-slate-700 dark:border-stone-700 dark:bg-stone-800 dark:text-slate-200">
+                          <SelectValue placeholder="Select Level" />
+                        </SelectTrigger>
 
-                    <SelectContent className="border-slate-200 bg-white dark:border-stone-700 dark:bg-stone-900">
-                      {LEVELS.map((x) => (
-                        <SelectItem key={x} value={x}>
-                          {x}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                        <SelectContent className="border-slate-200 bg-white dark:border-stone-700 dark:bg-stone-900">
+                          {LEVELS.map((x) => (
+                            <SelectItem
+                              key={x}
+                              value={x}
+                            >
+                              {x}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+
+                  {errors.level && (
+                    <p className="text-xs text-red-500">
+                      {errors.level.message}
+                    </p>
+                  )}
                 </div>
               </div>
             </section>
@@ -412,15 +514,30 @@ export function TutorialModal({ open, initial, onClose }: ModalType) {
 
               <Input
                 placeholder="Video URL..."
+                {...register("video_url", {
+                  required: "Video URL is required",
+                })}
                 value={videoInput}
                 onChange={(e) => {
                   setVideoInput(e.target.value);
-                  setValue("video_url", e.target.value, {
-                    shouldDirty: true,
-                  });
+
+                  setValue(
+                    "video_url",
+                    e.target.value,
+                    {
+                      shouldDirty: true,
+                      shouldValidate: true,
+                    }
+                  );
                 }}
                 className="h-11 border-slate-200 bg-white dark:border-stone-700 dark:bg-stone-800"
               />
+
+              {errors.video_url && (
+                <p className="text-xs text-red-500">
+                  {errors.video_url.message}
+                </p>
+              )}
 
               {thumb && (
                 <img
@@ -438,9 +555,17 @@ export function TutorialModal({ open, initial, onClose }: ModalType) {
               <Textarea
                 rows={5}
                 placeholder="Workout instructions..."
-                {...register("instructions")}
+                {...register("instructions", {
+                  required: "Instructions are required",
+                })}
                 className="h-30 border-slate-200 bg-white text-slate-700 dark:border-stone-700 dark:bg-stone-800 dark:text-slate-200"
               />
+
+              {errors.instructions && (
+                <p className="text-xs text-red-500">
+                  {errors.instructions.message}
+                </p>
+              )}
             </section>
 
             <section className="space-y-3">
@@ -453,7 +578,9 @@ export function TutorialModal({ open, initial, onClose }: ModalType) {
                   <button
                     key={x}
                     type="button"
-                    onClick={() => toggleArray("equipment", x)}
+                    onClick={() =>
+                      toggleArray("equipment", x)
+                    }
                     className={`rounded-full border px-3 py-1.5 text-xs transition ${
                       equipment.includes(x)
                         ? "border-emerald-500 bg-emerald-500 text-white"
@@ -466,7 +593,9 @@ export function TutorialModal({ open, initial, onClose }: ModalType) {
 
                 <button
                   type="button"
-                  onClick={() => setShowEquipment(!showEquipment)}
+                  onClick={() =>
+                    setShowEquipment(!showEquipment)
+                  }
                   className="flex items-center gap-1 rounded-full border border-dashed px-3 py-1.5 text-xs text-slate-600 dark:text-slate-300"
                 >
                   <Plus size={14} />
@@ -486,7 +615,9 @@ export function TutorialModal({ open, initial, onClose }: ModalType) {
 
                         <button
                           type="button"
-                          onClick={() => removeCustomEquipment(item)}
+                          onClick={() =>
+                            removeCustomEquipment(item)
+                          }
                         >
                           <X size={13} />
                         </button>
@@ -498,14 +629,18 @@ export function TutorialModal({ open, initial, onClose }: ModalType) {
                     <Input
                       placeholder="Equipment name..."
                       value={customEquipment}
-                      onChange={(e) => setCustomEquipment(e.target.value)}
+                      onChange={(e) =>
+                        setCustomEquipment(e.target.value)
+                      }
                       className="h-10 border-slate-200 bg-white dark:border-stone-700 dark:bg-stone-800"
                     />
 
                     <Button
                       type="button"
                       size="icon"
-                      onClick={() => addCustom("equipment")}
+                      onClick={() =>
+                        addCustom("equipment")
+                      }
                       className="bg-emerald-500 hover:bg-emerald-600"
                     >
                       <Plus size={16} />
@@ -525,7 +660,12 @@ export function TutorialModal({ open, initial, onClose }: ModalType) {
                   <button
                     key={x}
                     type="button"
-                    onClick={() => toggleArray("muscles_targeted", x)}
+                    onClick={() =>
+                      toggleArray(
+                        "muscles_targeted",
+                        x
+                      )
+                    }
                     className={`rounded-full border px-3 py-1.5 text-xs transition ${
                       muscles.includes(x)
                         ? "border-indigo-500 bg-indigo-500 text-white"
@@ -538,7 +678,9 @@ export function TutorialModal({ open, initial, onClose }: ModalType) {
 
                 <button
                   type="button"
-                  onClick={() => setShowMuscle(!showMuscle)}
+                  onClick={() =>
+                    setShowMuscle(!showMuscle)
+                  }
                   className="flex items-center gap-1 rounded-full border border-dashed px-3 py-1.5 text-xs text-slate-600 dark:text-slate-300"
                 >
                   <Plus size={14} />
@@ -558,7 +700,9 @@ export function TutorialModal({ open, initial, onClose }: ModalType) {
 
                         <button
                           type="button"
-                          onClick={() => removeCustomMuscle(item)}
+                          onClick={() =>
+                            removeCustomMuscle(item)
+                          }
                         >
                           <X size={13} />
                         </button>
@@ -570,14 +714,18 @@ export function TutorialModal({ open, initial, onClose }: ModalType) {
                     <Input
                       placeholder="Muscle name..."
                       value={customMuscle}
-                      onChange={(e) => setCustomMuscle(e.target.value)}
+                      onChange={(e) =>
+                        setCustomMuscle(e.target.value)
+                      }
                       className="h-10 border-slate-200 bg-white dark:border-stone-700 dark:bg-stone-800"
                     />
 
                     <Button
                       type="button"
                       size="icon"
-                      onClick={() => addCustom("muscles_targeted")}
+                      onClick={() =>
+                        addCustom("muscles_targeted")
+                      }
                       className="bg-emerald-500 hover:bg-emerald-600"
                     >
                       <Plus size={16} />
@@ -607,7 +755,10 @@ export function TutorialModal({ open, initial, onClose }: ModalType) {
                       type="button"
                       onClick={() =>
                         setExistingImages((prev) =>
-                          prev.filter((_, index) => index !== i)
+                          prev.filter(
+                            (_, index) =>
+                              index !== i
+                          )
                         )
                       }
                       className="absolute right-1 top-1 rounded-full bg-black/50 text-white"
@@ -639,7 +790,9 @@ export function TutorialModal({ open, initial, onClose }: ModalType) {
 
                 <button
                   type="button"
-                  onClick={() => fileRef.current?.click()}
+                  onClick={() =>
+                    fileRef.current?.click()
+                  }
                   className="flex h-20 w-20 flex-col items-center justify-center rounded-xl border-2 border-dashed text-xs text-slate-500 dark:text-slate-400"
                 >
                   <ImageIcon size={16} />
@@ -652,7 +805,9 @@ export function TutorialModal({ open, initial, onClose }: ModalType) {
                   hidden
                   multiple
                   accept="image/*"
-                  onChange={(e) => handleFiles(e.target.files)}
+                  onChange={(e) =>
+                    handleFiles(e.target.files)
+                  }
                 />
               </div>
             </section>
@@ -661,6 +816,7 @@ export function TutorialModal({ open, initial, onClose }: ModalType) {
 
         <div className="flex gap-3 border-t border-stone-200 px-6 py-4 dark:border-stone-700">
           <Button
+            type="button"
             variant="outline"
             className="h-11 flex-1 border-slate-200 dark:border-stone-700 dark:text-slate-200 dark:hover:bg-stone-800"
             onClick={onClose}
@@ -669,11 +825,16 @@ export function TutorialModal({ open, initial, onClose }: ModalType) {
           </Button>
 
           <Button
-					  className={`h-11 flex-1 ${theme.gradient} text-white`}
+            type="button"
+            className={`h-11 flex-1 ${theme.gradient} text-white`}
             disabled={isPending}
             onClick={handleSubmit(submit)}
           >
-            {isPending ? "Saving..." : initial ? "Update" : "Save"}
+            {isPending
+              ? "Saving..."
+              : initial
+                ? "Update"
+                : "Save"}
           </Button>
         </div>
       </DialogContent>

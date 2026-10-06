@@ -32,12 +32,13 @@ export function AddPlanModal({ open, onClose }: Props) {
     handleSubmit,
     control,
     reset,
+    formState: { errors },
   } = useForm<CreatePlanDTO>({
     defaultValues: {
       plan_name: "",
       price: 0,
       duration: 1,
-      duration_type: "Month",
+      duration_type: undefined,
       daily_hours_limit: 0,
     },
   });
@@ -87,9 +88,12 @@ export function AddPlanModal({ open, onClose }: Props) {
 
               <Input
                 placeholder="e.g. Premium Plan"
-                {...register("plan_name")}
+                {...register("plan_name", {required: "Plan name is required"})}
                 className="h-11 border-slate-200 bg-white text-slate-700 focus-visible:border-[#8B1E2D] focus-visible:ring-[#8B1E2D]/20 dark:border-stone-700 dark:bg-stone-800 dark:text-slate-200"
               />
+              {errors.plan_name && (
+                <p className="text-xs text-red-500">{errors.plan_name.message}</p>
+              )}
             </div>
 
             <div className="space-y-1.5">
@@ -103,10 +107,14 @@ export function AddPlanModal({ open, onClose }: Props) {
                 step="0.01"
                 placeholder="Enter price"
                 {...register("price", {
+                  required: "Price is required",
                   valueAsNumber: true,
                 })}
                 className="h-11 border-slate-200 bg-white text-slate-700 focus-visible:border-[#8B1E2D] focus-visible:ring-[#8B1E2D]/20 dark:border-stone-700 dark:bg-stone-800 dark:text-slate-200"
               />
+              {errors.price && (
+                <p className="text-xs text-red-500">{errors.price.message}</p>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-3">
@@ -120,10 +128,14 @@ export function AddPlanModal({ open, onClose }: Props) {
                   min="1"
                   placeholder="e.g. 2"
                   {...register("duration", {
+                    required: "Duration is required",
                     valueAsNumber: true,
                   })}
                   className="h-11 border-slate-200 bg-white text-slate-700 focus-visible:border-[#8B1E2D] focus-visible:ring-[#8B1E2D]/20 dark:border-stone-700 dark:bg-stone-800 dark:text-slate-200"
                 />
+                {errors.duration && (
+                  <p className="text-xs text-red-500">{errors.duration.message}</p>
+                )}
               </div>
 
               <div className="space-y-1.5">
@@ -134,13 +146,14 @@ export function AddPlanModal({ open, onClose }: Props) {
                 <Controller
                   name="duration_type"
                   control={control}
+                  rules={{ required: "Duration type is required" }}
                   render={({ field }) => (
                     <Select
                       value={field.value}
                       onValueChange={field.onChange}
                     >
-                      <SelectTrigger className="h-11 w-full border-slate-200 bg-white text-slate-700 focus:ring-[#8B1E2D]/20 dark:border-stone-700 dark:bg-stone-800 dark:text-slate-200">
-                        <SelectValue placeholder="Select" />
+                      <SelectTrigger className="h-11 w-full border-slate-200 bg-white px-3 py-5 text-slate-700 focus:ring-[#8B1E2D]/20 dark:border-stone-700 dark:bg-stone-800 dark:text-slate-200">
+                        <SelectValue placeholder="Select Duration Type" />
                       </SelectTrigger>
 
                       <SelectContent className="border-[#E8C7CC] bg-white dark:border-stone-700 dark:bg-stone-900">
@@ -151,6 +164,12 @@ export function AddPlanModal({ open, onClose }: Props) {
                     </Select>
                   )}
                 />
+
+                {errors.duration_type && (
+                  <p className="text-xs text-red-500">
+                    {errors.duration_type.message}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -161,10 +180,9 @@ export function AddPlanModal({ open, onClose }: Props) {
 
               <Input
                 type="number"
-                min="0.5"
-                step="0.5"
                 placeholder="e.g. 2"
                 {...register("daily_hours_limit", {
+                  required: "Daily gym hours limit is required",
                   valueAsNumber: true,
                 })}
                 className="h-11 border-slate-200 bg-white text-slate-700 focus-visible:border-[#8B1E2D] focus-visible:ring-[#8B1E2D]/20 dark:border-stone-700 dark:bg-stone-800 dark:text-slate-200"
@@ -173,6 +191,12 @@ export function AddPlanModal({ open, onClose }: Props) {
               <p className="text-xs text-slate-500 dark:text-slate-400">
                 Maximum number of hours a member can use the gym per day.
               </p>
+
+              {errors.daily_hours_limit && (
+                <p className="text-xs text-red-500">
+                  {errors.daily_hours_limit.message}
+                </p>
+              )}
             </div>
           </div>
 
