@@ -17,6 +17,7 @@ import { useCheckoutMember } from "../hooks/useAttendance";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 
 type Props = {
 	members: Attendance[];
@@ -36,22 +37,6 @@ export function AttendanceTable({ members, isLoading }: Props) {
 	return () => clearInterval(interval);
 	}, []);
 	
-	/*
-	const canCheckout = (
-		checkinTime: string | null,
-		dailyLimit: number | null
-	) => {
-		if (!checkinTime || !dailyLimit) return false;
-	
-		const checkin = new Date(checkinTime);
-		const now = new Date();
-	
-		const elapsedHours = (now.getTime() - checkin.getTime()) / (1000 * 60 * 60);
-	
-		return elapsedHours >= dailyLimit;
-	};
-	*/
-
 	const getRemainingTime = (
 		checkinTime: string | null,
 		dailyLimit: number | null
@@ -106,107 +91,120 @@ export function AttendanceTable({ members, isLoading }: Props) {
 	return (
 		<Card className="rounded-2xl shadow-sm overflow-hidden p-0">
 			<CardContent className="p-0">
-				<Table className="text-sm">
-					<TableHeader>
-						<TableRow className="hover:bg-transparent bg-slate-50/70 dark:bg-stone-900/50">
-							<TableHead className={TH_CLASS}>Name</TableHead>
-							<TableHead className={TH_CLASS}>Plan</TableHead>
-							<TableHead className={TH_CLASS}>Daily Limit</TableHead>
-							<TableHead className={TH_CLASS}>Remaining Time</TableHead>
-							<TableHead className={TH_CLASS}>Check-in</TableHead>
-							<TableHead className={TH_CLASS}>Check-out</TableHead>
-							<TableHead className={TH_CLASS}>Status</TableHead>
-							<TableHead className={TH_CLASS}>Action</TableHead>
-						</TableRow>
-					</TableHeader>
-
-					<TableBody>
-						{isLoading ? (
-							<TableLoader />
-						) : members.length === 0 ? (
-							<TableRow>
-								<TableCell
-									colSpan={7}
-									className="text-center py-10 text-slate-400"
-								>
-									No attendance found
-								</TableCell>
+				<TooltipProvider>
+					<Table className="text-sm">
+						<TableHeader>
+							<TableRow className="hover:bg-transparent bg-slate-50/70 dark:bg-stone-900/50">
+								<TableHead className={TH_CLASS}>Name</TableHead>
+								<TableHead className={TH_CLASS}>Plan</TableHead>
+								<TableHead className={TH_CLASS}>Daily Limit</TableHead>
+								<TableHead className={TH_CLASS}>Remaining Time</TableHead>
+								<TableHead className={TH_CLASS}>Check-in</TableHead>
+								<TableHead className={TH_CLASS}>Check-out</TableHead>
+								<TableHead className={TH_CLASS}>Status</TableHead>
+								<TableHead className={TH_CLASS}>Action</TableHead>
 							</TableRow>
-						) : (
-							members.map((m, index) => (
-								<TableRow key={index} className="hover:bg-slate-50 transition">
-									<TableCell className="px-5 py-4">
-										<div className="flex items-center gap-3">
-											<Avatar className="w-9 h-9 bg-emerald-100">
-												<AvatarFallback  className="bg-[#963348] text-xs font-semibold text-white dark:bg-[#7A1F31]">
-													{getInitials(m.name)}
-												</AvatarFallback>
-											</Avatar>
+						</TableHeader>
 
-											<span className="font-medium text-slate-700">
-												{m.name}
-											</span>
-										</div>
-									</TableCell>
-
-									<TableCell className="px-5 py-4">
-										<Badge className="bg-indigo-100 text-indigo-700 hover:bg-indigo-100">
-										{m.plan ?? "No Plan"}
-										</Badge>
-									</TableCell>
-									
-									<TableCell className="px-5 py-4 text-slate-600">
-										{m.daily_limit !== 0 ? `${m.daily_limit} hrs` : "Unlimited"}
-									</TableCell>
-
-									<TableCell className="px-5 py-4 text-slate-600">
-										{getRemainingTime(m.checkin_time, m.daily_limit)}
-									</TableCell>
-																		
-									<TableCell className="px-5 py-4 text-slate-600">
-										{formatPhilippineTime(m.checkin_time)}
-									</TableCell>
-									
-									<TableCell className="px-5 py-4 text-slate-600">
-										{formatPhilippineTime(m.checkout_time)}
-									</TableCell>
-
-									<TableCell className="px-5 py-4">
-										<Badge
-											className={
-												m.status === "CHECK_IN"
-												? "bg-emerald-100 text-emerald-700 hover:bg-emerald-100"
-												: "bg-amber-100 text-amber-700 hover:bg-amber-100"
-											}
-										>
-											{m.status}
-										</Badge>
-									</TableCell>
-
-									<TableCell className="px-2 py-4">
-										<Button
-											size="sm"
-											variant="ghost"
-											title="Mark checkout"
-											className="h-8 gap-2 rounded-lg px-3 bg-red-500 text-white hover:bg-red-600 hover:text-white"
-											onClick={() => handleCheckout(m.attendance_id)}
-											disabled={isPending || m.status == "CHECK_OUT"}
-										>
-											{isPending ? (
-												<LoaderCircle className="h-4 w-4 animate-spin" />
-											) : (
-												<CircleCheck
-													size={16}
-													strokeWidth={1.8}
-												/>
-											)}
-										</Button>
+						<TableBody>
+							{isLoading ? (
+								<TableLoader />
+							) : members.length === 0 ? (
+								<TableRow>
+									<TableCell
+										colSpan={8}
+										className="text-center py-10 text-slate-400"
+									>
+										No attendance found
 									</TableCell>
 								</TableRow>
-							))
-						)}
-					</TableBody>
-				</Table>
+							) : (
+								members.map((m, index) => (
+									<TableRow key={index} className="hover:bg-slate-50 transition">
+										<TableCell className="px-5 py-4">
+											<div className="flex items-center gap-3">
+												<Avatar className="w-9 h-9 bg-emerald-100">
+													<AvatarFallback  className="bg-[#963348] text-xs font-semibold text-white dark:bg-[#7A1F31]">
+														{getInitials(m.name)}
+													</AvatarFallback>
+												</Avatar>
+
+												<span className="font-medium text-slate-700">
+													{m.name}
+												</span>
+											</div>
+										</TableCell>
+
+										<TableCell className="px-5 py-4">
+											<Badge className="bg-indigo-100 text-indigo-700 hover:bg-indigo-100">
+											{m.plan ?? "No Plan"}
+											</Badge>
+										</TableCell>
+										
+										<TableCell className="px-5 py-4 text-slate-600">
+											{m.daily_limit !== 0 ? `${m.daily_limit} hrs` : "Unlimited"}
+										</TableCell>
+
+										<TableCell className="px-5 py-4 text-slate-600">
+											{getRemainingTime(m.checkin_time, m.daily_limit)}
+										</TableCell>
+																			
+										<TableCell className="px-5 py-4 text-slate-600">
+											{formatPhilippineTime(m.checkin_time)}
+										</TableCell>
+										
+										<TableCell className="px-5 py-4 text-slate-600">
+											{formatPhilippineTime(m.checkout_time)}
+										</TableCell>
+
+										<TableCell className="px-5 py-4">
+											<Badge
+												className={
+													m.status === "CHECK_IN"
+													? "bg-emerald-100 text-emerald-700 hover:bg-emerald-100"
+													: "bg-amber-100 text-amber-700 hover:bg-amber-100"
+												}
+											>
+												{m.status}
+											</Badge>
+										</TableCell>
+
+										<TableCell className="px-2 py-4">
+										<Tooltip>
+											<TooltipTrigger asChild>
+												<Button
+												size="sm"
+												variant="ghost"
+												className="h-8 gap-2 rounded-lg bg-red-500 px-3 text-white hover:bg-red-600 hover:text-white"
+												onClick={() => handleCheckout(m.attendance_id)}
+												disabled={isPending || m.status == "CHECK_OUT"}
+												>
+												{isPending ? (
+													<LoaderCircle className="h-4 w-4 animate-spin" />
+												) : (
+													<CircleCheck
+														size={16}
+														strokeWidth={1.8}
+													/>
+												)}
+												</Button>
+											</TooltipTrigger>
+
+											<TooltipContent>
+												<p>
+												{m.status === "CHECK_OUT"
+													? "Already checked out"
+													: "Mark checkout"}
+												</p>
+											</TooltipContent>
+										</Tooltip>
+										</TableCell>
+									</TableRow>
+								))
+							)}
+						</TableBody>
+					</Table>
+				</TooltipProvider>
 			</CardContent>
 		</Card>
 	);

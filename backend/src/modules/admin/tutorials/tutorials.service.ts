@@ -76,12 +76,9 @@ export const getAllTutorialsService = async (filters: WorkoutFilters) => {
     },
   });
 
-  console.log("Filters:", filters);
-  console.log("Where:", where);
-  console.log("Tutorials:", res);
-
   return res;
 };
+
 export const createTutorialService = async (
   body: any,
   files: Express.Multer.File[]

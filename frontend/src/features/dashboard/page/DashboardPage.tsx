@@ -109,8 +109,8 @@ import {
 					value={summaryData?.totalExpiredMemberships?.toString() ?? "0"}
 					sub="Currently expired"
 					icon={CalendarX}
-					trend={`${(summaryData?.expiredMembershipTrend ?? 0) >= 0 ? "+" : ""}${summaryData?.expiredMembershipTrend ?? 0}`}
-					trendUp={(summaryData?.expiredMembershipTrend ?? 0) <= 0}
+					trend={`${(summaryData?.expiredMembershipTrend ?? 0) > 0 ? "+" : ""}${Math.abs(summaryData?.expiredMembershipTrend ?? 0)}`}
+					trendUp={(summaryData?.expiredMembershipTrend ?? 0) > 0}
 					trendLabel="vs last month"
 					color="bg-rose-50 dark:bg-rose-950/40"
 					iconColor="text-rose-600 dark:text-rose-400"

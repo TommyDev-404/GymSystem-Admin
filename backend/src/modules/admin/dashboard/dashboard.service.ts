@@ -197,10 +197,8 @@ export const getSummaryDataService = async () => {
 				expiredMembershipsPreviousMonth++;
 			}
 		}
-
-		const expiredMembershipTrend =
-			expiredMembershipsThisMonth -
-			expiredMembershipsPreviousMonth;
+		
+		const expiredMembershipTrend = expiredMembershipsThisMonth - expiredMembershipsPreviousMonth;
 
 		// ==========================================
 		// PAYMENTS
@@ -248,13 +246,11 @@ export const getSummaryDataService = async () => {
 			totalMalePresent,
 			totalFemalePresent,
 
-			totalPaidThisMonth:
-				totalPaidThisMonth._sum.amount ?? 0,
+			totalPaidThisMonth: totalPaidThisMonth._sum.amount ?? 0,
 
 			paymentTrendThisMonth,
 
-			totalExpiredMemberships:
-				expiredMembershipsThisMonth,
+			totalExpiredMemberships: expiredMembershipsThisMonth,
 
 			expiredMembershipTrend,
 		};
