@@ -38,7 +38,7 @@ import {
 	const { data: plans = [] } = usePlans();
 	const { mutate: renewMembership, isPending } = useRenewMembership();
  
-	const { control, handleSubmit, reset } = useForm<RenewForm>({
+	const { control, handleSubmit, reset, formState: { errors } } = useForm<RenewForm>({
 	  defaultValues: {
 		 plan_id: undefined,
 		 payment_method: undefined,
@@ -128,6 +128,10 @@ import {
 					  </Select>
 					)}
 				 />
+				 
+				 {errors.plan_id && (
+					<p className="text-xs text-red-500">{errors.plan_id.message}</p>
+				)}
 			  </div>
  
 			  <div className="space-y-1.5">
@@ -168,7 +172,10 @@ import {
 						 </SelectContent>
 					  </Select>
 					)}
-				 />
+					/>
+						 {errors.payment_method && (
+					<p className="text-xs text-red-500">{errors.payment_method.message}</p>
+				)}
 			  </div>
  
 			  <div className="mt-3 flex gap-3">
