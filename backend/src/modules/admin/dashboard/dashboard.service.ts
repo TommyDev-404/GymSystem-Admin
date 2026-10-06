@@ -175,6 +175,7 @@ export const getSummaryDataService = async () => {
 		// EXPIRED MEMBERSHIPS
 		// ==========================================
 
+		let overallExpiredMemberships = 0;
 		let expiredMembershipsThisMonth = 0;
 		let expiredMembershipsPreviousMonth = 0;
 
@@ -182,6 +183,8 @@ export const getSummaryDataService = async () => {
 			if (membership.status !== "Expired") {
 				continue;
 			}
+
+			overallExpiredMemberships++;
 
 			if (
 				membership.end_date >= startOfCurrentMonth &&
@@ -197,8 +200,6 @@ export const getSummaryDataService = async () => {
 				expiredMembershipsPreviousMonth++;
 			}
 		}
-		
-		const expiredMembershipTrend = expiredMembershipsThisMonth - expiredMembershipsPreviousMonth;
 
 		// ==========================================
 		// PAYMENTS
@@ -250,9 +251,9 @@ export const getSummaryDataService = async () => {
 
 			paymentTrendThisMonth,
 
-			totalExpiredMemberships: expiredMembershipsThisMonth,
-
-			expiredMembershipTrend,
+			overallExpiredMemberships,
+			expiredMembershipsThisMonth,
+			expiredMembershipsPreviousMonth,
 		};
 	});
 };

@@ -34,7 +34,14 @@ export function MemberModal({ open, setOpen }: Props) {
 
   const { data: plans = [] } = usePlans();
 
-  const { register, handleSubmit, control, reset, watch } =
+  const {
+    register,
+    handleSubmit,
+    control,
+    reset,
+    watch, 
+    formState: { errors }
+  } =
     useForm<AddMemberFormType>({
       defaultValues: {
         fullname: "",
@@ -108,10 +115,13 @@ export function MemberModal({ open, setOpen }: Props) {
                   Full Name
                 </label>
                 <Input
-                  {...register("fullname")}
+                  {...register("fullname", { required: "Full name is required" })}
                   placeholder="Enter full name"
                   className="h-11 bg-white dark:bg-stone-800 border-slate-200 dark:border-stone-700 text-slate-700 dark:text-slate-200"
                 />
+                {errors.fullname && (
+                  <p className="text-xs text-red-500">{errors.fullname.message}</p>
+                )}
               </div>
 
               {/* EMAIL */}
@@ -120,10 +130,13 @@ export function MemberModal({ open, setOpen }: Props) {
                   Email Address
                 </label>
                 <Input
-                  {...register("email")}
+                  {...register("email", { required: "Email is required" })}
                   placeholder="example@email.com"
                   className="h-11 bg-white dark:bg-stone-800 border-slate-200 dark:border-stone-700 text-slate-700 dark:text-slate-200"
                 />
+                {errors.email && (
+                  <p className="text-xs text-red-500">{errors.email.message}</p>
+                )}
               </div>
 
               {/* AGE + GENDER */}
@@ -136,9 +149,16 @@ export function MemberModal({ open, setOpen }: Props) {
                   <Input
                     type="number"
                     placeholder="Age"
-                    {...register("age", { valueAsNumber: true })}
+                    {...register("age", {
+                      valueAsNumber: true,
+                      required: "Age is required",
+                      min: { value: 1, message: "Age must be greater than 0" },
+                    })}
                     className="h-11 bg-white dark:bg-stone-800 border-slate-200 dark:border-stone-700 text-slate-700 dark:text-slate-200"
                   />
+                  {errors.age && (
+                    <p className="text-xs text-red-500">{errors.age.message}</p>
+                  )}
                 </div>
 
                 {/* GENDER */}
@@ -146,29 +166,26 @@ export function MemberModal({ open, setOpen }: Props) {
                   <label className="text-sm font-medium text-slate-700 dark:text-slate-200">
                     Gender
                   </label>
-						
-              <Controller
-							control={control}
-							name="gender"
-							render={({ field }) => (
-								<Select
-									value={field.value}
-									onValueChange={field.onChange}
-								>
-									<SelectTrigger className="w-full py-5.5 bg-white dark:bg-stone-800 border-slate-200 dark:border-stone-700 text-slate-700 dark:text-slate-200">
-										<SelectValue placeholder="Select gender" />
-									</SelectTrigger>
-
-									<SelectContent
-										position="popper"
-										className="z-[100] bg-white dark:bg-stone-900 border-slate-200 dark:border-stone-700"
-									>
-										<SelectItem value="Male">Male</SelectItem>
-										<SelectItem value="Female">Female</SelectItem>
-									</SelectContent>
-								</Select>
-							)}
-						/>
+					
+                  <Controller
+                    control={control}
+                    name="gender"
+                    rules={{ required: "Please select a gender" }}
+                    render={({ field }) => (
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <SelectTrigger className="w-full py-5.5 bg-white dark:bg-stone-800 border-slate-200 dark:border-stone-700 text-slate-700 dark:text-slate-200">
+                          <SelectValue placeholder="Select gender" />
+                        </SelectTrigger>
+                        <SelectContent position="popper">
+                          <SelectItem value="Male">Male</SelectItem>
+                          <SelectItem value="Female">Female</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                  {errors.gender && (
+                    <p className="text-xs text-red-500">{errors.gender.message}</p>
+                  )}
                 </div>
               </div>
 
@@ -196,55 +213,65 @@ export function MemberModal({ open, setOpen }: Props) {
                 <label className="text-sm font-medium text-slate-700 dark:text-slate-200">
                   Membership Plan
 							  </label>
-							  
-                <Controller
-						control={control}
-						name="plan_id"
-						render={({ field }) => (
-							<Select
-								value={field.value ? String(field.value) : ""}
-								onValueChange={(value) => field.onChange(Number(value))}
-							>
-								<SelectTrigger className="w-full py-5.5 bg-white dark:bg-stone-800 border-slate-200 dark:border-stone-700 text-slate-700 dark:text-slate-200">
-									<SelectValue placeholder={plans.length > 0 ? "Select membership plan" : "No available membership plan"} />
-								</SelectTrigger>
-
-								<SelectContent
-									position="popper"
-									className="z-[100] bg-white dark:bg-stone-900 border-slate-200 dark:border-stone-700 py-2"
-								>
-                  {plans.map((p: MemberPlan) => (
-                    <SelectItem
-                      key={p.id}
-                      value={String(p.id)}
-                      className="py-3"
+							  <Controller
+                  control={control}
+                  name="plan_id"
+                  rules={{ required: "Please select a membership plan" }}
+                  render={({ field }) => (
+                    <Select
+                      value={field.value ? String(field.value) : ""}
+                      onValueChange={(value) => field.onChange(Number(value))}
                     >
-                      <div className="flex w-full flex-col gap-1">
-                        <span className="font-medium text-slate-800 dark:text-slate-100">
-                          {p.plan_name}
-                        </span>
-                    
-                        <span className="text-xs text-slate-500 dark:text-slate-400">
-                          {p.duration} {p.duration_type.toLowerCase()} membership
-                          {" · "}
-                          {p.daily_hours_limit !== 0 ? (
-                            `${p.daily_hours_limit} hrs/day`
-                          ) : (
-                              "Unlimited hrs per day"
-                          )}
-                          
-                          {" · "}
-                          ₱{Number(p.price).toLocaleString("en-PH", {
-                            minimumFractionDigits: 2,
-                          })}
-                        </span>
-                      </div>
-                    </SelectItem>
-									))}
-								</SelectContent>
-							</Select>
-						)}
-					/>
+                      <SelectTrigger className="w-full py-5.5 bg-white dark:bg-stone-800 border-slate-200 dark:border-stone-700 text-slate-700 dark:text-slate-200">
+                        <SelectValue
+                          placeholder={
+                            plans.length > 0
+                              ? "Select membership plan"
+                              : "No available membership plan"
+                          }
+                        />
+                      </SelectTrigger>
+
+                      <SelectContent
+                        position="popper"
+                        className="z-[100] bg-white dark:bg-stone-900 border-slate-200 dark:border-stone-700 py-2"
+                      >
+                        {plans.map((p: MemberPlan) => (
+                          <SelectItem
+                            key={p.id}
+                            value={String(p.id)}
+                            className="py-3"
+                          >
+                            <div className="flex w-full flex-col gap-1">
+                              <span className="font-medium text-slate-800 dark:text-slate-100">
+                                {p.plan_name}
+                              </span>
+
+                              <span className="text-xs text-slate-500 dark:text-slate-400">
+                                {p.duration} {p.duration_type.toLowerCase()} membership
+                                {" · "}
+                                {p.daily_hours_limit !== 0
+                                  ? `${p.daily_hours_limit} hrs/day`
+                                  : "Unlimited hrs per day"}
+                                {" · "}
+                                ₱
+                                {Number(p.price).toLocaleString("en-PH", {
+                                  minimumFractionDigits: 2,
+                                })}
+                              </span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+
+                {errors.plan_id && (
+                  <p className="text-xs text-red-500">
+                    {errors.plan_id.message}
+                  </p>
+                )}
               </div>
 
               {/* AMOUNT TO PAY */}
@@ -274,31 +301,27 @@ export function MemberModal({ open, setOpen }: Props) {
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-slate-700 dark:text-slate-200">
                     Payment Method
-								  </label>
-								  
-						<Controller
-							control={control}
-							name="payment_method"
-							render={({ field }) => (
-								<Select
-									value={field.value}
-									onValueChange={field.onChange}
-								>
-									<SelectTrigger className="w-full py-5.5 bg-white dark:bg-stone-800 border-slate-200 dark:border-stone-700 text-slate-700 dark:text-slate-200">
-										<SelectValue placeholder="Select payment method" />
-									</SelectTrigger>
-
-									<SelectContent
-										position="popper"
-										className="z-[100] bg-white dark:bg-stone-900 border-slate-200 dark:border-stone-700"
-									>
-										<SelectItem value="Cash">Cash</SelectItem>
-										<SelectItem value="GCash">GCash</SelectItem>
-										<SelectItem value="Bank">Bank Transfer</SelectItem>
-									</SelectContent>
-								</Select>
-							)}
-						/>
+                  </label>
+                  
+                  <Controller
+                    control={control}
+                    name="payment_method"
+                    rules={{ required: "Please select a payment method" }}
+                    render={({ field }) => (
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <SelectTrigger className="w-full py-5.5 bg-white dark:bg-stone-800 border-slate-200 dark:border-stone-700 text-slate-700 dark:text-slate-200">
+                          <SelectValue placeholder="Select payment method" />
+                        </SelectTrigger>
+                        <SelectContent position="popper">
+                          <SelectItem value="Cash">Cash</SelectItem>
+                          <SelectItem value="GCash">GCash</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                  {errors.payment_method && (
+                    <p className="text-xs text-red-500">{errors.payment_method.message}</p>
+                  )}
                 </div>
               )}
             </div>

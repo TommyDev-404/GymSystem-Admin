@@ -39,10 +39,16 @@ export function UpgradeMembershipModal({
   const { data: plans = [], isLoading: plansLoading } = usePlans();
   const { mutate: upgradeMembership, isPending } = useUpgradeMembership();
 
-  const { control, handleSubmit, watch, reset } = useForm<ChangePlanForm>({
+  const {
+    control,
+    handleSubmit,
+    watch,
+    reset,
+    formState: { errors },
+  } = useForm<ChangePlanForm>({
     defaultValues: {
       plan_id: undefined,
-      payment_method: "Cash",
+      payment_method: undefined,
     },
   });
 
@@ -51,7 +57,7 @@ export function UpgradeMembershipModal({
 
     reset({
       plan_id: undefined,
-      payment_method: "Cash",
+      payment_method: undefined,
     });
   }, [open, member?.id, reset]);
 
@@ -185,6 +191,7 @@ export function UpgradeMembershipModal({
               <Controller
                 control={control}
                 name="plan_id"
+                rules={{ required: "Please select a membership plan" }}
                 render={({ field }) => (
                   <Select
                     value={field.value ? String(field.value) : ""}
@@ -223,6 +230,11 @@ export function UpgradeMembershipModal({
                   </Select>
                 )}
               />
+                {errors.plan_id && (
+                <p className="text-xs text-red-500">
+                  {errors.plan_id.message}
+                </p>
+              )}
             </div>
 
             {selectedPlan && isUpgrade && (
@@ -274,6 +286,7 @@ export function UpgradeMembershipModal({
                 <Controller
                   control={control}
                   name="payment_method"
+                  rules={{ required: "Please select a payment method" }}
                   render={({ field }) => (
                     <Select
                       value={field.value}
@@ -289,11 +302,14 @@ export function UpgradeMembershipModal({
                       >
                         <SelectItem value="Cash">Cash</SelectItem>
                         <SelectItem value="GCash">GCash</SelectItem>
-                        <SelectItem value="Bank">Bank Transfer</SelectItem>
                       </SelectContent>
                     </Select>
                   )}
-                />
+                  />
+                  
+                  {errors.payment_method && (
+                    <p className="text-xs text-red-500">{errors.payment_method.message}</p>
+                  )}
               </div>
             )}
 

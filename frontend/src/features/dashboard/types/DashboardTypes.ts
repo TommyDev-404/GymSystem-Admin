@@ -9,8 +9,9 @@ export type SummaryData = {
    totalFemalePresent: number;
    totalPaidThisMonth: number;
    paymentTrendThisMonth: number;
-   totalExpiredMemberships: number;
-   expiredMembershipTrend: number;
+   overallExpiredMemberships: number;
+   expiredMembershipsThisMonth: number;
+   expiredMembershipsPreviousMonth: number;
 };
 
 export type RevenueTrend = {

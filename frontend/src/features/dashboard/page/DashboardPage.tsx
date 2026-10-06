@@ -106,12 +106,12 @@ import {
 
 				<StatCard
 					title="Expired Memberships"
-					value={summaryData?.totalExpiredMemberships?.toString() ?? "0"}
-					sub="Currently expired"
+					value={summaryData?.overallExpiredMemberships?.toString() ?? "0"}
+					sub="Total expired memberships"
 					icon={CalendarX}
-					trend={`${(summaryData?.expiredMembershipTrend ?? 0) > 0 ? "+" : ""}${Math.abs(summaryData?.expiredMembershipTrend ?? 0)}`}
-					trendUp={(summaryData?.expiredMembershipTrend ?? 0) > 0}
-					trendLabel="vs last month"
+					trend={`${(summaryData?.expiredMembershipsThisMonth ?? 0) > 0 ? "+" : ""}${Math.abs(summaryData?.expiredMembershipsThisMonth ?? 0)}`}
+					trendUp={(summaryData?.expiredMembershipsThisMonth?? 0) <= 0}
+					trendLabel={`this month • ${summaryData.expiredMembershipsPreviousMonth} previous month`}
 					color="bg-rose-50 dark:bg-rose-950/40"
 					iconColor="text-rose-600 dark:text-rose-400"
 				/>

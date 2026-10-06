@@ -170,7 +170,7 @@ export function MemberTable({ params }: Props) {
 
                       <TableCell>
                         <div className="flex justify-start gap-1">
-                          {member.status !== "Active" && (
+                          {member.status === "Expired" ? (
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <Button
@@ -192,6 +192,25 @@ export function MemberTable({ params }: Props) {
                                 <p>Renew membership</p>
                               </TooltipContent>
                             </Tooltip>
+                          ) : (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="hover:bg-slate-100 dark:hover:bg-slate-800"
+                                  onClick={() => handleEdit(member)}
+                                >
+                                  <Repeat2
+                                    size={16}
+                                    className="text-slate-700 dark:text-slate-300"
+                                  />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Upgrade membership</p>
+                              </TooltipContent>
+                            </Tooltip>
                           )}
 
                           <Tooltip>
@@ -210,25 +229,6 @@ export function MemberTable({ params }: Props) {
                             </TooltipTrigger>
                             <TooltipContent>
                               <p>Resend email</p>
-                            </TooltipContent>
-                          </Tooltip>
-
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                size="icon"
-                                variant="ghost"
-                                className="hover:bg-slate-100 dark:hover:bg-slate-800"
-                                onClick={() => handleEdit(member)}
-                              >
-                                <Repeat2
-                                  size={16}
-                                  className="text-slate-700 dark:text-slate-300"
-                                />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>Upgrade membership</p>
                             </TooltipContent>
                           </Tooltip>
                         </div>
