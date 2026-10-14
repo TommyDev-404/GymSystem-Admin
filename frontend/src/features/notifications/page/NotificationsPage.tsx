@@ -32,13 +32,13 @@ export function NotificationsPage() {
    return (
       <div className="space-y-5">
          {/* Header */}
-         <PageHeader
-            title="Notifications"
-            subtitle={unreadCount === 0 ? "You have no new notifications" : `${unreadCount} unread notification${unreadCount > 1 ? "s" : ""}`}
-            icon={Check}
-            actionName="Mark all read"
-            setOpen={onMarkAllRead}
-         />
+       <PageHeader
+         title="Notifications"
+         subtitle={unreadCount === 0 ? "You have no new notifications" : `${unreadCount} unread notification${unreadCount > 1 ? "s" : ""}`}
+         icon={Check}
+         actionName={unreadCount !== 0 ? "Mark all read" : undefined}
+          setOpen={onMarkAllRead}
+        />
 
         <NotificationsFilters
           filter={filter}
