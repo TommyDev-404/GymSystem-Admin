@@ -260,6 +260,7 @@ export const updateRewardRedemptionStatusService = async (
 				recipient_id: redemption.member_id,
 				recipient_type: "ADMIN",
 				type: "REWARD_CLAIMED",
+				category: "REWARD",
 				title: "Reward Claimed",
 				description: `${redemption.members.fullname} has been claimed successfully.`,
 				is_read:false
@@ -283,6 +284,7 @@ export const updateRewardRedemptionStatusService = async (
 				recipient_id: redemption.member_id,
 				recipient_type: "MEMBER",
 				type: "REWARD_CLAIMED",
+				category: "REWARD",
 				title: "Reward Claimed",
 				description: `Your ${redemption.rewards.name} has been claimed successfully.`,
 				is_read:false
