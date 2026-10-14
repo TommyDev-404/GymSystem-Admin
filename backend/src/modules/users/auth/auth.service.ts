@@ -91,11 +91,9 @@ export const verifyActivationCode = async (code: string) => {
 			},
 		},
 		include: {
-			members: true,
+			members: true
 		},
 	});
-
-	console.log("Activation: ", activation);
 	
 	if (!activation) {
 		return {

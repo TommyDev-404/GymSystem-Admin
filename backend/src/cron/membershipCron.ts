@@ -17,30 +17,39 @@ const checkMemberships = async () => {
       const tomorrowEnd = new Date(tomorrow);
       tomorrowEnd.setHours(23, 59, 59, 999);
 
-      const expiringMembershipsTomorrow =
-         await prisma.member_memberships.findMany({
-            where: {
-               status: "Active",
-               end_date: {
-                  gte: tomorrowStart,
-                  lte: tomorrowEnd,
-               },
+      // Exclude the 1 day subscription
+      const expiringMembershipsTomorrow = await prisma.member_memberships.findMany({
+         where: {
+            status: "Active",
+            end_date: {
+               gte: tomorrowStart,
+               lte: tomorrowEnd,
             },
-            include: {
-               members: {
-                  select: {
-                     fullname: true,
-                  },
-               },
+            start_date: {
+              lt: tomorrowStart,
+            },
+            NOT: {
                membership_plans: {
-                  select: {
-                     plan_name: true,
-                  },
+                  duration: 1,
+                  duration_type: "Day",
+               },
+            }
+         },
+         include: {
+            members: {
+               select: {
+                  fullname: true,
                },
             },
-         });
-
-      // CREATE EXPIRING NOTIFICATIONS
+            membership_plans: {
+               select: {
+                  plan_name: true,
+               },
+            },
+         },
+      });
+      
+      // CREATE EXPIRING NOTIFICATIONS 1 day before the expiration
       for (const membership of expiringMembershipsTomorrow) {
          const [
             existingNotificationMember,
@@ -50,6 +59,7 @@ const checkMemberships = async () => {
                where: {
                   recipient_id: membership.member_id,
                   recipient_type: "MEMBER",
+                  category: "MEMBERSHIP",
                   type: "MEMBERSHIP_EXPIRING",
                },
             }),
@@ -58,6 +68,7 @@ const checkMemberships = async () => {
                where: {
                   recipient_id: membership.member_id,
                   recipient_type: "ADMIN",
+                  category: "MEMBERSHIP",
                   type: "MEMBERSHIP_EXPIRING",
                },
             }),
@@ -68,6 +79,7 @@ const checkMemberships = async () => {
                data: {
                   recipient_id: membership.member_id,
                   recipient_type: "ADMIN",
+                  category: "MEMBERSHIP",
                   type: "MEMBERSHIP_EXPIRING",
                   title: "Membership Expiring Tomorrow",
                   description: `${membership.members.fullname}'s membership expires tomorrow.`,
@@ -80,6 +92,7 @@ const checkMemberships = async () => {
                data: {
                   recipient_id: membership.member_id,
                   recipient_type: "MEMBER",
+                  category: "MEMBERSHIP",
                   type: "MEMBERSHIP_EXPIRING",
                   title: "Membership Expiring Tomorrow",
                   description: `Your ${membership.membership_plans.plan_name} membership expires tomorrow. Renew it before it expires.`,
@@ -89,27 +102,26 @@ const checkMemberships = async () => {
       }
 
       // FIND EXPIRED MEMBERSHIPS
-      const expiredMemberships =
-         await prisma.member_memberships.findMany({
-            where: {
-               status: "Active",
-               end_date: {
-                  lte: now,
+      const expiredMemberships = await prisma.member_memberships.findMany({
+         where: {
+            status: "Active",
+            end_date: {
+               lte: now,
+            },
+         },
+         include: {
+            members: {
+               select: {
+                  fullname: true,
                },
             },
-            include: {
-               members: {
-                  select: {
-                     fullname: true,
-                  },
-               },
-               membership_plans: {
-                  select: {
-                     plan_name: true,
-                  },
+            membership_plans: {
+               select: {
+                  plan_name: true,
                },
             },
-         });
+         },
+      });
       
       console.log("EXpired: ", expiredMemberships);
 
@@ -139,6 +151,7 @@ const checkMemberships = async () => {
                      recipient_id: membership.member_id,
                      recipient_type: "MEMBER",
                      type: "MEMBERSHIP_EXPIRED",
+                     category: "MEMBERSHIP",
                   },
                }),
 
@@ -147,6 +160,7 @@ const checkMemberships = async () => {
                      recipient_id: membership.member_id,
                      recipient_type: "ADMIN",
                      type: "MEMBERSHIP_EXPIRED",
+                     category: "MEMBERSHIP",
                   },
                }),
             ]);
@@ -157,6 +171,7 @@ const checkMemberships = async () => {
                      recipient_id: membership.member_id,
                      recipient_type: "ADMIN",
                      type: "MEMBERSHIP_EXPIRED",
+                     category: "MEMBERSHIP",
                      title: "Membership Expired",
                      description: `${membership.members.fullname}'s membership has expired. Please follow up with the member for renewal.`,
                   },
@@ -168,6 +183,7 @@ const checkMemberships = async () => {
                   data: {
                      recipient_id: membership.member_id,
                      recipient_type: "MEMBER",
+                     category: "MEMBERSHIP",
                      type: "MEMBERSHIP_EXPIRED",
                      title: "Membership Expired",
                      description: `Your ${membership.membership_plans.plan_name} membership has expired. Renew your membership to continue enjoying gym access and member benefits.`,

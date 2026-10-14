@@ -67,7 +67,7 @@ export function MemberSummaryCards({
 		{
 			title: "Expiring Soon",
 			value: summary.expiringSoon,
-			description: "Memberships expiring within 7 days",
+			description: "Total memberships expiring",
 			icon: Clock3,
 			iconColor:
 				"text-amber-600 dark:text-amber-400",

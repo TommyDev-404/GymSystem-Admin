@@ -51,117 +51,174 @@ export const getMemberWeeklyAttendanceService = async (memberId: number) => {
 	}));
 };
 
-export const checkInService = async (memberId: number, sessionId: string) => {
-
+export const checkInService = async (
+	memberId: number,
+	sessionId: string
+ ) => {
 	if (!sessionId) {
-		return { status: 400, message: "sessionId is required" };
+	  return { status: 400, message: "sessionId is required" };
 	}
-
+ 
 	const session = await prisma.checkin_sessions.findUnique({
-		where: {
-			id: sessionId
-		}
+	  where: { id: sessionId },
 	});
-
+ 
 	if (!session) {
-		return { status: 404, message: "Invalid QR code" };
+	  return { status: 404, message: "Invalid QR code" };
 	}
 
-	if (session.expires_at < new Date()) {
-		return { status: 400, message: "QR code expired" };
+	const now = new Date();
+
+	if (session.expires_at.getTime() <= now.getTime()) {
+		return {
+			status: 400,
+			message: "QR code expired",
+		};
 	}
-
-	const existing = await prisma.attendance.findFirst({
-		where: {
-			member_id: memberId,
-			session_id: sessionId
-		}
-	});
-
-	if (existing) {
-		return { status: 400, message: "Already checked in" };
-	}
-
+	
 	const member = await prisma.members.findUnique({
-		where: {
-			id: memberId
-		},
-		select: {
-			fullname: true,
-			points: true
-		}
+	  where: { id: memberId },
+	  select: {
+		 fullname: true,
+		 points: true,
+		  member_memberships: {
+			  select: {
+				 status: true
+			 }
+		 }
+	  },
 	});
-
+ 
 	if (!member) {
-		return {status: 404, message: "Member not found"};
+	  return { status: 404, message: "Member not found" };
 	}
-
+ 
+	const existing = await prisma.attendance.findFirst({
+	  where: {
+		 member_id: memberId,
+		 session_id: sessionId,
+	  },
+	});
+ 
+	if (existing) {
+	  return { status: 400, message: "Already checked in" };
+	}
+ 
+	// Change these values if your Prisma schema uses different casing.
+	const isInactive = member.member_memberships[0].status === "Inactive";
+ 
 	const result = await prisma.$transaction(async (tx) => {
-
-		// 1. Create attendance
-		const attendance = await tx.attendance.create({
-			data: {
-				member_id: memberId,
-				session_id: sessionId
-			}
-		});
-
-		// 2. Update member points
-		const updatedMember = await tx.members.update({
+	  // 1. Create attendance
+	  await tx.attendance.create({
+		 data: {
+			member_id: memberId,
+			session_id: sessionId,
+		 },
+	  });
+ 
+	  // 1. Add attendance points
+	  await tx.members.update({
+		 where: { id: memberId },
+		 data: {
+			points: {
+			  increment: 10,
+			},
+		 },
+	  });
+	  
+	  // 2. Reactivate the membership if inactive
+	  if (isInactive) {
+		 await tx.member_memberships.updateMany({
 			where: {
-				id: memberId
+			  member_id: memberId,
+			  status: "Inactive",
 			},
 			data: {
-				points: {
-					increment: 10
-				}
-			}
-		});
-
-		// 3. Admin activity
-		await tx.activities.create({
+			  status: "Active",
+			},
+		 });
+	  }
+ 
+	  // 3. Admin activity
+	  await tx.activities.create({
+		 data: {
+			category: "ATTENDANCE",
+			recipient_type: "ADMIN",
+			title: "Member Check-in",
+			description: `${member.fullname} checked in`,
+			recipient_id: memberId,
+		 },
+	  });
+ 
+	  // 4. Member activity
+	  await tx.activities.create({
+		 data: {
+			category: "ATTENDANCE",
+			recipient_type: "MEMBER",
+			title: "Checked in",
+			description: "You successfully checked in",
+			recipient_id: memberId,
+		 },
+	  });
+ 
+	  // 5. Attendance points notification
+	  await tx.notifications.create({
+		 data: {
+			recipient_id: memberId,
+			recipient_type: "MEMBER",
+			category: "ATTENDANCE",
+			type: "ATTENDANCE_POINTS",
+			title: "You earned points!",
+			description: "Check-in complete! +10 points earned.",
+		 },
+	  });
+ 
+	  // 6. Reactivation activity and notification
+	  if (isInactive) {
+		 await tx.activities.create({
 			data: {
-				category: "ATTENDANCE",
-				recipient_type: "ADMIN",
-				title: "Member Check-in",
-				description: `${member.fullname} checked in`,
-				recipient_id: memberId
-			}
-		});
-
-		// 4. Member activity
-		await tx.activities.create({
+			  category: "ATTENDANCE",
+			  recipient_type: "MEMBER",
+			  title: "Account Reactivated",
+			  description:
+				 "Your account has been reactivated after your return to the gym.",
+			  recipient_id: memberId,
+			},
+		 });
+ 
+		 await tx.notifications.create({
 			data: {
-				category: "ATTENDANCE",
-				recipient_type: "MEMBER",
-				title: "Checked in",
-				description: "You successfully checked in",
-				recipient_id: memberId
-			}
-		});
-
-		// 5. Notification
-		await tx.notifications.create({
-			data: {
-				recipient_id: memberId,
-				recipient_type: "MEMBER",
-				category: "ATTENDANCE",
-				type: "ATTENDANCE_POINTS",
-				title: "You earned points!",
-				description: "Check-in complete! +10 points earned."
-			}
-		});
-		
-		return {
-			success: true,
-			message: "Check-in successful"
-		};
+			  recipient_id: memberId,
+			  recipient_type: "MEMBER",
+			  category: "ATTENDANCE",
+			  type: "ACCOUNT_REACTIVATED",
+			  title: "Your account is active!",
+			  description:
+				 "Welcome back! Your account is now active again. Your existing membership and expiration date remain unchanged.",
+			},
+		 });
+	  }
+ 
+	  return {
+		 success: true,
+		 message: "Check-in successful",
+		 reactivated: isInactive,
+	  };
 	});
-
-	// Socket events
+ 
+	// 7. Socket event
 	getIO()
-	.to("admin-room")
-	.emit("attendance:new", { memberId });
-	
-	return result;
-};
+	  .to("admin-room")
+	  .emit("attendance:new", {
+		 memberId,
+		 reactivated: isInactive,
+	  });
+ 
+	return {
+	  status: 200,
+	  ...result,
+	  message: isInactive
+		 ? "Check-in successful. Your account has been reactivated!"
+		 : "Check-in successful",
+	};
+ };

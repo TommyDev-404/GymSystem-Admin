@@ -1,23 +1,23 @@
-import { openai } from "../../../lib/open-ai";
+import { genai } from "../../../lib/ai";
 import { JFITNESS_COACH_PROMPT } from "./ai.prompt";
 
 export async function generateCoachResponse(
   message: string,
   context: any,
-) {
-  const response = await openai.responses.create({
-    model: "gpt-5.6-luna",
-    instructions: JFITNESS_COACH_PROMPT,
-    input: `
+): Promise<string> {
+  const response = await genai.models.generateContent({
+    model: "gemini-3.5-flash-lite",
+    config: {
+      systemInstruction: JFITNESS_COACH_PROMPT,
+    },
+    contents: `
       MEMBER CONTEXT:
-
       ${JSON.stringify(context, null, 2)}
 
       MEMBER MESSAGE:
-
       ${message}
-      `,
+    `,
   });
 
-  return response.output_text;
+  return response.text ?? "";
 }

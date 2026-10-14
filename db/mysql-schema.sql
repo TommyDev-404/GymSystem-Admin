@@ -137,7 +137,7 @@ CREATE TABLE member_memberships (
         'Active',
         'Expired',
         'Cancelled',
-        'Deactivated'
+        'Inactive'
     ) DEFAULT 'Active',
 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -252,11 +252,12 @@ CREATE TABLE notifications (
     ),
     type ENUM(
         "MEMBERSHIP_POINTS",
+        "ACCOUNT_REACTIVATED",
         "MEMBERSHIP_EXPIRED",
         "MEMBERSHIP_EXPIRING",
         "MEMBERSHIP_RENEWAL",
         "MEMBERSHIP_UPGRADE",
-        "MEMBERSHIP_DEACTIVATED",
+        "MEMBERSHIP_MARK_INACTIVE",
         "PAYMENT_RECORDED",
         "MEMBER_ADDED",
         "MEMBER_INACTIVE_3_DAYS",

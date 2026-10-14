@@ -1,5 +1,21 @@
 import { prisma } from "../../../lib/prisma";
 
+/*
+FORMULA:
+	R_current = Σ amount_p, for all p ∈ P_current
+
+	R_previous = Σ amount_p, for all p ∈ P_previous
+
+	Trend (%) = ((R_current - R_previous) / R_previous) × 100
+
+Where:
+	- R_current = Total paid revenue from the beginning of the current month up to the present.
+	- R_previous = Total paid revenue for the entire previous month.
+	- P_current = All payments with status "Paid" and a paid_at date on or after the start of the current month.
+	- P_previous = All payments with status "Paid" and a paid_at date within the previous month.
+	- amount_p = Amount of an individual payment.
+	- Trend (%) = Percentage increase or decrease in revenue compared with the previous month.
+*/
 export const getSummaryDataService = async () => {
 	const now = new Date();
 
@@ -202,7 +218,7 @@ export const getSummaryDataService = async () => {
 		}
 
 		// ==========================================
-		// PAYMENTS
+		// MONTHLY REVENUE
 		// ==========================================
 
 		const totalPaidThisMonth = await tx.payments.aggregate({
@@ -258,6 +274,15 @@ export const getSummaryDataService = async () => {
 	});
 };
 
+/*
+FORMULA:
+	R_m = Σ amount_p, for all p ∈ P_m
+
+Where:
+	- R_m = Total revenue for a given month.
+	- P_m = All payments recorded during that month.
+	- amount_p = Amount of each payment whose paid_at date falls within that month.
+*/
 export async function getMonthlyRevenueTrendService() {
    return await prisma.$queryRaw<
       { month: string; revenue: number }[]
@@ -421,6 +446,7 @@ export async function getMembershipStatusService() {
 
 	let active = 0;
 	let expired = 0;
+	let inactive = 0;
 
 	for (const membership of latestMemberships.values()) {
 		if (membership.status === "Active") {
@@ -430,6 +456,10 @@ export async function getMembershipStatusService() {
 		if (membership.status === "Expired") {
 			expired++;
 		}
+
+		if (membership.status === "Inactive") {
+			inactive++;
+		}
 	}
 
 	return [
@@ -437,10 +467,16 @@ export async function getMembershipStatusService() {
 			name: "Active",
 			value: active,
 		},
+		
+		{
+			name: "Inactive",
+			value: inactive,
+		},
+
 		{
 			name: "Expired",
 			value: expired,
-		},
+		}
 	];
 }
 

@@ -34,25 +34,26 @@ export function MemberModal({ open, setOpen }: Props) {
 
   const { data: plans = [] } = usePlans();
 
+  const defaultValues: AddMemberFormType = {
+    fullname: "",
+    email: "",
+    age: 0,
+    gender: "",
+    plan_id: 0,
+    referral_code: "",
+    payment_method: undefined,
+  };
+  
   const {
     register,
     handleSubmit,
     control,
     reset,
-    watch, 
-    formState: { errors }
-  } =
-    useForm<AddMemberFormType>({
-      defaultValues: {
-        fullname: "",
-        email: "",
-        age: 0,
-        gender: undefined,
-        plan_id: undefined,
-        referral_code: "",
-        payment_method: undefined,
-      },
-    });
+    watch,
+    formState: { errors },
+  } = useForm<AddMemberFormType>({
+    defaultValues,
+  });
 
   const selectedPlanId = watch("plan_id");
   const selectedPlan = plans.find(
@@ -61,14 +62,12 @@ export function MemberModal({ open, setOpen }: Props) {
 
   useEffect(() => {
     if (!open) {
-      reset({
-        fullname: "",
-        email: "",
-        age: 0,
-        gender: undefined,
-        plan_id: undefined,
-        referral_code: "",
-        payment_method: undefined,
+      reset(defaultValues, {
+        keepErrors: false,
+        keepDirty: false,
+        keepTouched: false,
+        keepIsSubmitted: false,
+        keepSubmitCount: false,
       });
     }
   }, [open, reset]);

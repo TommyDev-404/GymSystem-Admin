@@ -38,7 +38,7 @@ export type AddMemberFormType = {
   age: number;
   gender: string;
   plan_id: number;
-  membership_id: number;
+  membership_id?: number;
   referral_code: string;
   payment_method: "Cash" | "GCash" | undefined
 };
