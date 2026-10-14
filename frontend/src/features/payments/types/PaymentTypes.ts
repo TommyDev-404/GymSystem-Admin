@@ -15,7 +15,8 @@ export interface Payment {
 
 export type PaymentFiltersType = {
   search?: string;
-  date?: Date;
+  month?: string;
+  year?: string;
 	paymentType?: PaymentType;
 };
 

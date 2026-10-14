@@ -1,5 +1,5 @@
 import { api } from "@/lib/axios";
-import type { AddMemberFormType, MemberFilters, RenewMembershipDTO, UpgradeMembership } from "../types/member";
+import type { AddMemberFormType, MemberFilters, PaymentHistoryFilters, RenewMembershipDTO, UpgradeMembership } from "../types/member";
 
 export const getMembersSummaryApi = async () => {
   try {
@@ -70,6 +70,18 @@ export const renewMembershipApi = async (data: RenewMembershipDTO) => {
     return res.data;
   } catch (error) {
     console.error("Renew membership failed:", error);
+    throw error;
+  }
+};
+
+export const getMemberPaymentHistoryApi = async (memberId: number, filters?: PaymentHistoryFilters) => {
+  try {
+    const res = await api.get(`/members/${memberId}/payment-history`, { 
+      params: filters
+    });
+    return res.data;
+  } catch (error) {
+    console.error("Get Payment History failed:", error);
     throw error;
   }
 };

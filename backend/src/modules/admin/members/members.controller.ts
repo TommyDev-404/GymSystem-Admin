@@ -77,3 +77,46 @@ export const renewMembershipController = async (req: Request, res: Response) => 
 		});
 	}
 };
+
+export const getMemberPaymentHistoryController = async (
+	req: Request,
+	res: Response,
+ ) => {
+	try {
+	  const member_id = Number(req.params.member_id);
+	  const month = req.query.month ? Number(req.query.month) : undefined;
+	  const year = req.query.year ? Number(req.query.year) : undefined;
+ 
+	  if (!Number.isInteger(member_id) || member_id <= 0) {
+		 return res.status(400).json({
+			message: "Invalid member ID",
+		 });
+	  }
+ 
+	  if (
+		 (month !== undefined &&
+			(!Number.isInteger(month) || month < 1 || month > 12)) ||
+		 (year !== undefined &&
+			(!Number.isInteger(year) || year < 1)) ||
+		 (month !== undefined && year === undefined)
+	  ) {
+		 return res.status(400).json({
+			message: "A valid year is required when filtering by month.",
+		 });
+	  }
+ 
+	  const result = await service.getMemberPaymentHistory(member_id, {
+		 month,
+		 year,
+	  });
+ 
+	  return res.status(200).json(result);
+	} catch (error: unknown) {
+	  const message =
+		 error instanceof Error
+			? error.message
+			: "Failed to fetch member payment history";
+ 
+	  return res.status(500).json({ message });
+	}
+ };

@@ -6,7 +6,8 @@ export const getPaymentsApi = async (params?: PaymentFiltersType) => {
     const res = await api.get("/payments", { params });
     return res.data;
   } catch (error) {
-    console.log("Error: ", error)
+    console.error("Error fetching payments:", error);
+    throw error;
   }
 };
 

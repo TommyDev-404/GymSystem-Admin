@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import * as api from "@/features/members/api/members.api";
-import type { AddMemberFormType, MemberFilters, MemberSummaryType, RenewMembershipDTO, UpgradeMembership } from "../types/member";
+import type { AddMemberFormType, MemberFilters, MemberSummaryType, PaymentHistoryFilters, RenewMembershipDTO, UpgradeMembership } from "../types/member";
 
 export function useMembersSummary() {
   return useQuery<MemberSummaryType>({
@@ -14,7 +14,14 @@ export function useMembers(params?: MemberFilters) {
      queryKey: ["members", params],
      queryFn: () => api.getMembersApi(params),
    });
- }
+}
+ 
+export function useGetMemberPaymentHistory(memberId: number, filters?: PaymentHistoryFilters ) {
+  return useQuery({
+    queryKey: ["member-payment-history", memberId, filters],
+    queryFn: () => api.getMemberPaymentHistoryApi(memberId, filters),
+  });
+}
 
 export function useCreateMember() {
   const queryClient = useQueryClient();
@@ -61,7 +68,7 @@ export function useUpgradeMembership() {
       data: UpgradeMembership
     }) => api.upgradeMembershipPlanApi(id, data),
 
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: ["members"]
       });
@@ -80,6 +87,10 @@ export function useUpgradeMembership() {
       
       queryClient.invalidateQueries({
         queryKey: ["payments-summary"],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["member-payment-history", variables.id],
       });
     },
   });
@@ -108,7 +119,7 @@ export function useRenewMembership() {
 
   return useMutation({
     mutationFn: (data: RenewMembershipDTO) => api.renewMembershipApi(data),
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
 
       queryClient.invalidateQueries({
         queryKey:["members"],
@@ -124,6 +135,10 @@ export function useRenewMembership() {
       
       queryClient.invalidateQueries({
         queryKey: ["payments-summary"],
+      });
+      
+      queryClient.invalidateQueries({
+        queryKey: ["member-payment-history", variables.member_id],
       });
     },
   });

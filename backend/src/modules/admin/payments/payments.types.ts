@@ -1,6 +1,7 @@
 
 export interface PaymentFilterDTO {
   search?: string;
-  date?: Date;
+  month?: string;
+  year?: string;
 	paymentType?: "All" | "Membership" | "Renewal" | "Upgrade";
 }

@@ -70,3 +70,8 @@ export type MemberPlan = {
   duration_type: string;
   price: number
 };
+
+export type PaymentHistoryFilters = {
+	month?: number;
+	year?: number;
+ };

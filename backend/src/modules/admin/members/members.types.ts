@@ -28,3 +28,9 @@ export type MemberFilters = {
   gender?: "Male" | "Female";
   status?: "Active" | "Expired" | "Cancelled";
 };
+
+
+export type PaymentHistoryFilters = {
+	month?: number;
+	year?: number;
+ };

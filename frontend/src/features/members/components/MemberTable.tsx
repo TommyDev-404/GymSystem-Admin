@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Mail, RefreshCcw, Repeat2 } from "lucide-react";
+import { Eye, Mail, RefreshCcw, Repeat2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -25,6 +25,7 @@ import { TableLoader } from "@/components/shared/TableLoader";
 import RenewMembershipDialog from "./RenewMembershipDialog";
 import { UpgradeMembershipModal } from "./UpgradeMembershipModal";
 import { useMembers } from "../hooks/useMember";
+import { PaymentHistoryModal } from "./PaymentHistoryModal";
 
 const planColors: Record<string, string> = {
   Basic: "bg-slate-100 text-slate-700 hover:bg-slate-100",
@@ -50,6 +51,8 @@ export function MemberTable({ params }: Props) {
   const [renewMember, setRenewMember] = useState<Member | null>(null);
   const [renewOpen, setRenewOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
+  const [paymentHistoryMember, setPaymentHistoryMember] = useState<Member | null>(null);
+  const [paymentHistoryOpen, setPaymentHistoryOpen] = useState(false);
 
   const handleEdit = (member: Member) => {
     setSelectedMember(member);
@@ -231,6 +234,26 @@ export function MemberTable({ params }: Props) {
                               <p>Resend email</p>
                             </TooltipContent>
                           </Tooltip>
+
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="hover:bg-[#963348]/10 dark:hover:bg-[#963348]/20"
+                                onClick={() => {
+                                  setPaymentHistoryMember(member);
+                                  setPaymentHistoryOpen(true);
+                                }}
+                              >
+                                <Eye size={16} className="text-purple-700" />
+                              </Button>
+                            </TooltipTrigger>
+
+                            <TooltipContent>
+                              <p>View Payment History</p>
+                            </TooltipContent>
+                          </Tooltip>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -259,6 +282,23 @@ export function MemberTable({ params }: Props) {
         setOpen={setRenewOpen}
         member={renewMember}
       />
+     
+      {paymentHistoryOpen && paymentHistoryMember !== null && (
+        <PaymentHistoryModal
+          open={paymentHistoryOpen}
+          onOpenChange={(open) => {
+            setPaymentHistoryOpen(open);
+
+            if (!open) {
+              setPaymentHistoryMember(null);
+            }
+          }}
+          memberId={paymentHistoryMember.id}
+          name={paymentHistoryMember.fullname}
+          email={paymentHistoryMember.email}
+        />
+      )}
+      
     </>
   );
 }
