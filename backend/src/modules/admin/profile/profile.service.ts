@@ -7,8 +7,7 @@ export const getAdminProfileService = async (adminId: number) => {
     select: {
       id: true,
       username: true,
-      email: true,
-      contact: true,
+      email: true
     },
   });
 

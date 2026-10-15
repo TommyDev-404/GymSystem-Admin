@@ -34,7 +34,7 @@ type Payment = {
   startDate: string | null;
   endDate: string | null;
   type: string;
-  status: "Paid" | "Pending" | "Failed" | "Refunded";
+  status: string;
   paidAt: string | null;
   duration: number;
   duration_type: string;

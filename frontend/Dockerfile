@@ -1,24 +1,29 @@
-FROM node:22-alpine
+
+FROM node:22-alpine AS builder
 
 WORKDIR /app
 
-# Install pnpm
-RUN npm install -g pnpm@11.1.1
+ENV CI=true
 
-# Copy pnpm files
-COPY package.json pnpm-lock.yaml ./
+RUN npm install -g pnpm@11.1.1 \
+    --fetch-retries=5 \
+    --fetch-timeout=300000
 
-RUN pnpm config set fetch-timeout 120000
-RUN pnpm config set fetch-retries 5
+COPY frontend/package.json frontend/pnpm-lock.yaml ./
 
-# Install dependencies
-RUN pnpm install --frozen-lockfile 
+RUN pnpm config set fetch-timeout 120000 \
+    && pnpm config set fetch-retries 5 \
+    && pnpm install --frozen-lockfile
 
-# Copy source
-COPY . .
+COPY frontend/ .
 
-# Vite default port
-EXPOSE 5173
+RUN pnpm build
 
-# Start Vite dev server
-CMD ["pnpm", "dev", "--host", "0.0.0.0"]
+FROM nginx:alpine AS production
+
+COPY --from=builder /app/dist /usr/share/nginx/html
+COPY nginx/default.conf /etc/nginx/conf.d/default.conf
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]

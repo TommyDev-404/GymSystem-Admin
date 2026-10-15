@@ -1,0 +1,28 @@
+import * as service from "./checkin.service";
+export const getMemberWeeklyAttendanceController = async (req, res) => {
+    try {
+        const memberId = Number(req.params.member_id);
+        const result = await service.getMemberWeeklyAttendanceService(memberId);
+        return res.status(200).json(result);
+    }
+    catch (error) {
+        console.log(error);
+        return res.status(error.status || 500).json({
+            message: error.message || "Server error"
+        });
+    }
+};
+export const checkInController = async (req, res) => {
+    try {
+        const memberId = Number(req.params.member_id);
+        const { sessionId } = req.body;
+        const result = await service.checkInService(memberId, sessionId);
+        return res.status(result ? 200 : 400).json(result);
+    }
+    catch (error) {
+        console.log(error);
+        return res.status(error.status || 500).json({
+            message: error.message || "Server error"
+        });
+    }
+};

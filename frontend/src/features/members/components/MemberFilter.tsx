@@ -168,6 +168,10 @@ export function MemberFilters({
               Active
             </SelectItem>
 
+            <SelectItem value="Inactive">
+              Inactive
+            </SelectItem>
+
             <SelectItem value="Expired">
               Expired
             </SelectItem>

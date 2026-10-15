@@ -926,62 +926,62 @@ export const renewMembershipServiceService = async (data: {
 	return result;
 };
  
- export const getMemberPaymentHistory = async (
+export const getMemberPaymentHistory = async (
 	member_id: number,
 	filters?: PaymentHistoryFilters,
- ) => {
+) => {
 	const { month, year } = filters ?? {};
- 
+
 	const payments = await prisma.payments.findMany({
-	  where: {
-		 member_id,
-		 ...(month && year
+	where: {
+		member_id,
+		...(month && year
 			? {
-				 paid_at: {
+				paid_at: {
 					gte: new Date(Date.UTC(year, month - 1, 1)),
 					lt: new Date(Date.UTC(year, month, 1)),
-				 },
-			  }
+				},
+			}
 			: year
-			  ? {
+			? {
 					paid_at: {
-					  gte: new Date(Date.UTC(year, 0, 1)),
-					  lt: new Date(Date.UTC(year + 1, 0, 1)),
+					gte: new Date(Date.UTC(year, 0, 1)),
+					lt: new Date(Date.UTC(year + 1, 0, 1)),
 					},
-				 }
-			  : {}),
-	  },
-	  include: {
-		 member_memberships: {
+				}
+			: {}),
+	},
+	include: {
+		member_memberships: {
 			include: {
-			  membership_plans: {
-				 select: {
-					  plan_name: true,
-					  duration: true,
-					 	duration_type: true
-				 },
-			  },
+			membership_plans: {
+				select: {
+					plan_name: true,
+					duration: true,
+						duration_type: true
+				},
 			},
-		 },
-	  },
-	  orderBy: {
-		 paid_at: "desc",
-	  },
+			},
+		},
+	},
+		orderBy: {
+			paid_at: "desc",
+		},
 	});
- 
+
 	return payments.map((payment) => ({
-	  id: payment.id,
-	  amount: Number(payment.amount),
-		paymentMethod: payment.payment_method,
-	  startDate: payment.member_memberships.start_date,
-	  endDate: payment.member_memberships.end_date,
-	  type: payment.payment_type,
-	  status: payment.status,
-		paidAt: payment.paid_at,
-	  duration: payment.member_memberships.membership_plans.duration,
-	  duration_type: payment.member_memberships.membership_plans.duration_type,
-	  plan:
-		 payment.member_memberships?.membership_plans?.plan_name ??
-		 "Unknown Plan",
+		id: payment.id,
+		amount: Number(payment.amount),
+			paymentMethod: payment.payment_method,
+		startDate: payment.member_memberships.start_date,
+		endDate: payment.member_memberships.end_date,
+		type: payment.payment_type,
+		status: payment.status,
+			paidAt: payment.paid_at,
+		duration: payment.member_memberships.membership_plans.duration,
+		duration_type: payment.member_memberships.membership_plans.duration_type,
+		plan:
+			payment.member_memberships?.membership_plans?.plan_name ??
+			"Unknown Plan",
 	}));
- };
+};

@@ -1,8 +1,8 @@
 import { api } from "@/lib/axios";
 
-export const getAdminNotificationsApi = async (params?: { category: string }) => {
+export const getAdminNotificationsApi = async () => {
   try {
-    const res = await api.get("/notifications", { params });
+    const res = await api.get("/notifications");
     return res.data;
 
   } catch (error) {

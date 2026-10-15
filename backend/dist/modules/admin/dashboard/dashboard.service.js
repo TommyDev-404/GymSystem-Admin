@@ -1,0 +1,445 @@
+import { prisma } from "../../../lib/prisma";
+/*
+FORMULA:
+    R_current = Σ amount_p, for all p ∈ P_current
+
+    R_previous = Σ amount_p, for all p ∈ P_previous
+
+    Trend (%) = ((R_current - R_previous) / R_previous) × 100
+
+Where:
+    - R_current = Total paid revenue from the beginning of the current month up to the present.
+    - R_previous = Total paid revenue for the entire previous month.
+    - P_current = All payments with status "Paid" and a paid_at date on or after the start of the current month.
+    - P_previous = All payments with status "Paid" and a paid_at date within the previous month.
+    - amount_p = Amount of an individual payment.
+    - Trend (%) = Percentage increase or decrease in revenue compared with the previous month.
+*/
+export const getSummaryDataService = async () => {
+    const now = new Date();
+    const startOfCurrentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startOfPreviousMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const startOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+    const endOfToday = new Date();
+    endOfToday.setHours(23, 59, 59, 999);
+    const startOfYesterday = new Date();
+    startOfYesterday.setDate(startOfYesterday.getDate() - 1);
+    startOfYesterday.setHours(0, 0, 0, 0);
+    const endOfYesterday = new Date(startOfYesterday);
+    endOfYesterday.setHours(23, 59, 59, 999);
+    const getTrend = (current, previous) => {
+        if (previous === 0) {
+            return current > 0 ? 100 : 0;
+        }
+        return Number((((current - previous) / previous) * 100).toFixed(1));
+    };
+    return await prisma.$transaction(async (tx) => {
+        const totalMembers = await tx.members.count();
+        // ==========================================
+        // NEW MEMBERS
+        // ==========================================
+        const newMembersThisMonth = await tx.members.count({
+            where: {
+                join_date: {
+                    gte: startOfCurrentMonth,
+                },
+            },
+        });
+        const newMembersPreviousMonth = await tx.members.count({
+            where: {
+                join_date: {
+                    gte: startOfPreviousMonth,
+                    lt: startOfCurrentMonth,
+                },
+            },
+        });
+        const memberTrend = getTrend(newMembersThisMonth, newMembersPreviousMonth);
+        // ==========================================
+        // TODAY'S ATTENDANCE
+        // ==========================================
+        const currentlyPresent = await tx.attendance.count({
+            where: {
+                status: "CHECK_IN",
+                check_in_time: {
+                    gte: startOfToday,
+                    lte: endOfToday,
+                },
+            },
+        });
+        const yesterdayPresent = await tx.attendance.count({
+            where: {
+                status: "CHECK_IN",
+                check_in_time: {
+                    gte: startOfYesterday,
+                    lte: endOfYesterday,
+                },
+            },
+        });
+        const presentTrend = getTrend(currentlyPresent, yesterdayPresent);
+        // ==========================================
+        // ATTENDANCE BY GENDER
+        // ==========================================
+        const totalMalePresent = await tx.attendance.count({
+            where: {
+                status: "CHECK_IN",
+                members: {
+                    gender: "Male",
+                },
+                check_in_time: {
+                    gte: startOfToday,
+                    lte: endOfToday,
+                },
+            },
+        });
+        const totalFemalePresent = await tx.attendance.count({
+            where: {
+                status: "CHECK_IN",
+                members: {
+                    gender: "Female",
+                },
+                check_in_time: {
+                    gte: startOfToday,
+                    lte: endOfToday,
+                },
+            },
+        });
+        // ==========================================
+        // LATEST MEMBERSHIP PER MEMBER
+        // ==========================================
+        const memberships = await tx.member_memberships.findMany({
+            select: {
+                member_id: true,
+                start_date: true,
+                end_date: true,
+                status: true,
+                created_at: true,
+            },
+            orderBy: [
+                {
+                    member_id: "asc",
+                },
+                {
+                    start_date: "desc",
+                },
+                {
+                    created_at: "desc",
+                },
+            ],
+        });
+        const latestMemberships = new Map();
+        for (const membership of memberships) {
+            if (!latestMemberships.has(membership.member_id)) {
+                latestMemberships.set(membership.member_id, membership);
+            }
+        }
+        // ==========================================
+        // EXPIRED MEMBERSHIPS
+        // ==========================================
+        let overallExpiredMemberships = 0;
+        let expiredMembershipsThisMonth = 0;
+        let expiredMembershipsPreviousMonth = 0;
+        for (const membership of latestMemberships.values()) {
+            if (membership.status !== "Expired") {
+                continue;
+            }
+            overallExpiredMemberships++;
+            if (membership.end_date >= startOfCurrentMonth &&
+                membership.end_date < startOfNextMonth) {
+                expiredMembershipsThisMonth++;
+            }
+            if (membership.end_date >= startOfPreviousMonth &&
+                membership.end_date < startOfCurrentMonth) {
+                expiredMembershipsPreviousMonth++;
+            }
+        }
+        // ==========================================
+        // MONTHLY REVENUE
+        // ==========================================
+        const totalPaidThisMonth = await tx.payments.aggregate({
+            _sum: {
+                amount: true,
+            },
+            where: {
+                status: "Paid",
+                paid_at: {
+                    gte: startOfCurrentMonth,
+                },
+            },
+        });
+        const totalPaidPreviousMonth = await tx.payments.aggregate({
+            _sum: {
+                amount: true,
+            },
+            where: {
+                status: "Paid",
+                paid_at: {
+                    gte: startOfPreviousMonth,
+                    lt: startOfCurrentMonth,
+                },
+            },
+        });
+        const paymentTrendThisMonth = getTrend(Number(totalPaidThisMonth._sum.amount ?? 0), Number(totalPaidPreviousMonth._sum.amount ?? 0));
+        return {
+            totalMembers,
+            newMembersThisMonth,
+            memberTrend,
+            currentlyPresent,
+            presentTrend,
+            totalMalePresent,
+            totalFemalePresent,
+            totalPaidThisMonth: totalPaidThisMonth._sum.amount ?? 0,
+            paymentTrendThisMonth,
+            overallExpiredMemberships,
+            expiredMembershipsThisMonth,
+            expiredMembershipsPreviousMonth,
+        };
+    });
+};
+/*
+FORMULA:
+    R_m = Σ amount_p, for all p ∈ P_m
+
+Where:
+    - R_m = Total revenue for a given month.
+    - P_m = All payments recorded during that month.
+    - amount_p = Amount of each payment whose paid_at date falls within that month.
+*/
+export async function getMonthlyRevenueTrendService() {
+    return await prisma.$queryRaw `
+      WITH RECURSIVE months AS (
+         SELECT DATE_FORMAT(CURDATE(), '%Y-01-01') AS month_start
+      
+         UNION ALL
+      
+         SELECT DATE_ADD(month_start, INTERVAL 1 MONTH)
+         FROM months
+         WHERE month_start < DATE_FORMAT(CURDATE(), '%Y-%m-01')
+      )
+      
+      SELECT
+         DATE_FORMAT(m.month_start, '%b') AS month,
+         COALESCE(SUM(p.amount), 0) AS revenue
+      FROM months m
+      LEFT JOIN payments p
+         ON YEAR(p.paid_at) = YEAR(m.month_start)
+         AND MONTH(p.paid_at) = MONTH(m.month_start)
+      GROUP BY m.month_start
+      ORDER BY m.month_start;
+   `;
+}
+export const getMembershipsExpiringSoonService = async () => {
+    const now = new Date();
+    const todayStart = new Date(now);
+    todayStart.setHours(0, 0, 0, 0);
+    const sevenDaysLater = new Date(todayStart);
+    sevenDaysLater.setDate(sevenDaysLater.getDate() + 7);
+    sevenDaysLater.setHours(23, 59, 59, 999);
+    const memberships = await prisma.member_memberships.findMany({
+        where: {
+            status: "Active",
+            end_date: {
+                gte: todayStart,
+                lte: sevenDaysLater,
+            },
+        },
+        select: {
+            id: true,
+            end_date: true,
+            members: {
+                select: {
+                    fullname: true,
+                },
+            },
+            membership_plans: {
+                select: {
+                    plan_name: true,
+                },
+            },
+        },
+        orderBy: {
+            end_date: "asc",
+        },
+        take: 5,
+    });
+    return memberships.map((membership) => {
+        const endDate = new Date(membership.end_date);
+        endDate.setHours(0, 0, 0, 0);
+        const today = new Date(todayStart);
+        today.setHours(0, 0, 0, 0);
+        const diffMs = endDate.getTime() - today.getTime();
+        const daysRemaining = Math.round(diffMs / (1000 * 60 * 60 * 24));
+        return {
+            id: membership.id,
+            fullname: membership.members.fullname,
+            planName: membership.membership_plans.plan_name,
+            endDate: membership.end_date,
+            daysRemaining,
+        };
+    });
+};
+export async function getWeeklyGuestAttendanceService() {
+    const data = await prisma.$queryRaw `
+      WITH RECURSIVE days AS (
+      SELECT DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY) AS attendance_date
+
+      UNION ALL
+
+      SELECT DATE_ADD(attendance_date, INTERVAL 1 DAY)
+      FROM days
+      WHERE attendance_date < DATE_ADD(
+         DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY),
+         INTERVAL 6 DAY
+      )
+      )
+
+      SELECT
+      DAYNAME(d.attendance_date) AS day,
+      COALESCE(COUNT(a.id), 0) AS count
+      FROM days d
+      LEFT JOIN attendance a
+      ON DATE(a.check_in_time) = d.attendance_date
+      AND a.member_id IS NOT NULL
+      GROUP BY d.attendance_date
+      ORDER BY d.attendance_date;
+   `;
+    return data.map(item => ({
+        day: item.day,
+        presentMembers: Number(item.count),
+    }));
+}
+export async function getMembershipStatusService() {
+    const memberships = await prisma.member_memberships.findMany({
+        select: {
+            member_id: true,
+            status: true,
+            start_date: true,
+            created_at: true,
+        },
+        orderBy: [
+            {
+                member_id: "asc",
+            },
+            {
+                start_date: "desc",
+            },
+            {
+                created_at: "desc",
+            },
+        ],
+    });
+    const latestMemberships = new Map();
+    for (const membership of memberships) {
+        if (!latestMemberships.has(membership.member_id)) {
+            latestMemberships.set(membership.member_id, membership);
+        }
+    }
+    let active = 0;
+    let expired = 0;
+    let inactive = 0;
+    for (const membership of latestMemberships.values()) {
+        if (membership.status === "Active") {
+            active++;
+        }
+        if (membership.status === "Expired") {
+            expired++;
+        }
+        if (membership.status === "Inactive") {
+            inactive++;
+        }
+    }
+    return [
+        {
+            name: "Active",
+            value: active,
+        },
+        {
+            name: "Inactive",
+            value: inactive,
+        },
+        {
+            name: "Expired",
+            value: expired,
+        }
+    ];
+}
+export async function getGenderDistributionService() {
+    const data = await prisma.members.groupBy({
+        by: ["gender"],
+        _count: {
+            gender: true,
+        },
+    });
+    const genderMap = new Map(data.map((item) => [
+        item.gender,
+        item._count.gender,
+    ]));
+    return [
+        {
+            name: "Male",
+            value: genderMap.get("Male") ?? 0,
+        },
+        {
+            name: "Female",
+            value: genderMap.get("Female") ?? 0,
+        },
+    ];
+}
+export async function getTopClaimedRewardsService() {
+    const rewards = await prisma.reward_redemptions.groupBy({
+        by: ["reward_id"],
+        where: {
+            status: "Claimed",
+        },
+        _count: {
+            id: true,
+        },
+        orderBy: {
+            _count: {
+                id: "desc",
+            },
+        },
+        take: 5,
+    });
+    const rewardsWithNames = await Promise.all(rewards.map(async (reward) => {
+        const rewardData = await prisma.rewards.findUnique({
+            where: {
+                id: reward.reward_id,
+            },
+            select: {
+                name: true,
+            },
+        });
+        return {
+            name: rewardData?.name,
+            claimed: reward._count.id,
+        };
+    }));
+    return rewardsWithNames;
+}
+export async function getRecentActivityService() {
+    const activities = await prisma.activities.findMany({
+        where: {
+            recipient_type: 'ADMIN'
+        },
+        take: 5,
+        orderBy: { created_at: "desc" },
+        include: {
+            members: {
+                select: {
+                    fullname: true
+                }
+            },
+        }
+    });
+    return activities.map(activity => ({
+        name: activity.title,
+        action: activity.description,
+        time: activity.created_at?.toISOString(),
+        avatar: activity.members?.fullname
+            ?.split(" ")
+            .map(x => x[0])
+            .join("")
+    }));
+}

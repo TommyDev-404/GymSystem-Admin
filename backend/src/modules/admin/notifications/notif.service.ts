@@ -1,12 +1,9 @@
 import { prisma } from "../../../lib/prisma";
 
-export async function getAllNotificationsService(data: { category: any }) {
+export async function getAllNotificationsService() {
 	return await prisma.notifications.findMany({
 		where: {
-			recipient_type: "ADMIN",
-			...(data.category && data.category !== "All" && {
-				category: data.category,
-			})
+			recipient_type: "ADMIN"
 		},
 		select: {
 			id: true,

@@ -69,6 +69,7 @@ export function PricingSection() {
     setOpen("Add");
   };
 
+  /*
   const onSubmit = (data: FormValues) => {
     const updates = data.plans
       .map((plan, index) => {
@@ -101,7 +102,47 @@ export function PricingSection() {
       }
     );
   };
+*/
+  
+  const onSubmit = (data: FormValues) => {
+    const updates = data.plans
+      .map((plan, index) => {
+        const dirty = dirtyFields.plans?.[index];
 
+        if (!dirty) return null;
+
+        const changedData: Partial<Plan> = {};
+
+        const setChangedField = <K extends keyof Plan>(
+          key: K,
+          value: Plan[K]
+        ) => {
+          changedData[key] = value;
+        };
+
+        (Object.keys(dirty) as (keyof Plan)[]).forEach((key) => {
+          setChangedField(key, plan[key]);
+        });
+
+        return {
+          id: plan.id,
+          data: changedData,
+        };
+      })
+      .filter((item): item is UpdatePlanDTO => item !== null);
+
+    if (updates.length === 0) return;
+
+    updatePlan(
+      { data: updates },
+      {
+        onSuccess: () => {
+          toast.success("Plans updated successfully!");
+        },
+      }
+    );
+  };
+  
   return (
     <Card className="rounded-2xl border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-900">
       <form className="space-y-6 p-6">

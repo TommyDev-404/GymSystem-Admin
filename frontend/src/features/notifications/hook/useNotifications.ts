@@ -2,10 +2,10 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as api from "@/features/notifications/api/notif.api";
 import type { NotificationCount, Notifications } from "../types/NotifTypes";
 
-export function useGetAdminNotifications(params?: { category: string }) {
+export function useGetAdminNotifications() {
   return useQuery<Notifications[]>({
-    queryKey: ["admin-notifications", params],
-    queryFn: () => api.getAdminNotificationsApi(params)
+    queryKey: ["admin-notifications"],
+    queryFn: () => api.getAdminNotificationsApi()
   });
 }
 
