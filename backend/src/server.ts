@@ -1,5 +1,5 @@
 import app from "./app.js";
-import { prisma } from "./lib/prisma";
+import { prisma } from "./lib/prisma.js";
 import http from "http";
 import { initSocket } from "./lib/socket";
 import { startSessionScheduler } from "./cron/sessionCron";
