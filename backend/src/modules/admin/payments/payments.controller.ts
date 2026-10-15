@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import * as service from "./payments.service";
+import * as service from "./payments.service.js";
 
 
 export const getPaymentsSummaryController = async (req: Request, res: Response) => {

@@ -1,5 +1,5 @@
-import { prisma } from "../../../lib/prisma";
-import { getIO } from "../../../lib/socket";
+import { prisma } from "../../../lib/prisma.js";
+import { getIO } from "../../../lib/socket.js";
 
 export const getMemberWeeklyAttendanceService = async (memberId: number) => {
 	const now = new Date();

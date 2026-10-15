@@ -1,6 +1,6 @@
-import { prisma } from "../../../lib/prisma";
-import { getIO } from "../../../lib/socket";
-import { Rewards } from "./rewards.types";
+import { prisma } from "../../../lib/prisma.js";
+import { getIO } from "../../../lib/socket.js";
+import { Rewards } from "./rewards.types.js";
 
 export const getAllRewardsService = async () => {
 	const rewards = await prisma.rewards.findMany({

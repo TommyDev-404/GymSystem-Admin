@@ -1,5 +1,5 @@
-import { prisma } from "../../../lib/prisma";
-import { CreateGoalDTO, UpdateGoalDTO } from "./home.types";
+import { prisma } from "../../../lib/prisma.js";
+import { CreateGoalDTO, UpdateGoalDTO } from "./home.types.js";
 
 function calculateStreak(dates: Date[]) {
    if (dates.length === 0) return 0;

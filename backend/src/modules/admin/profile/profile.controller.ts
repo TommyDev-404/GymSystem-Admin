@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import * as service from "./profile.service";
+import * as service from "./profile.service.js";
 
 
 export const getAdminProfileController = async (req: Request, res: Response) => {

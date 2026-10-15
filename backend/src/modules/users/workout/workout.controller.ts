@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import * as service from "./workout.service";
+import * as service from "./workout.service.js";
 
 export const getWorkoutTutorials = async (req: Request, res: Response) => {
 	try {

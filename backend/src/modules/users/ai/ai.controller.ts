@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import { buildCoachContext } from "./ai.context";
-import { generateCoachResponse } from "./ai.service";
+import { buildCoachContext } from "./ai.context.js";
+import { generateCoachResponse } from "./ai.service.js";
 
 export async function chatWithCoach(
   req: Request,

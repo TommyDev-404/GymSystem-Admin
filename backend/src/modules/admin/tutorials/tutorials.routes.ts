@@ -1,6 +1,6 @@
 import { Router } from "express";
 import multer from "multer";
-import * as controller from "./tutorials.controller";
+import * as controller from "./tutorials.controller.js";
 
 const router = Router();
 

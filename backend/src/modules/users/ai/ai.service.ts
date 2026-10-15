@@ -1,5 +1,5 @@
-import { genai } from "../../../lib/ai";
-import { JFITNESS_COACH_PROMPT } from "./ai.prompt";
+import { genai } from "../../../lib/ai.js";
+import { JFITNESS_COACH_PROMPT } from "./ai.prompt.js";
 
 export async function generateCoachResponse(
   message: string,

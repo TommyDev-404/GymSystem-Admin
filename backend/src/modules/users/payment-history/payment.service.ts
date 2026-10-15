@@ -1,4 +1,4 @@
-import { prisma } from "../../../lib/prisma";
+import { prisma } from "../../../lib/prisma.js";
 
 export const getMemberPaymentHistoryService = async (member_id: number) => {
 	const [stats, member, payments] = await Promise.all([

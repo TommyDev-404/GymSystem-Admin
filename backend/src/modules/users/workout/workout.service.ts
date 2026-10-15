@@ -1,5 +1,5 @@
-import { prisma } from "../../../lib/prisma";
-import { CreateWorkoutInput } from "./workout.types";
+import { prisma } from "../../../lib/prisma.js";
+import { CreateWorkoutInput } from "./workout.types.js";
 
 
 export const getWorkoutTutorialsService = async (

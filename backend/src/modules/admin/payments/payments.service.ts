@@ -1,5 +1,5 @@
-import { prisma } from "../../../lib/prisma";
-import { PaymentFilterDTO } from "./payments.types";
+import { prisma } from "../../../lib/prisma.js";
+import { PaymentFilterDTO } from "./payments.types.js";
 
 export const getPaymentSummaryService = async () => {
 

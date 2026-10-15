@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
-import { prisma } from "../../../lib/prisma";
-import { sendMail } from "../../../utils/mailer";
+import { prisma } from "../../../lib/prisma.js";
+import { sendMail } from "../../../utils/mailer.js";
 import jwt from "jsonwebtoken";
 
 

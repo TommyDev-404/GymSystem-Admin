@@ -1,5 +1,5 @@
-import { prisma } from "../../../lib/prisma";
-import { uploadImageToSupabase } from "../../admin/tutorials/tutorials.service";
+import { prisma } from "../../../lib/prisma.js";
+import { uploadImageToSupabase } from "../../admin/tutorials/tutorials.service.js";
 
 
 export const getCommunityPostsService = async (member_id: number) => {

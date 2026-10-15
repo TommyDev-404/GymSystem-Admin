@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import * as service from "./referral.service";
+import * as service from "./referral.service.js";
 
 export const getMemberReferralDataController = async (req: Request, res: Response) => {
    try {

@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import * as service from "./notif.service";
+import * as service from "./notif.service.js";
 
 export const getAllNotificationsController = async (req: Request, res: Response) => {
 	try {

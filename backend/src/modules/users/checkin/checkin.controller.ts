@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import * as service from "./checkin.service";
+import * as service from "./checkin.service.js";
 
 export const getMemberWeeklyAttendanceController = async (req: Request, res: Response) => {
   try {

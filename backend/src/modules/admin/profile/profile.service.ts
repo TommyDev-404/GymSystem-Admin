@@ -1,5 +1,5 @@
-import { prisma } from "../../../lib/prisma";
-import { UpdateAdminProfileDTO } from "./profile.types";
+import { prisma } from "../../../lib/prisma.js";
+import { UpdateAdminProfileDTO } from "./profile.types.js";
 
 export const getAdminProfileService = async (adminId: number) => {
   const adminProfile = await prisma.users.findUnique({

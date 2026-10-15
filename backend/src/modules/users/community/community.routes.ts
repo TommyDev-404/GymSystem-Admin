@@ -1,6 +1,6 @@
 import { Router } from "express";
 import multer from "multer";
-import * as controller from "./community.controller";
+import * as controller from "./community.controller.js";
 
 const router = Router();
 

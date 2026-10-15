@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { chatWithCoach } from "./ai.controller";
+import { chatWithCoach } from "./ai.controller.js";
 
 const router = Router();
 

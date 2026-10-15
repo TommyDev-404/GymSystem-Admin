@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import * as service from "./payment.service";
+import * as service from "./payment.service.js";
 
 
 export const getMemberPaymentHistoryController = async (req: Request, res: Response) => {

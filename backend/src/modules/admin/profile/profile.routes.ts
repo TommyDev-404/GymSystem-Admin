@@ -1,10 +1,7 @@
 import { Router } from "express";
-import { authMiddleware } from "../../../middlewares/auth";
-import * as controller from "./profile.controller";
+import * as controller from "./profile.controller.js";
 
 const router = Router();
-
-//router.use(authMiddleware);
 
 router.get("/profile/:id", controller.getAdminProfileController);
 router.patch("/update-info/:id", controller.updateAdminProfileController);

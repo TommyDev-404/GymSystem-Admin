@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import * as service from "./rewards.service";
+import * as service from "./rewards.service.js";
 
 export const getRewardController = async (req: Request, res: Response) => {
   try {

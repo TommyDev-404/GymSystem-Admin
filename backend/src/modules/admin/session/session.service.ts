@@ -1,5 +1,5 @@
 import { randomUUID } from "crypto";
-import { prisma } from "../../../lib/prisma";
+import { prisma } from "../../../lib/prisma.js";
 
 export const createDailySessionService = async () => {
   const start = new Date();

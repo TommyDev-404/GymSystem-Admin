@@ -1,7 +1,7 @@
-import { prisma } from "../../../lib/prisma";
-import { getIO } from "../../../lib/socket";
-import { supabase } from "../../../lib/supabase";
-import { WorkoutFilters } from "./tutorials.types";
+import { prisma } from "../../../lib/prisma.js";
+import { getIO } from "../../../lib/socket.js";
+import { supabase } from "../../../lib/supabase.js";
+import { WorkoutFilters } from "./tutorials.types.js";
 
 const normalizeArray = (value: any) => {
   if (Array.isArray(value)) return value;

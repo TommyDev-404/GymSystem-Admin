@@ -1,31 +1,31 @@
 import express from "express";
 import cors from "cors";
 
-import { errorHandler } from "./middlewares/errorHandler";
+import { errorHandler } from "./middlewares/errorHandler.js";
 
-import adminAuthRoutes from "./modules/admin/auth/auth.routes";
-import adminDashboardRoutes from "./modules/admin/dashboard/dashboard.routes";
-import adminMemberRoutes from "./modules/admin/members/members.route";
-import adminSessionRoutes from "./modules/admin/session/session.routes";
-import adminAttendanceRoutes from "./modules/admin/attendance/attendance.routes";
-import adminPaymentRoutes from "./modules/admin/payments/payments.routes";
-import adminPlansRoutes from "./modules/admin/membership_plans/plan.routes";
-import adminTutorialRoutes from "./modules/admin/tutorials/tutorials.routes";
-import adminRewardsRoutes from "./modules/admin/rewards/rewards.routes";
-import adminProfileRoutes from "./modules/admin/profile/profile.routes";
-import adminNotificationRoutes from "./modules/admin/notifications/notif.routes";
+import adminAuthRoutes from "./modules/admin/auth/auth.routes.js";
+import adminDashboardRoutes from "./modules/admin/dashboard/dashboard.routes.js";
+import adminMemberRoutes from "./modules/admin/members/members.route.js";
+import adminSessionRoutes from "./modules/admin/session/session.routes.js";
+import adminAttendanceRoutes from "./modules/admin/attendance/attendance.routes.js";
+import adminPaymentRoutes from "./modules/admin/payments/payments.routes.js";
+import adminPlansRoutes from "./modules/admin/membership_plans/plan.routes.js";
+import adminTutorialRoutes from "./modules/admin/tutorials/tutorials.routes.js";
+import adminRewardsRoutes from "./modules/admin/rewards/rewards.routes.js";
+import adminProfileRoutes from "./modules/admin/profile/profile.routes.js";
+import adminNotificationRoutes from "./modules/admin/notifications/notif.routes.js";
 
-import checkInRoutes from "./modules/users/checkin/checkin.routes";
-import authRoutes from "./modules/users/auth/auth.routes";
-import workoutRoutes from "./modules/users/workout/workout.routes";
-import homeRoutes from "./modules/users/home/home.routes";
-import communityRoutes from "./modules/users/community/community.routes";
-import notificationRoutes from "./modules/users/notifications/notif.routes";
-import userProfileRoutes from "./modules/users/profile/profile.routes";
-import userPaymentRoutes from "./modules/users/payment-history/payment.routes";
-import userRewardRoutes from "./modules/users/reward/reward.routes";
-import userReferralRoutes from "./modules/users/referral-program/referral.routes";
-import chatbotRoutes from "./modules/users/ai/ai.route";
+import checkInRoutes from "./modules/users/checkin/checkin.routes.js";
+import authRoutes from "./modules/users/auth/auth.routes.js";
+import workoutRoutes from "./modules/users/workout/workout.routes.js";
+import homeRoutes from "./modules/users/home/home.routes.js";
+import communityRoutes from "./modules/users/community/community.routes.js";
+import notificationRoutes from "./modules/users/notifications/notif.routes.js";
+import userProfileRoutes from "./modules/users/profile/profile.routes.js";
+import userPaymentRoutes from "./modules/users/payment-history/payment.routes.js";
+import userRewardRoutes from "./modules/users/reward/reward.routes.js";
+import userReferralRoutes from "./modules/users/referral-program/referral.routes.js";
+import chatbotRoutes from "./modules/users/ai/ai.route.js";
 
 import cookieParser from "cookie-parser";
 

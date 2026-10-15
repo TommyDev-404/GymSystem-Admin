@@ -1,10 +1,10 @@
 import app from "./app.js";
 import { prisma } from "./lib/prisma.js";
 import http from "http";
-import { initSocket } from "./lib/socket";
-import { startSessionScheduler } from "./cron/sessionCron";
-import { startMembershipCron } from "./cron/membershipCron";
-import { startAttendanceCron } from "./cron/attendanceCron";
+import { initSocket } from "./lib/socket.js";
+import { startSessionScheduler } from "./cron/sessionCron.js";
+import { startMembershipCron } from "./cron/membershipCron.js";
+import { startAttendanceCron } from "./cron/attendanceCron.js";
 
 // ==================== Server Setup ====================
 

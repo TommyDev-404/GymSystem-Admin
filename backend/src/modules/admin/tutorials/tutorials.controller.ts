@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import * as service from "./tutorials.service";
+import * as service from "./tutorials.service.js";
 
 export const createTutorial = async (req: Request, res: Response) => {
   try {

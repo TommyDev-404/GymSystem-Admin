@@ -1,9 +1,9 @@
-import { prisma } from "../../../lib/prisma";
-import { getIO } from "../../../lib/socket";
-import { sendMail } from "../../../utils/mailer";
-import { generateOTP } from "../../../utils/otp-generator";
-import { generateReferralCode } from "../../../utils/referralGenerator";
-import { CreateMemberDTO, MemberFilters, PaymentHistoryFilters } from "./members.types";
+import { prisma } from "../../../lib/prisma.js";
+import { getIO } from "../../../lib/socket.js";
+import { sendMail } from "../../../utils/mailer.js";
+import { generateOTP } from "../../../utils/otp-generator.js";
+import { generateReferralCode } from "../../../utils/referralGenerator.js";
+import { CreateMemberDTO, MemberFilters, PaymentHistoryFilters } from "./members.types.js";
 
 function calculateDuration(duration_type: string, duration: number) {
 	const startDate = new Date();

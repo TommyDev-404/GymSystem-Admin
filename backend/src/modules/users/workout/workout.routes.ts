@@ -1,5 +1,5 @@
 import express from "express";
-import * as controller from "./workout.controller";
+import * as controller from "./workout.controller.js";
 
 const router = express.Router();
 

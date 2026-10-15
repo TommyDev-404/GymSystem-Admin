@@ -2,7 +2,7 @@ import { Router } from "express";
 import {
   createSessionController,
   getTodayQrController
-} from "./session.controller";
+} from "./session.controller.js";
 
 const router = Router();
 

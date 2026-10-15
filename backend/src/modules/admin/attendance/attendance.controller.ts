@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import * as service from "./attendance.service";
+import * as service from "./attendance.service.js";
 
 export const getAttendanceController = async (req: Request, res: Response) => {
   try {

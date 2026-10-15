@@ -1,4 +1,4 @@
-import * as service from "./session.service";
+import * as service from "./session.service.js";
 import { Request, Response } from "express";
 
 export const createSessionController = async (req: Request, res: Response) => {

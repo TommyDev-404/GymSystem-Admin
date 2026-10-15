@@ -1,5 +1,5 @@
-import { prisma } from "../../../lib/prisma";
-import { getIO } from "../../../lib/socket";
+import { prisma } from "../../../lib/prisma.js";
+import { getIO } from "../../../lib/socket.js";
 
 export const getAttendanceService = async (filters: {
   year?: number;

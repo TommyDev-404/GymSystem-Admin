@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import * as service from "./members.service";
+import * as service from "./members.service.js";
 
 
 export const getMembersSummaryController = async (req: Request, res: Response) => {

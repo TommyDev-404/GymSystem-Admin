@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import * as service from "./home.service";
+import * as service from "./home.service.js";
 
 export const getMemberDashboardDataController = async (req: Request, res: Response) => {
    try {

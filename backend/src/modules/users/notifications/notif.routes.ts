@@ -1,5 +1,5 @@
 import { Router } from "express";
-import * as controller from "./notif.controller";
+import * as controller from "./notif.controller.js";
 
 const router = Router();
 

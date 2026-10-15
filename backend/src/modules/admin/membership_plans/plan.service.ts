@@ -1,5 +1,5 @@
-import { prisma } from "../../../lib/prisma";
-import { CreatePlanDTO, UpdatePlanDTO } from "./plan.types";
+import { prisma } from "../../../lib/prisma.js";
+import { CreatePlanDTO, UpdatePlanDTO } from "./plan.types.js";
 
 export const getPlansService = async () => {
 	return await prisma.membership_plans.findMany({

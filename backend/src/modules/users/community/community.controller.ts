@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import * as service from "./community.service";
+import * as service from "./community.service.js";
 
 
 export const getCommentsController = async(req:Request, res:Response)=>{

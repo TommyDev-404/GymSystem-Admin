@@ -1,8 +1,8 @@
-import { comparePassword, hashPassword } from "../../../utils/password";
-import { signToken } from "../../../utils/jwt";
-import { generateOTP } from "../../../utils/otp-generator";
-import { sendMail } from "../../../utils/mailer";
-import { prisma } from "../../../lib/prisma";
+import { comparePassword, hashPassword } from "../../../utils/password.js";
+import { signToken } from "../../../utils/jwt.js";
+import { generateOTP } from "../../../utils/otp-generator.js";
+import { sendMail } from "../../../utils/mailer.js";
+import { prisma } from "../../../lib/prisma.js";
 
 export const login = async (username: string, password: string) => {
 	const user = await prisma.users.findFirst({
