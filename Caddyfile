@@ -1,0 +1,4 @@
+
+jfitness-gym.tech, www.jfitness-gym.tech {
+    reverse_proxy frontend:80
+}
