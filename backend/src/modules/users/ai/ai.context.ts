@@ -1,5 +1,5 @@
 import { prisma } from "../../../lib/prisma.js";
-import { CoachContext } from "./ai.types";
+import { CoachContext } from "./ai.types.js";
 
 export async function buildCoachContext(
   memberId: number,
