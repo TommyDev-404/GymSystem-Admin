@@ -80,7 +80,7 @@ import {
 	const handleSetAdmin = (data: AdminInfo) => {
 	  setAdmin(data);
 	};
- 
+
 	return (
 	  <AuthContext.Provider
 		 value={{

@@ -17,30 +17,33 @@ export const getCurrentAdmin = async (
   });
 };
 
-export const loginController = async (req: Request, res: Response) => {
+export const loginController = async (
+	req: Request,
+	res: Response
+ ) => {
 	try {
-		const { username, password } = req.body;
-	
-		const result = await authService.login(username, password);
-	
-		res.cookie("admin_token", result.token, {
-			httpOnly: true,
-			secure: false,
-			sameSite: "lax",
-			maxAge: 1000 * 60 * 60 * 24,
-		});
-	
-		res.status(200).json({
-			message: "Login successful",
-			user: result.user,
-		});
+	  const { username, password } = req.body;
+	  const result = await authService.login(username, password);
+ 
+	  res.cookie("admin_token", result.token, {
+		 httpOnly: true,
+		 secure: true,
+		 sameSite: "lax",
+		 path: "/",
+		 maxAge: 1000 * 60 * 60 * 24,
+	  });
+ 
+	  return res.status(200).json({
+		 message: "Login successful",
+		 user: result.user,
+	  });
 	} catch (error) {
-		res.status(401).json({
-			message: error instanceof Error ? error.message : "Login failed",
-		});
+	  return res.status(401).json({
+		 message: error instanceof Error ? error.message : "Login failed",
+	  });
 	}
 };
-
+ 
 export const logout = async (req: Request, res: Response) => {
 	res.clearCookie("admin_token", {
 	  httpOnly: true,
