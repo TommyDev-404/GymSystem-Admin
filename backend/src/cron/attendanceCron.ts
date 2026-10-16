@@ -107,63 +107,11 @@ const checkMemberAttendanceInactivity = async () => {
          const daysInactive = Math.floor(differenceInMs / (1000 * 60 * 60 * 24));
 
          const isOneMonthMembership = memberDuration === 1 && memberDurationType === "Month";
-            
-         // 7 DAYS INACTIVE
-         if (daysInactive >= 7 && daysInactive < 14) {
-            const [
-               existingMemberNotification,
-               existingAdminNotification,
-            ] = await Promise.all([
-               prisma.notifications.findFirst({
-                  where: {
-                     recipient_id: memberId,
-                     recipient_type: "MEMBER",
-                     category: "ATTENDANCE",
-                     type: "MEMBER_INACTIVE_7_DAYS",
-                  },
-               }),
-               prisma.notifications.findFirst({
-                  where: {
-                     recipient_id: memberId,
-                     recipient_type: "ADMIN",
-                     category: "ATTENDANCE",
-                     type: "MEMBER_INACTIVE_7_DAYS",
-                  },
-               }),
-            ]);
 
-            if (!existingMemberNotification) {
-               await prisma.notifications.create({
-                  data: {
-                     recipient_id: memberId,
-                     recipient_type: "MEMBER",
-                     category: "ATTENDANCE",
-                     type: "MEMBER_INACTIVE_7_DAYS",
-                     title: "Time to Get Back on Track! 🔥",
-                     description:
-                        "It's been a week since your last visit. Your fitness journey is still waiting for you. Come back and keep your momentum going!",
-                  },
-               });
-            }
-
-            if (!existingAdminNotification) {
-               await prisma.notifications.create({
-                  data: {
-                     recipient_id: memberId,
-                     recipient_type: "ADMIN",
-                     category: "ATTENDANCE",
-                     type: "MEMBER_INACTIVE_7_DAYS",
-                     title: "Member Inactive for 7 Days",
-                     description: `${memberName} has not visited the gym for 7 days. Consider reaching out to encourage them to return.`,
-                  },
-               });
-            }
-         }
-
-         // 14 DAYS INACTIVE
+         // 12 DAYS INACTIVE
          if (
-            daysInactive >= 14 &&
-            daysInactive < 18 &&
+            daysInactive >= 12 &&
+            daysInactive < 15 &&
             isOneMonthMembership
          ) {
             const [
@@ -195,8 +143,8 @@ const checkMemberAttendanceInactivity = async () => {
                      recipient_type: "MEMBER",
                      category: "ATTENDANCE",
                      type: "MEMBER_INACTIVE_14_DAYS",
-                     title: "Your Membership Is at Risk ⚠️",
-                     description: "It's been 14 days since your last gym visit. Stay on track with your fitness goals by coming back soon. If you need help staying consistent, feel free to reach out to our gym staff.",
+                     title: "We Miss You! ",
+                     description: "It's been a while since your last gym visit. You're at risk of falling off track with your fitness goals, but it's not too late! Come back to the gym, keep building healthy habits, and stay consistent. We're here to support you every step of the way!"
                   },
                });
             }
@@ -209,14 +157,14 @@ const checkMemberAttendanceInactivity = async () => {
                      category: "ATTENDANCE",
                      type: "MEMBER_INACTIVE_14_DAYS",
                      title: "Membership Inactivity Warning",
-                     description: `${memberName} has not visited the gym for 14 days. Their engagement is now considered at risk. Consider reaching out to encourage them to return and stay consistent with their fitness goals.`,
+                     description: `${memberName} has not visited the gym for 12 days. Their engagement is now considered at risk.`,
                   },
                });
             }
          }
 
-         // 18 DAYS INACTIVE - MARK MEMBER STATUS AS INACTIVE
-         if (daysInactive >= 18 && isOneMonthMembership) {
+         // 15 DAYS INACTIVE - MARK MEMBER STATUS AS INACTIVE
+         if (daysInactive >= 15 && isOneMonthMembership) {
             await prisma.notifications.create({
                data: {
                   recipient_id: memberId,
@@ -225,7 +173,7 @@ const checkMemberAttendanceInactivity = async () => {
                   type: "MEMBERSHIP_MARK_INACTIVE",
                   title: "You've Been Marked as Inactive!",
                   description:
-                  "You've been inactive for 18 days, and we want to encourage you to get back on track! Your fitness journey doesn't stop here. Come back to the gym, don't let fear overcome you.Every workout is a new opportunity to become stronger!",
+                  "You've been inactive for 15 days, and we want to encourage you to get back on track! Your fitness journey doesn't stop here. Come back to the gym, don't let fear overcome you.Every workout is a new opportunity to become stronger!",
                },
             });
 
@@ -236,11 +184,11 @@ const checkMemberAttendanceInactivity = async () => {
                   category: "ATTENDANCE",
                   type: "MEMBERSHIP_MARK_INACTIVE",
                   title: "Member Marked as Inactive",
-                  description: `${memberName} has been marked as inactive after 18 days without a gym visit. Consider reaching out to encourage them to return, rebuild their consistency, and continue working toward their fitness goals. Their membership status remains unchanged.`,
+                  description: `${memberName} has been marked as inactive after 15 days without a gym visit. Consider reaching out to encourage them to return, rebuild their consistency, and continue working toward their fitness goals. Their membership status remains unchanged.`,
                 },
             });
          }
-      }
+      } 
 
    } catch (error) {
       console.error(

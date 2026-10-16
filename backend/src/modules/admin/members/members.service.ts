@@ -1,5 +1,6 @@
 import { prisma } from "../../../lib/prisma.js";
 import { getIO } from "../../../lib/socket.js";
+import { getEngagementStatus } from "../../../utils/engagementStatus.js";
 import { sendMail } from "../../../utils/mailer.js";
 import { generateOTP } from "../../../utils/otp-generator.js";
 import { generateReferralCode } from "../../../utils/referralGenerator.js";
@@ -29,51 +30,6 @@ function calculateDuration(duration_type: string, duration: number) {
 		endDate
 	};
 }
-
-type EngagementStatus =
-  | "ACTIVE"
-  | "AT_RISK"
-  | "INACTIVE"
-  | "NO_ATTENDANCE";
-
-const getEngagementStatus = (lastAttendance: Date | null): EngagementStatus => {
-  if (!lastAttendance) {
-    return "NO_ATTENDANCE";
-  }
-
-  const today = new Date();
-  const todayStart = new Date(
-    today.getFullYear(),
-    today.getMonth(),
-    today.getDate(),
-  );
-
-  const visitDate = new Date(lastAttendance);
-
-  if (Number.isNaN(visitDate.getTime())) {
-    return "NO_ATTENDANCE";
-  }
-
-  const visitStart = new Date(
-    visitDate.getFullYear(),
-    visitDate.getMonth(),
-    visitDate.getDate(),
-  );
-
-  const daysSinceVisit = Math.floor(
-    (todayStart.getTime() - visitStart.getTime()) /
-      (1000 * 60 * 60 * 24),
-  );
-
-  if (daysSinceVisit < 0) {
-    return "NO_ATTENDANCE";
-  }
-
-  if (daysSinceVisit <= 7) return "ACTIVE";
-  if (daysSinceVisit <= 14) return "AT_RISK";
-
-  return "INACTIVE";
-};
 
 export const getMemberSummaryService = async () => {
 	const now = new Date();
@@ -128,7 +84,7 @@ export const getMemberSummaryService = async () => {
 	);
  
 	const inactiveThreshold = new Date(startOfToday);
-	inactiveThreshold.setDate(inactiveThreshold.getDate() - 18);
+	inactiveThreshold.setDate(inactiveThreshold.getDate() - 15);
  
 	for (const membership of latestMemberships.values()) {
 	  const isExpired =
@@ -149,8 +105,7 @@ export const getMemberSummaryService = async () => {
 			expiringTomorrow++;
 		 }
  
-		 const latestAttendance =
-			membership.members.attendance[0]?.check_in_time;
+		 const latestAttendance = membership.members.attendance[0]?.check_in_time;
  
 		 if (
 			latestAttendance &&
@@ -343,8 +298,8 @@ export const createMemberService = async (data: CreateMemberDTO) => {
 				data:{
 					referrer_id: referrer.id,
 					referee_id: member.id,
-					referrer_points: 100,
-					referee_points: 50
+					referrer_points: 50,
+					referee_points: 30
 				}
 			});
 
@@ -355,7 +310,7 @@ export const createMemberService = async (data: CreateMemberDTO) => {
 				},
 				data:{
 					points:{
-						increment:100
+						increment:50
 					}
 				}
 			});
@@ -367,7 +322,7 @@ export const createMemberService = async (data: CreateMemberDTO) => {
 				},
 				data:{
 					points:{
-						increment: 50
+						increment: 30
 					}
 				}
 			});
@@ -380,7 +335,7 @@ export const createMemberService = async (data: CreateMemberDTO) => {
 				  type: "REFERRAL_POINTS",
 				  title: "Referral Points Earned",
 				  description:
-					 "You earned 100 points for referring a new member to JFitness.",
+					 "You earned 50 points for referring a new member to JFitness.",
 				},
 			 });
 		  
@@ -393,7 +348,7 @@ export const createMemberService = async (data: CreateMemberDTO) => {
 				  type: "REFERRAL_POINTS",
 				  title: "Welcome Bonus Earned",
 				  description:
-					 "You earned 50 points for joining JFitness using a referral code.",
+					 "You earned 30 points for joining JFitness using a referral code.",
 				},
 			 });
 			
