@@ -34,111 +34,171 @@ function calculateStreak(dates: Date[]) {
    return streak;
 }
 
+type EngagementStatus =
+  | "ACTIVE"
+  | "AT_RISK"
+  | "INACTIVE"
+  | "NO_ATTENDANCE";
+
+const getEngagementStatus = (lastAttendance: Date | null): EngagementStatus => {
+  if (!lastAttendance) {
+    return "NO_ATTENDANCE";
+  }
+
+  const today = new Date();
+  const todayStart = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate(),
+  );
+
+  const visitDate = new Date(lastAttendance);
+
+  if (Number.isNaN(visitDate.getTime())) {
+    return "NO_ATTENDANCE";
+  }
+
+  const visitStart = new Date(
+    visitDate.getFullYear(),
+    visitDate.getMonth(),
+    visitDate.getDate(),
+  );
+
+  const daysSinceVisit = Math.floor(
+    (todayStart.getTime() - visitStart.getTime()) /
+      (1000 * 60 * 60 * 24),
+  );
+
+  if (daysSinceVisit < 0) {
+    return "NO_ATTENDANCE";
+  }
+
+  if (daysSinceVisit <= 7) return "ACTIVE";
+  if (daysSinceVisit <= 14) return "AT_RISK";
+
+  return "INACTIVE";
+};
+
 export const getMemberDashboardDataService = async (member_id: number) => {
-   const now = new Date();
+	const now = new Date();
  
-   const startOfMonth = new Date(
-     now.getFullYear(),
-     now.getMonth(),
-     1
-   );
+	const startOfMonth = new Date(
+	  now.getFullYear(),
+	  now.getMonth(),
+	  1,
+	);
  
 	const member = await prisma.members.findUnique({
-		where: {
-			id: member_id,
-		},
-		select: {
-			id: true,
-			users: {
-				select: {
-					username: true
-				}
+	  where: {
+		 id: member_id,
+	  },
+	  select: {
+		 id: true,
+		 users: {
+			select: {
+			  username: true,
 			},
-			email: true,
-			member_memberships: {
-				select: {
-					start_date: true,
-					end_date: true,
-					status: true,
-
-					membership_plans: {
-						select: {
-							plan_name: true
-						}
-					}
-				},
-				orderBy: {
-					created_at: "desc"
-				}
+		 },
+		 email: true,
+		 member_memberships: {
+			select: {
+			  start_date: true,
+			  end_date: true,
+			  status: true,
+			  membership_plans: {
+				 select: {
+					plan_name: true,
+				 },
+			  },
 			},
-			is_activated: true,
-			points: true,
-		},
+			orderBy: {
+			  created_at: "desc",
+			},
+		 },
+		 attendance: {
+			select: {
+			  check_in_time: true,
+			},
+			orderBy: {
+			  check_in_time: "desc",
+			},
+			take: 1,
+		 },
+		 is_activated: true,
+		 points: true,
+	  },
 	});
  
-   if (!member) {
-     throw new Error("Member not found");
-   }
+	if (!member) {
+	  throw new Error("Member not found");
+	}
  
-   const totalVisits = await prisma.attendance.count({
-     where: {
-       member_id: member.id,
-     },
-   });
+	const totalVisits = await prisma.attendance.count({
+	  where: {
+		 member_id: member.id,
+	  },
+	});
  
-   const thisMonth = await prisma.attendance.count({
-     where: {
-       member_id,
-       check_in_time: {
-         gte: startOfMonth,
-       },
-     },
-   });
+	const thisMonth = await prisma.attendance.count({
+	  where: {
+		 member_id,
+		 check_in_time: {
+			gte: startOfMonth,
+		 },
+	  },
+	});
  
-   const attendance = await prisma.attendance.findMany({
-     where: {
-       member_id,
-     },
-     orderBy: {
-       check_in_time: "desc",
-     },
-     select: {
-       check_in_time: true,
-     },
-   });
+	const attendance = await prisma.attendance.findMany({
+	  where: {
+		 member_id,
+	  },
+	  orderBy: {
+		 check_in_time: "desc",
+	  },
+	  select: {
+		 check_in_time: true,
+	  },
+	});
  
-   const dayStreak = calculateStreak(attendance.map((item) => item.check_in_time));
+	const dayStreak = calculateStreak(
+	  attendance.map((item) => item.check_in_time),
+	);
  
-   return {
-      id: member.id,
-      username: member.users?.username,
-      membership_start: member.member_memberships[0]
-         ? new Date(member.member_memberships[0].start_date).toLocaleDateString("en-PH", {
-               timeZone: "Asia/Manila",
-               month: "short",
-               day: "2-digit",
-               year: "numeric",
-            })
-         : null,
-		plan: member.member_memberships[0].membership_plans.plan_name,
-      expiry: member.member_memberships[0]
-         ? new Date(member.member_memberships[0].end_date)
-            .toLocaleDateString("en-PH", {
-               month: "short",
-               day: "2-digit",
-               year: "numeric",
-            })
-         : null,
-		status: member.member_memberships[0].status,
-      points: member.points,
-
-      stats: {
-         dayStreak,
-         totalVisits,
-         thisMonth,
-      },
-   };
-};
+	const lastAttendance = member.attendance[0]?.check_in_time ?? null;
+	const engagementStatus = getEngagementStatus(lastAttendance);
+ 
+	const latestMembership = member.member_memberships[0];
+ 
+	return {
+	  id: member.id,
+	  username: member.users?.username,
+	  membership_start: latestMembership
+		 ? new Date(latestMembership.start_date).toLocaleDateString("en-PH", {
+			  timeZone: "Asia/Manila",
+			  month: "short",
+			  day: "2-digit",
+			  year: "numeric",
+			})
+		 : null,
+	  plan: latestMembership?.membership_plans.plan_name ?? null,
+	  expiry: latestMembership
+		 ? new Date(latestMembership.end_date).toLocaleDateString("en-PH", {
+			  timeZone: "Asia/Manila",
+			  month: "short",
+			  day: "2-digit",
+			  year: "numeric",
+			})
+		 : null,
+	  membershipStatus: latestMembership?.status ?? null,
+	  engagementStatus,
+	  points: member.points,
+	  stats: {
+		 dayStreak,
+		 totalVisits,
+		 thisMonth,
+	  },
+	};
+ };
  
 export const getMemberAttendanceHistoryService = async (
 	member_id: number

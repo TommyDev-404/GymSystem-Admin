@@ -9,12 +9,10 @@ import {
  import { RevenueChart } from "@/features/dashboard/components/RevenueChart";
  import { MembershipStatus } from "@/features/dashboard/components/MembershipStatus";
  import { WeeklyAttendance } from "@/features/dashboard/components/WeeklyAttendance";
- import { GenderWidget } from "@/features/dashboard/components/GenderWidget";
  import { TopClaimedRewards } from "@/features/dashboard/components/TopRewards";
  import { RecentActivity } from "@/features/dashboard/components/RecentActivity";
  import { MembershipsExpiringSoon } from "../components/MembershipExpiringSoon";
  import {
-	useGenderDistribution,
 	useGetDashboardSummaryData,
 	useGetMembershipsExpiry,
 	useGetMemberStatus,
@@ -25,13 +23,15 @@ import {
  } from "../hooks/useDashboard";
  import type { SummaryData } from "../types/DashboardTypes";
  import { PageLoader } from "@/components/shared/PageLoader";
+import { useMembers } from "@/features/members/hooks/useMember";
+import { MembersEngagementProgress } from "../components/MembersEngagementProgress";
  
- export function DashboardPage() {
+export function DashboardPage() {
+	const { data: members = [] } = useMembers();
 	const { data: summaryData = {} as SummaryData, isLoading: summaryDataLoading } = useGetDashboardSummaryData();
 	const { data: revenueTrend = [], isLoading: revenueTrendLoading } = useGetMonthlyRevenueTrend();
 	const { data: weeklyAttendance = [], isLoading: weeklyAttendanceLoading } = useGetWeeklyAttendance();
 	const { data: memberStatus = [], isLoading: memberStatusLoading } = useGetMemberStatus();
-	const { data: genderDistribution = [], isLoading: genderDistributionLoading } = useGenderDistribution();
 	const { data: topClaimedRewards = [], isLoading: topClaimedRewardsLoading } = useGetTopClaimedRewards();
 	const { data: recentActivity = [], isLoading: recentActivityLoading } = useGetRecentActivity();
 	const { data: membershipsExpiry = [], isLoading: membershipsExpiryLoading } = useGetMembershipsExpiry();
@@ -41,7 +41,6 @@ import {
 	  revenueTrendLoading ||
 	  weeklyAttendanceLoading ||
 	  memberStatusLoading ||
-	  genderDistributionLoading ||
 	  topClaimedRewardsLoading ||
 	  membershipsExpiryLoading ||
 	  recentActivityLoading;
@@ -151,8 +150,10 @@ import {
 			</div>
 
 			<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-			<MembershipStatus data={memberStatus} />
-			<GenderWidget data={genderDistribution} />
+				<MembershipStatus data={memberStatus} />
+				<MembersEngagementProgress
+					members={members}
+				/>
 			</div>
 
 			<RecentActivity data={recentActivity} />

@@ -106,13 +106,8 @@ const checkMemberAttendanceInactivity = async () => {
 
          const daysInactive = Math.floor(differenceInMs / (1000 * 60 * 60 * 24));
 
-         const isOneMonthMembership =
-            memberDuration === 1 &&
-            memberDurationType === "Month";
+         const isOneMonthMembership = memberDuration === 1 && memberDurationType === "Month";
             
-            console.log("Last checkin:", lastCheckIn);
-         console.log("Inactive days:", daysInactive);
-
          // 7 DAYS INACTIVE
          if (daysInactive >= 7 && daysInactive < 14) {
             const [
@@ -165,7 +160,7 @@ const checkMemberAttendanceInactivity = async () => {
             }
          }
 
-         // 14 DAYS INACTIVE - MEMBERSHIP WARNING
+         // 14 DAYS INACTIVE
          if (
             daysInactive >= 14 &&
             daysInactive < 18 &&
@@ -201,8 +196,7 @@ const checkMemberAttendanceInactivity = async () => {
                      category: "ATTENDANCE",
                      type: "MEMBER_INACTIVE_14_DAYS",
                      title: "Your Membership Is at Risk ⚠️",
-                     description:
-                        "You haven't visited the gym for 14 days. Please visit the gym within the next 4 days to keep your membership active.",
+                     description: "It's been 14 days since your last gym visit. Stay on track with your fitness goals by coming back soon. If you need help staying consistent, feel free to reach out to our gym staff.",
                   },
                });
             }
@@ -215,7 +209,7 @@ const checkMemberAttendanceInactivity = async () => {
                      category: "ATTENDANCE",
                      type: "MEMBER_INACTIVE_14_DAYS",
                      title: "Membership Inactivity Warning",
-                     description: `${memberName} has been inactive for 14 days. Their 1-month membership will be deactivated after 18 days of inactivity if they do not return.`,
+                     description: `${memberName} has not visited the gym for 14 days. Their engagement is now considered at risk. Consider reaching out to encourage them to return and stay consistent with their fitness goals.`,
                   },
                });
             }
@@ -223,25 +217,15 @@ const checkMemberAttendanceInactivity = async () => {
 
          // 18 DAYS INACTIVE - MARK MEMBER STATUS AS INACTIVE
          if (daysInactive >= 18 && isOneMonthMembership) {
-            await prisma.member_memberships.update({
-               where: {
-                  id: membershipId,
-                  member_id: memberId,
-               },
-               data: {
-                  status: "Inactive",
-               },
-            });
-
             await prisma.notifications.create({
                data: {
                   recipient_id: memberId,
                   recipient_type: "MEMBER",
                   category: "ATTENDANCE",
                   type: "MEMBERSHIP_MARK_INACTIVE",
-                  title: "Your Account Is Now Inactive",
+                  title: "You've Been Marked as Inactive!",
                   description:
-                    "Your account has been marked inactive after 18 days without a gym visit. Please contact the gym to restore your access.",
+                  "You've been inactive for 18 days, and we want to encourage you to get back on track! Your fitness journey doesn't stop here. Come back to the gym, don't let fear overcome you.Every workout is a new opportunity to become stronger!",
                },
             });
 
@@ -251,14 +235,13 @@ const checkMemberAttendanceInactivity = async () => {
                   recipient_type: "ADMIN",
                   category: "ATTENDANCE",
                   type: "MEMBERSHIP_MARK_INACTIVE",
-                  title: "Member Account Marked Inactive",
-                  description: `${memberName}'s account has been marked inactive after 18 days without a gym visit. Their membership record has been retained.`,
+                  title: "Member Marked as Inactive",
+                  description: `${memberName} has been marked as inactive after 18 days without a gym visit. Consider reaching out to encourage them to return, rebuild their consistency, and continue working toward their fitness goals. Their membership status remains unchanged.`,
                 },
             });
          }
       }
 
-      console.log("Member inactivity check completed.");
    } catch (error) {
       console.error(
          "Member attendance scheduler error:",

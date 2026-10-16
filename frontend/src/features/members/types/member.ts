@@ -1,9 +1,7 @@
 export interface Member {
   id: number;
   fullname: string;
-  age: number;
   email: string;
-  gender: "Male" | "Female";
   membership_id: number;
   plan_id: number;
   plan_name: string;
@@ -13,25 +11,18 @@ export interface Member {
   duration_type: string;
   duration: number;
   daily_hours_limit: number;
+  engagement_status: string;
   status?: string;
   points?: number;
 }
 
 export type MemberSummaryType = {
   active: number;
-  activeMale: number;
-  activeFemale: number;
-
-  expiringSoon: number;
   expiringTomorrow: number;
-  expiringWithin3Days: number;
-  expiringWithin7Days: number;
-
   expired: number;
-  expiredMale: number;
-  expiredFemale: number;
+  inactiveMembers: number;
 };
- 
+
 export type AddMemberFormType = {
   fullname: string;
   email: string;
@@ -50,11 +41,11 @@ export type UpgradeMembership = {
   amount: number
 }
 
-export type MemberFilters = {
+export interface MemberFilters {
   search?: string;
-  gender?: string;
-  status?: string;
-};
+  engagementStatus?: string;
+  membershipStatus?: string;
+}
 
 export type RenewMembershipDTO = {
   member_id: number;

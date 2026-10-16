@@ -14,170 +14,72 @@ import {
 interface Props {
   search: string;
   setSearch: (v: string) => void;
-  gender: string;
-  setGender: (v: string) => void;
-  status: string;
-  setStatus: (v: string) => void;
+  engagementStatus: string;
+  setEngagementStatus: (v: string) => void;
+  membershipStatus: string;
+  setMembershipStatus: (v: string) => void;
 }
 
 export function MemberFilters({
   search,
   setSearch,
-  gender,
-  setGender,
-  status,
-  setStatus,
+  engagementStatus,
+  setEngagementStatus,
+  membershipStatus,
+  setMembershipStatus,
 }: Props) {
   return (
-    <Card className="
-      rounded-2xl
-      border
-      border-stone-200
-      dark:border-stone-700
-      shadow-sm
-    ">
-      <div className="flex flex-wrap items-center gap-4 px-4 py-1">
-
-        {/* Search */}
-        <div className="relative flex-1 min-w-[260px]">
+    <Card className="rounded-2xl border border-stone-200 shadow-sm dark:border-stone-700">
+      <div className="flex flex-wrap items-center gap-4 px-4">
+        <div className="relative min-w-[260px] flex-1">
           <Search
             size={18}
-            className="
-              absolute 
-              left-3 
-              top-1/2 
-              -translate-y-1/2 
-              text-slate-400
-              dark:text-slate-500
-            "
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
           />
 
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search members..."
-            className="
-              rounded-xl
-              bg-slate-50
-              h-11
-              pl-10
-              border-stone-200
-              dark:border-stone-700
-              text-slate-700
-              dark:text-slate-200
-              placeholder:text-slate-400
-              dark:placeholder:text-slate-500
-              shadow-none
-              focus-visible:ring-2
-              focus-visible:ring-emerald-500
-              focus-visible:border-emerald-500
-            "
+            className="h-11 rounded-xl border-stone-200 bg-slate-50 pl-10 text-slate-700 shadow-none placeholder:text-slate-400 focus-visible:border-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-500 dark:border-stone-700 dark:text-slate-200 dark:placeholder:text-slate-500"
           />
         </div>
 
-
-        {/* Divider */}
         <Separator
           orientation="vertical"
-          className="
-            hidden 
-            h-12 
-            lg:block
-            dark:bg-stone-700
-          "
+          className="hidden h-12 dark:bg-stone-700 lg:block"
         />
 
-
-        {/* Filters Label */}
-        <div className="
-          hidden 
-          md:flex 
-          items-center 
-          gap-2 
-          text-slate-500
-          dark:text-slate-400
-        ">
+        <div className="hidden items-center gap-2 text-slate-500 dark:text-slate-400 md:flex">
           <Filter size={17} />
-
-          <span className="text-sm font-medium">
-            Filters
-          </span>
+          <span className="text-sm font-medium">Filters</span>
         </div>
-
-
-        {/* Gender */}
-        <Select
-          value={gender}
-          onValueChange={setGender}
-        >
-          <SelectTrigger className="
-            h-11 
-            w-[180px]
-            border-slate-200
-            dark:border-stone-700
-            text-slate-700
-            dark:text-slate-200
-          ">
-            <SelectValue placeholder="Gender" />
+        
+        <Select value={membershipStatus} onValueChange={setMembershipStatus}>
+          <SelectTrigger className="h-11 w-[200px] border-slate-200 text-slate-700 dark:border-stone-700 dark:text-slate-200">
+            <SelectValue placeholder="Membership Status" />
           </SelectTrigger>
 
-          <SelectContent className="
-            border-slate-200
-            dark:border-stone-700
-          ">
-            <SelectItem value="All">
-              All Genders
-            </SelectItem>
-
-            <SelectItem value="Male">
-              Male
-            </SelectItem>
-
-            <SelectItem value="Female">
-              Female
-            </SelectItem>
+          <SelectContent className="border-slate-200 dark:border-stone-700">
+            <SelectItem value="All">All Membership Status</SelectItem>
+            <SelectItem value="Active">Active</SelectItem>
+            <SelectItem value="Expired">Expired</SelectItem>
           </SelectContent>
         </Select>
-
-
-        {/* Status */}
-        <Select
-          value={status}
-          onValueChange={setStatus}
-        >
-          <SelectTrigger className="
-            h-11
-            w-[180px]
-            border-slate-200
-            dark:border-stone-700
-            text-slate-700
-            dark:text-slate-200
-          ">
-            <SelectValue placeholder="Status" />
+        
+        <Select value={engagementStatus} onValueChange={setEngagementStatus}>
+          <SelectTrigger className="h-11 w-[200px] border-slate-200 text-slate-700 dark:border-stone-700 dark:text-slate-200">
+            <SelectValue placeholder="Engagement Status" />
           </SelectTrigger>
 
-          <SelectContent className="
-            border-slate-200
-            dark:border-stone-700
-          ">
-            <SelectItem value="All">
-              All Status
-            </SelectItem>
-
-            <SelectItem value="Active">
-              Active
-            </SelectItem>
-
-            <SelectItem value="Inactive">
-              Inactive
-            </SelectItem>
-
-            <SelectItem value="Expired">
-              Expired
-            </SelectItem>
+          <SelectContent className="border-slate-200 dark:border-stone-700">
+            <SelectItem value="All">All Engagement Status</SelectItem>
+            <SelectItem value="ACTIVE">Active</SelectItem>
+            <SelectItem value="AT_RISK">At Risk</SelectItem>
+            <SelectItem value="INACTIVE">Inactive</SelectItem>
+            <SelectItem value="NO_ATTENDANCE">No Attendance Yet</SelectItem>
           </SelectContent>
         </Select>
-
       </div>
     </Card>
   );

@@ -428,13 +428,6 @@ enum attendance_status {
   CHECK_OUT @map("CHECK-OUT")
 }
 
-enum member_memberships_status {
-  Active
-  Expired
-  Cancelled
-  Inactive
-}
-
 enum notifications_type {
   MEMBERSHIP_POINTS
   MEMBERSHIP_EXPIRED
@@ -454,4 +447,10 @@ enum notifications_type {
   MEMBERSHIP_RENEWAL
   MEMBERSHIP_MARK_INACTIVE
   ACCOUNT_REACTIVATED
+}
+
+enum member_memberships_status {
+  Active
+  Expired
+  Cancelled
 }

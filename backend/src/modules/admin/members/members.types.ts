@@ -23,12 +23,11 @@ export type UpdateMemberDTO = {
 };
 
 // ==================== QUERY / FILTER ====================
-export type MemberFilters = {
+export interface MemberFilters {
   search?: string;
-  gender?: "Male" | "Female";
-  status?: "Active" | "Expired" | "Cancelled";
-};
-
+  engagementStatus?: string;
+  membershipStatus?: string;
+}
 
 export type PaymentHistoryFilters = {
 	month?: number;

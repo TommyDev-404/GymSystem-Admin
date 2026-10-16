@@ -1,79 +1,86 @@
 import { useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import { Plus } from "lucide-react";
+
 import { MemberFilters } from "@/features/members/components/MemberFilter";
 import { MemberTable } from "@/features/members/components/MemberTable";
 import { MemberModal } from "@/features/members/components/MemberModal";
-import { useMembersSummary } from "../hooks/useMember";
-import { debounce } from "@/lib/debounce";
-import { useSearchParams } from "react-router-dom";
 import { MemberSummaryCards } from "../components/MemberSummaryCards";
+import { useMembersSummary } from "../hooks/useMember";
 import type { MemberSummaryType } from "../types/member";
+import { debounce } from "@/lib/debounce";
 import { PageLoader } from "@/components/shared/PageLoader";
 import PageHeader from "@/components/shared/PageHeader";
-import { Plus } from "lucide-react";
 
 export function MembersPage() {
-	const [searchParams] = useSearchParams();
-	
-	const urlFilter = searchParams.get("filter");
-	const urlAction = searchParams.get("action");
+  const [searchParams] = useSearchParams();
 
-	const [searchInput, setSearchInput] = useState("");
-	const [search, setSearch] = useState("");
-	const [gender, setGender] = useState("All");
-	const [status, setStatus] = useState(urlFilter || "All");
-	const [open, setOpen] = useState(urlAction  && urlAction === "add"? true : false);
-	
-	const debounceSearch = useMemo(
-		() =>
-		  debounce((value: string) => {
-			 setSearch(value);
-		  }),
-		[]
-	 );
+  const urlFilter = searchParams.get("filter");
+  const urlAction = searchParams.get("action");
 
-	const params = useMemo(() => ({
-		search: search || undefined,
-		gender: gender !== "All" ? gender : undefined,
-		status: status !== "All" ? status : undefined,
-	}), [search, gender, status]);
+  const [searchInput, setSearchInput] = useState("");
+  const [search, setSearch] = useState("");
+  const [engagementStatus, setEngagementStatus] = useState("All");
+  const [membershipStatus, setMembershipStatus] = useState(
+    urlFilter || "All",
+  );
+  const [open, setOpen] = useState(urlAction === "add");
 
-	const { data: memberSummary = {} as MemberSummaryType, isLoading: summaryLoading } = useMembersSummary();
+  const debounceSearch = useMemo(
+    () =>
+      debounce((value: string) => {
+        setSearch(value);
+      }),
+    [],
+  );
 
-	if (summaryLoading) return <PageLoader />;
+  const params = useMemo(
+    () => ({
+      search: search || undefined,
+      engagementStatus:
+        engagementStatus !== "All" ? engagementStatus : undefined,
+      membershipStatus:
+        membershipStatus !== "All" ? membershipStatus : undefined,
+    }),
+    [search, engagementStatus, membershipStatus],
+  );
 
-	return (
-		<div className="space-y-5">
-			{/* HEADER */}
-			<PageHeader
-				title="Member"
-				subtitle="Manage members registration"
-				icon={Plus}
-				setOpen={() => setOpen(true)}
-				actionName="Add Member"
-			/>
+  const {
+    data: memberSummary = {} as MemberSummaryType,
+    isLoading: summaryLoading,
+  } = useMembersSummary();
 
-			<MemberSummaryCards
-				summary={memberSummary}
-			/>
-			
-			{/* FILTERS */}
-			<MemberFilters
-				search={searchInput}
-				setSearch={(value) => {
-					setSearchInput(value);
-					debounceSearch(value);
-				}}
-				gender={gender}
-				setGender={setGender}
-				status={status}
-				setStatus={setStatus}
-			/>
+  if (summaryLoading) {
+    return <PageLoader />;
+  }
 
-			{/* TABLE */}
-			<MemberTable params={params}/>
+  return (
+    <div className="space-y-5">
+      <PageHeader
+        title="Members"
+        subtitle="Manage member registrations and engagement"
+        icon={Plus}
+        setOpen={() => setOpen(true)}
+        actionName="Add Member"
+      />
 
-			{/* MODAL */}
-			<MemberModal open={open} setOpen={setOpen} />
-		</div>
-	);
- }
+      <MemberSummaryCards summary={memberSummary} />
+
+      <MemberFilters
+        search={searchInput}
+        setSearch={(value) => {
+          setSearchInput(value);
+          debounceSearch(value);
+        }}
+        engagementStatus={engagementStatus}
+        setEngagementStatus={setEngagementStatus}
+        membershipStatus={membershipStatus}
+        setMembershipStatus={setMembershipStatus}
+      />
+
+      <MemberTable params={params} />
+
+      <MemberModal open={open} setOpen={setOpen} />
+    </div>
+  );
+}

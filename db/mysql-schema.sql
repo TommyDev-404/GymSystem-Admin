@@ -136,8 +136,7 @@ CREATE TABLE member_memberships (
     status ENUM(
         'Active',
         'Expired',
-        'Cancelled',
-        'Inactive'
+        'Cancelled'
     ) DEFAULT 'Active',
 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

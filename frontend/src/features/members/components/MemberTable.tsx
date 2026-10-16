@@ -76,12 +76,15 @@ export function MemberTable({ params }: Props) {
               <TableHeader>
                 <TableRow className="bg-slate-50/70 hover:bg-transparent dark:bg-stone-900/50">
                   <TableHead className={TH_CLASS}>Member</TableHead>
-                  <TableHead className={TH_CLASS}>Age</TableHead>
-                  <TableHead className={TH_CLASS}>Gender</TableHead>
-                  <TableHead className={TH_CLASS}>Plan</TableHead>
+                  <TableHead className={TH_CLASS}>Membership Plan</TableHead>
                   <TableHead className={TH_CLASS}>Membership Start</TableHead>
                   <TableHead className={TH_CLASS}>Membership Ends</TableHead>
-                  <TableHead className={TH_CLASS}>Status</TableHead>
+                  <TableHead className={`${TH_CLASS} text-center`}>
+                    Membership Status
+                  </TableHead>
+                  <TableHead className={`${TH_CLASS} text-center`}>
+                    Engagement Status
+                  </TableHead>
                   <TableHead className={TH_CLASS}>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -118,14 +121,6 @@ export function MemberTable({ params }: Props) {
                         </div>
                       </TableCell>
 
-                      <TableCell className="p-5 text-left text-slate-600 dark:text-slate-300">
-                        {member.age}
-                      </TableCell>
-
-                      <TableCell className="p-5 text-left text-slate-600 dark:text-slate-300">
-                        {member.gender}
-                      </TableCell>
-
                       <TableCell className="p-5 text-left">
                         <Badge
                           className={`px-3 py-1 ${
@@ -160,9 +155,9 @@ export function MemberTable({ params }: Props) {
                         )}
                       </TableCell>
 
-                      <TableCell className="p-5 text-left">
+                      <TableCell className="p-5 text-center">
                         <span
-                          className={`inline-flex items-center rounded-md px-2.5 py-1 text-xs font-medium ${
+                          className={`inline-flex items-center justify-center rounded-md px-2.5 py-1 text-xs font-medium ${
                             statusColors[member.status!] ??
                             "border-slate-200 bg-slate-100 text-slate-600"
                           }`}
@@ -171,6 +166,29 @@ export function MemberTable({ params }: Props) {
                         </span>
                       </TableCell>
 
+                      <TableCell className="p-5 text-center">
+                        <Badge
+                          variant="outline"
+                          className={`mx-auto inline-flex justify-center ${
+                            member.engagement_status === "ACTIVE"
+                              ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                              : member.engagement_status === "AT_RISK"
+                                ? "border-amber-200 bg-amber-50 text-amber-700"
+                                : member.engagement_status === "INACTIVE"
+                                  ? "border-slate-200 bg-slate-100 text-slate-600"
+                                  : "border-blue-200 bg-blue-50 text-blue-700"
+                          }`}
+                        >
+                          {member.engagement_status === "AT_RISK"
+                            ? "At Risk"
+                            : member.engagement_status === "NO_ATTENDANCE"
+                              ? "No Attendance Yet"
+                              : member.engagement_status === "ACTIVE"
+                                ? "Active"
+                                : "Inactive"}
+                        </Badge>
+                      </TableCell>
+                      
                       <TableCell>
                         <div className="flex justify-start gap-1">
                           {member.status === "Expired" ? (

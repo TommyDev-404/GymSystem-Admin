@@ -446,7 +446,6 @@ export async function getMembershipStatusService() {
 
 	let active = 0;
 	let expired = 0;
-	let inactive = 0;
 
 	for (const membership of latestMemberships.values()) {
 		if (membership.status === "Active") {
@@ -457,20 +456,12 @@ export async function getMembershipStatusService() {
 			expired++;
 		}
 
-		if (membership.status === "Inactive") {
-			inactive++;
-		}
 	}
 
 	return [
 		{
 			name: "Active",
 			value: active,
-		},
-		
-		{
-			name: "Inactive",
-			value: inactive,
 		},
 
 		{
