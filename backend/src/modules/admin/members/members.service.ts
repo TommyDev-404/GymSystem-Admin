@@ -129,105 +129,104 @@ export const getMemberSummaryService = async () => {
 };
 
 export const getMembersService = async (filters: MemberFilters) => {
-const { search, engagementStatus, membershipStatus } = filters;
+	const { search, engagementStatus, membershipStatus } = filters;
 
-const members = await prisma.members.findMany({
-	where: {
-		...(search?.trim() && {
-		fullname: {
-			contains: search.trim(),
-			mode: "insensitive",
+	const members = await prisma.members.findMany({
+		where: {
+			...(search?.trim() && {
+			fullname: {
+				contains: search.trim()
+			},
+			}),
 		},
-		}),
-	},
-	select: {
-		id: true,
-		fullname: true,
-		email: true,
-		age: true,
-		gender: true,
-		join_date: true,
-		member_memberships: {
 		select: {
 			id: true,
-			start_date: true,
-			end_date: true,
-			status: true,
-			created_at: true,
-			membership_plans: {
+			fullname: true,
+			email: true,
+			age: true,
+			gender: true,
+			join_date: true,
+			member_memberships: {
 				select: {
-				id: true,
-				plan_name: true,
-				duration_type: true,
-				duration: true,
-				daily_hours_limit: true,
-				price: true,
+					id: true,
+					start_date: true,
+					end_date: true,
+					status: true,
+					created_at: true,
+					membership_plans: {
+						select: {
+						id: true,
+						plan_name: true,
+						duration_type: true,
+						duration: true,
+						daily_hours_limit: true,
+						price: true,
+						},
+					},
 				},
+			orderBy: {
+				created_at: "desc",
+			},
+			take: 1,
+			},
+			attendance: {
+			select: {
+				check_in_time: true,
+			},
+			orderBy: {
+				check_in_time: "desc",
+			},
+			take: 1,
 			},
 		},
 		orderBy: {
-			created_at: "desc",
+			join_date: "desc",
 		},
-		take: 1,
-		},
-		attendance: {
-		select: {
-			check_in_time: true,
-		},
-		orderBy: {
-			check_in_time: "desc",
-		},
-		take: 1,
-		},
-	},
-	orderBy: {
-		join_date: "desc",
-	},
-});
+	});
 
-const mappedMembers = members.map((member) => {
-	const membership = member.member_memberships[0] ?? null;
-	const lastAttendance = member.attendance[0]?.check_in_time ?? null;
+	const mappedMembers = members.map((member) => {
+		const membership = member.member_memberships[0] ?? null;
+		const lastAttendance = member.attendance[0]?.check_in_time ?? null;
 
-	return {
-		id: member.id,
-		fullname: member.fullname,
-		email: member.email,
-		age: member.age,
-		gender: member.gender,
-		join_date: member.join_date,
+		return {
+			id: member.id,
+			fullname: member.fullname,
+			email: member.email,
+			age: member.age,
+			gender: member.gender,
+			join_date: member.join_date,
 
-		membership_id: membership?.id ?? null,
-		plan_id: membership?.membership_plans.id ?? null,
-		plan_name: membership?.membership_plans.plan_name ?? null,
-		plan_price: membership?.membership_plans.price ?? null,
-		membership_start: membership?.start_date ?? null,
-		membership_end: membership?.end_date ?? null,
-		duration_type:
-		membership?.membership_plans.duration_type ?? null,
-		duration: membership?.membership_plans.duration ?? null,
-		daily_hours_limit:
-		membership?.membership_plans.daily_hours_limit ?? null,
+			membership_id: membership?.id ?? null,
+			plan_id: membership?.membership_plans.id ?? null,
+			plan_name: membership?.membership_plans.plan_name ?? null,
+			plan_price: membership?.membership_plans.price ?? null,
+			membership_start: membership?.start_date ?? null,
+			membership_end: membership?.end_date ?? null,
+			duration_type:
+			membership?.membership_plans.duration_type ?? null,
+			duration: membership?.membership_plans.duration ?? null,
+			daily_hours_limit:
+			membership?.membership_plans.daily_hours_limit ?? null,
 
-		status: membership?.status ?? null,
-		last_attendance: lastAttendance,
-		engagement_status: getEngagementStatus(lastAttendance),
-	};
-});
+			status: membership?.status ?? null,
+			last_attendance: lastAttendance,
+			engagement_status: getEngagementStatus(lastAttendance),
+		};
+	});
 
-return mappedMembers.filter((member) => {
-	const matchesEngagement =
-		!engagementStatus ||
-		engagementStatus === "All" ||
-		member.engagement_status === engagementStatus;
+	return mappedMembers.filter((member) => {
+		const matchesEngagement =
+			!engagementStatus ||
+			engagementStatus === "All" ||
+			member.engagement_status === engagementStatus;
 
-	const matchesMembership =
-		!membershipStatus ||
-		membershipStatus === "All" ||
-		member.status === membershipStatus;
+		const matchesMembership =
+			!membershipStatus ||
+			membershipStatus === "All" ||
+			member.status === membershipStatus;
 
-	return matchesEngagement && matchesMembership;
-});
+		return matchesEngagement && matchesMembership;
+	});
 };
 
 export const createMemberService = async (data: CreateMemberDTO) => {
