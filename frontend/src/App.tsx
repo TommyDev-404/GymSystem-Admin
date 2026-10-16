@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { RootLayout } from "./layout/RootLayout";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { Login } from "@/features/auth/page/LoginPage";
@@ -17,6 +17,8 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+
         <Route path="/login" element={<Login />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/change-password" element={<ChangePassword />} />
@@ -33,6 +35,8 @@ export default function App() {
             <Route path="/settings" element={<SettingsPage />} />
           </Route>
         </Route>
+
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   );
