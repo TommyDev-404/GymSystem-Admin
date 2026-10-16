@@ -35,7 +35,7 @@ dotenv.config();
 const app = express();
 
 // ==================== Middleware ====================
-/*
+
 const allowedOrigins = [
   "https://jfitness-gym.tech",
   "https://www.jfitness-gym.tech",
@@ -55,7 +55,7 @@ app.use(
     credentials: true,
   })
 );
-*/
+
 app.use(cookieParser());
 app.use(express.json());
 
