@@ -38,7 +38,7 @@ services:
 
       DATABASE_HOST: mariadb
       DATABASE_USER: root
-      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+      DATABASE_PASSWORD: 12345
       DATABASE_NAME: gym_db
 
       JWT_SECRET: ${JWT_SECRET}

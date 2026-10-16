@@ -29,7 +29,7 @@ server.listen(PORT, () => {
 ║        🏋️ Gym System Backend Server        ║
 ╠════════════════════════════════════════════╣
 ║  Server running on: http://localhost:${PORT}     ║
-║  Environment: development                     ║
+║  Environment: production                     ║
 ╚════════════════════════════════════════════╝
   `);
 });

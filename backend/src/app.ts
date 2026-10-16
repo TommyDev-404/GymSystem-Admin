@@ -35,18 +35,17 @@ dotenv.config();
 const app = express();
 
 // ==================== Middleware ====================
+const allowedOrigins = [
+  "https://jfitness-gym.tech",
+  "https://www.jfitness-gym.tech",
+  //"http://localhost:5173",
+  //"http://localhost:3000",
+];
+
 app.use(
   cors({
     origin: (origin, callback) => {
-      const allowedOrigins = [
-        "http://localhost:5173",
-        "http://localhost:3000",
-      ];
-
-      // allow mobile apps (no origin header)
-      if (!origin) return callback(null, true);
-
-      if (allowedOrigins.includes(origin)) {
+      if (!origin || allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
 
@@ -55,6 +54,7 @@ app.use(
     credentials: true,
   })
 );
+
 app.use(cookieParser());
 app.use(express.json());
 
