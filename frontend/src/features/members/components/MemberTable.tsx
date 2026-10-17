@@ -43,6 +43,25 @@ interface Props {
   params: MemberFilters;
 }
 
+const formatMembershipDate = (date: string | Date) => {
+  const value = new Date(date);
+
+  return {
+    date: value.toLocaleDateString("en-PH", {
+      timeZone: "Asia/Manila",
+      month: "short",
+      day: "2-digit",
+      year: "numeric",
+    }),
+    time: value.toLocaleTimeString("en-PH", {
+      timeZone: "Asia/Manila",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    }),
+  };
+};
+
 export function MemberTable({ params }: Props) {
   const { data: members = [], isLoading } = useMembers(params);
 
@@ -109,15 +128,23 @@ export function MemberTable({ params }: Props) {
                     >
                       <TableCell className="p-5">
                         <div className="flex items-center gap-3">
-                          <Avatar className="h-9 w-9">
+                          <Avatar className="h-10 w-10 shrink-0">
                             <AvatarFallback className="bg-[#963348] text-xs font-semibold text-white dark:bg-[#7A1F31]">
                               {getInitials(member.fullname)}
                             </AvatarFallback>
                           </Avatar>
 
-                          <span className="font-medium text-slate-700 dark:text-slate-100">
-                            {member.fullname}
-                          </span>
+                          <div className="flex min-w-0 flex-col gap-1">
+                            <span className="truncate font-medium text-slate-800 dark:text-slate-100">
+                              {member.fullname}
+                            </span>
+
+                            <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                              <span>{member.age} years old</span>
+                              <span className="text-slate-300 dark:text-slate-600">•</span>
+                              <span>{member.gender}</span>
+                            </div>
+                          </div>
                         </div>
                       </TableCell>
 
@@ -133,25 +160,34 @@ export function MemberTable({ params }: Props) {
                           {currencyFormatter.format(Number(member.plan_price))}
                         </Badge>
                       </TableCell>
-
-                      <TableCell className="p-5 text-left text-slate-500 dark:text-slate-400">
-                        {new Date(
-                          member.membership_start!,
-                        ).toLocaleDateString("en-PH", {
-                          month: "short",
-                          day: "2-digit",
-                          year: "numeric",
-                        })}
+                      
+                      <TableCell className="p-5">
+                        {member.membership_start ? (
+                          <div className="flex flex-col gap-1">
+                            <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                              {formatMembershipDate(member.membership_start).date}
+                            </span>
+                            <span className="text-xs text-slate-400 dark:text-slate-500">
+                              {formatMembershipDate(member.membership_start).time}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-sm text-slate-400">—</span>
+                        )}
                       </TableCell>
 
-                      <TableCell className="p-5 text-left text-slate-500 dark:text-slate-400">
-                        {new Date(member.membership_end!).toLocaleDateString(
-                          "en-PH",
-                          {
-                            month: "short",
-                            day: "2-digit",
-                            year: "numeric",
-                          },
+                      <TableCell className="p-5">
+                        {member.membership_end ? (
+                          <div className="flex flex-col gap-1">
+                            <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                              {formatMembershipDate(member.membership_end).date}
+                            </span>
+                            <span className="text-xs text-slate-400 dark:text-slate-500">
+                              {formatMembershipDate(member.membership_end).time}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-sm text-slate-400">—</span>
                         )}
                       </TableCell>
 
@@ -312,8 +348,6 @@ export function MemberTable({ params }: Props) {
             }
           }}
           memberId={paymentHistoryMember.id}
-          name={paymentHistoryMember.fullname}
-          email={paymentHistoryMember.email}
         />
       )}
       

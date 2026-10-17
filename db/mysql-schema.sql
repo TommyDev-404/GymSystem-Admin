@@ -131,8 +131,8 @@ CREATE TABLE member_memberships (
     id INT AUTO_INCREMENT PRIMARY KEY,
     member_id INT NOT NULL,
     plan_id INT NOT NULL,
-    start_date DATE NOT NULL,
-    end_date DATE NOT NULL,
+    start_date DATETIME NOT NULL,
+    end_date DATETIME NOT NULL,
     status ENUM(
         'Active',
         'Expired',

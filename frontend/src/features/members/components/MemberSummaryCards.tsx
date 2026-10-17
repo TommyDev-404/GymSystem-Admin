@@ -49,7 +49,7 @@ export function MemberSummaryCards({
     {
       title: "Inactive Members",
       value: summary.inactiveMembers ?? 0,
-      description: "No gym visit for 18+ days",
+      description: "No gym visit for 15+ days",
       icon: UserRoundX,
       iconColor: "text-slate-600 dark:text-slate-400",
       iconBg: "bg-slate-100 dark:bg-slate-800/60",

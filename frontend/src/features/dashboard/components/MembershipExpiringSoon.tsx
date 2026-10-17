@@ -14,9 +14,28 @@ interface MembershipsExpiringSoonProps {
 export function MembershipsExpiringSoon({
   data,
 }: MembershipsExpiringSoonProps) {
-  const getExpiryLabel = (days: number) => {
-    if (days <= 1) {
-      return "Expires tomorrow";
+  const formatExpiryTime = (endDate: string | Date) => {
+    return new Date(endDate).toLocaleTimeString("en-PH", {
+      timeZone: "Asia/Manila",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
+  };
+
+  const getExpiryLabel = (days: number, endDate: string | Date) => {
+    const expiryTime = formatExpiryTime(endDate);
+
+    if (days < 0) {
+      return "Expired";
+    }
+
+    if (days === 0) {
+      return `Expires today at ${expiryTime}`;
+    }
+
+    if (days === 1) {
+      return `Expires tomorrow at ${expiryTime}`;
     }
 
     return `Expires in ${days} days`;
@@ -67,7 +86,7 @@ export function MembershipsExpiringSoon({
             return (
               <div
                 key={membership.id}
-                className="flex items-center justify-between rounded-lg border p-3"
+                className="flex items-center justify-between gap-2 rounded-lg border p-3"
               >
                 <div className="flex min-w-0 items-center gap-3">
                   <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#963348]/10 dark:bg-[#963348]/20">
@@ -85,10 +104,15 @@ export function MembershipsExpiringSoon({
                 </div>
 
                 <div
-                  className={`ml-3 flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${style.container}`}
+                  className={`ml-3 flex max-w-[65%] shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${style.container}`}
                 >
-                  <Clock className="h-3 w-3" />
-                  <span>{getExpiryLabel(membership.daysRemaining)}</span>
+                  <Clock className="h-3 w-3 shrink-0" />
+                  <span className="text-right">
+                    {getExpiryLabel(
+                      membership.daysRemaining,
+                      membership.endDate,
+                    )}
+                  </span>
                 </div>
               </div>
             );

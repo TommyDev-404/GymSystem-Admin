@@ -8,28 +8,30 @@ import { CreateMemberDTO, MemberFilters, PaymentHistoryFilters } from "./members
 
 function calculateDuration(duration_type: string, duration: number) {
 	const startDate = new Date();
-	const endDate = new Date();
-
-	switch(duration_type){
-
-		case "Day":
-			endDate.setDate(endDate.getDate() + duration);
-			break;
-
-		case "Week":
-			endDate.setDate(endDate.getDate() + (duration * 7));
-			break;
-
-		case "Month":
-			endDate.setMonth(endDate.getMonth() + duration);
-			break;
+	const endDate = new Date(startDate);
+ 
+	switch (duration_type) {
+	  case "Day":
+		 endDate.setDate(endDate.getDate() + duration);
+		 break;
+ 
+	  case "Week":
+		 endDate.setDate(endDate.getDate() + duration * 7);
+		 break;
+ 
+	  case "Month":
+		 endDate.setMonth(endDate.getMonth() + duration);
+		 break;
+ 
+	  default:
+		 throw new Error(`Invalid duration type: ${duration_type}`);
 	}
 
 	return {
-		startDate, 
-		endDate
+	  startDate,
+	  endDate,
 	};
-}
+ }
 
 export const getMemberSummaryService = async () => {
 	const now = new Date();

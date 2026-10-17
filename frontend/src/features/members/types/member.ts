@@ -1,6 +1,8 @@
 export interface Member {
   id: number;
   fullname: string;
+  age: number,
+  gender: number,
   email: string;
   membership_id: number;
   plan_id: number;

@@ -7,98 +7,133 @@ const checkMemberships = async () => {
    try {
       const now = new Date();
 
-      // FIND MEMBERSHIPS EXPIRING TOMORROW
-      const tomorrow = new Date(now);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-
-      const tomorrowStart = new Date(tomorrow);
-      tomorrowStart.setHours(0, 0, 0, 0);
-
-      const tomorrowEnd = new Date(tomorrow);
-      tomorrowEnd.setHours(23, 59, 59, 999);
-
-      // Exclude the 1 day subscription
-      const expiringMembershipsTomorrow = await prisma.member_memberships.findMany({
-         where: {
-            status: "Active",
-            end_date: {
-               gte: tomorrowStart,
-               lte: tomorrowEnd,
-            },
-            start_date: {
-              lt: tomorrowStart,
-            },
-            NOT: {
-               membership_plans: {
-                  duration: 1,
-                  duration_type: "Day",
-               },
-            }
+      const reminderStages = [
+         {
+            days: 3,
+            title: "Membership Expiring in 3 Days",
+            getDescription: (fullname: string, planName: string) =>
+               `${fullname}'s ${planName} membership expires in 3 days. Please remind the member to renew.`,
+            getMemberDescription: (planName: string) =>
+               `Your ${planName} membership expires in 3 days. Renew early to continue enjoying gym access and member benefits.`,
          },
-         include: {
-            members: {
-               select: {
-                  fullname: true,
+         {
+            days: 1,
+            title: "Membership Expiring Tomorrow",
+            getDescription: (
+               fullname: string,
+               planName: string,
+               expirationDate?: string,
+            ) =>
+               `${fullname}'s ${planName} membership expires tomorrow at ${expirationDate}. This is your final reminder to follow up with the member.`,
+            getMemberDescription: (
+               planName: string,
+               expirationDate?: string,
+            ) =>
+               `Your ${planName} membership expires tomorrow at ${expirationDate}. Please renew before ${expirationDate} to continue enjoying gym access and member benefits.`,
+         },
+         ];
+
+      for (const stage of reminderStages) {
+         const targetDate = new Date(now);
+         targetDate.setDate(targetDate.getDate() + stage.days);
+         targetDate.setHours(0, 0, 0, 0);
+
+         const nextDay = new Date(targetDate);
+         nextDay.setDate(nextDay.getDate() + 1);
+
+         const expiringMemberships = await prisma.member_memberships.findMany({
+            where: {
+               status: "Active",
+               end_date: {
+                  gte: targetDate,
+                  lt: nextDay,
+               },
+               start_date: {
+                  lt: targetDate,
+               },
+               NOT: {
+                  membership_plans: {
+                     duration: 1,
+                     duration_type: "Day",
+                  },
                },
             },
-            membership_plans: {
+            include: {
+               members: {
+                  select: {
+                     fullname: true,
+                  },
+               },
+               membership_plans: {
                select: {
                   plan_name: true,
                },
+               },
             },
-         },
-      });
-      
-      // CREATE EXPIRING NOTIFICATIONS 1 day before the expiration
-      for (const membership of expiringMembershipsTomorrow) {
-         const [
-            existingNotificationMember,
-            existingNotificationAdmin,
-         ] = await Promise.all([
-            prisma.notifications.findFirst({
-               where: {
+         });
+
+         console.log(
+            `Found ${expiringMemberships.length} memberships expiring in ${stage.days} day(s).`,
+         );
+
+         for (const membership of expiringMemberships) {
+            const fullname = membership.members.fullname;
+            const planName = membership.membership_plans.plan_name;
+            
+            const expirationDate = new Date(membership.end_date).toLocaleString(
+               "en-PH",
+               {
+                  timeZone: "Asia/Manila",
+                  hour: "numeric",
+                  minute: "2-digit",
+                  hour12: true,
+               },
+            );
+            
+            const recipients = [
+               {
                   recipient_id: membership.member_id,
                   recipient_type: "MEMBER",
-                  category: "MEMBERSHIP",
-                  type: "MEMBERSHIP_EXPIRING",
+                  description:
+                  stage.days === 1
+                     ? stage.getMemberDescription(planName, expirationDate)
+                     : stage.getMemberDescription(planName),
                },
-            }),
-
-            prisma.notifications.findFirst({
-               where: {
+               {
                   recipient_id: membership.member_id,
                   recipient_type: "ADMIN",
+                  description:
+                  stage.days === 1
+                     ? stage.getDescription(fullname, planName, expirationDate)
+                     : stage.getDescription(fullname, planName),
+               },
+            ] as const;
+            
+            for (const recipient of recipients) {
+               const existingNotification = await prisma.notifications.findFirst({
+                  where: {
+                  recipient_id: recipient.recipient_id,
+                  recipient_type: recipient.recipient_type,
                   category: "MEMBERSHIP",
                   type: "MEMBERSHIP_EXPIRING",
-               },
-            }),
-         ]);
-
-         if (!existingNotificationAdmin) {
-            await prisma.notifications.create({
-               data: {
-                  recipient_id: membership.member_id,
-                  recipient_type: "ADMIN",
-                  category: "MEMBERSHIP",
-                  type: "MEMBERSHIP_EXPIRING",
-                  title: "Membership Expiring Tomorrow",
-                  description: `${membership.members.fullname}'s membership expires tomorrow.`,
-               },
-            });
-         }
-
-         if (!existingNotificationMember) {
-            await prisma.notifications.create({
-               data: {
-                  recipient_id: membership.member_id,
-                  recipient_type: "MEMBER",
-                  category: "MEMBERSHIP",
-                  type: "MEMBERSHIP_EXPIRING",
-                  title: "Membership Expiring Tomorrow",
-                  description: `Your ${membership.membership_plans.plan_name} membership expires tomorrow. Renew it before it expires.`,
-               },
-            });
-         }
+                  title: stage.title,
+                  },
+               });
+            
+               if (!existingNotification) {
+                  await prisma.notifications.create({
+                  data: {
+                     recipient_id: recipient.recipient_id,
+                     recipient_type: recipient.recipient_type,
+                     category: "MEMBERSHIP",
+                     type: "MEMBERSHIP_EXPIRING",
+                     title: stage.title,
+                     description: recipient.description,
+                  },
+                  });
+               }
+            }
+            }
       }
 
       // FIND EXPIRED MEMBERSHIPS
@@ -124,7 +159,7 @@ const checkMemberships = async () => {
       });
       
       console.log("EXpired: ", expiredMemberships);
-
+ 
       // MARK MEMBERSHIPS AS EXPIRED
       if (expiredMemberships.length > 0) {
          await prisma.member_memberships.updateMany({

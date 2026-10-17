@@ -13,6 +13,7 @@ import {
  import { RecentActivity } from "@/features/dashboard/components/RecentActivity";
  import { MembershipsExpiringSoon } from "../components/MembershipExpiringSoon";
  import {
+	 useGenderDistribution,
 	useGetDashboardSummaryData,
 	useGetMembershipsExpiry,
 	useGetMemberStatus,
@@ -25,6 +26,7 @@ import {
  import { PageLoader } from "@/components/shared/PageLoader";
 import { useMembers } from "@/features/members/hooks/useMember";
 import { MembersEngagementProgress } from "../components/MembersEngagementProgress";
+import { GenderWidget } from "../components/GenderWidget";
  
 export function DashboardPage() {
 	const { data: members = [] } = useMembers();
@@ -35,6 +37,7 @@ export function DashboardPage() {
 	const { data: topClaimedRewards = [], isLoading: topClaimedRewardsLoading } = useGetTopClaimedRewards();
 	const { data: recentActivity = [], isLoading: recentActivityLoading } = useGetRecentActivity();
 	const { data: membershipsExpiry = [], isLoading: membershipsExpiryLoading } = useGetMembershipsExpiry();
+	const { data: genderDistribution = [] } = useGenderDistribution();
  
 	const dataFetching =
 	  summaryDataLoading ||
@@ -43,7 +46,9 @@ export function DashboardPage() {
 	  memberStatusLoading ||
 	  topClaimedRewardsLoading ||
 	  membershipsExpiryLoading ||
-	  recentActivityLoading;
+		recentActivityLoading;
+	
+	console.log("EXPiry TOMS: ", membershipsExpiry);
  
 	if (dataFetching) {
 	  return <PageLoader />;
@@ -149,11 +154,10 @@ export function DashboardPage() {
 			</div>
 			</div>
 
-			<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+			<div className="grid grid-cols-1 gap-4 md:grid-cols-3">
 				<MembershipStatus data={memberStatus} />
-				<MembersEngagementProgress
-					members={members}
-				/>
+				<MembersEngagementProgress members={members} />
+				<GenderWidget data={genderDistribution}/>
 			</div>
 
 			<RecentActivity data={recentActivity} />

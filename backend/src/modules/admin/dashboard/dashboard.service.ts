@@ -310,70 +310,81 @@ export async function getMonthlyRevenueTrendService() {
 }
 
 export const getMembershipsExpiringSoonService = async () => {
-   const now = new Date();
-
-   const todayStart = new Date(now);
-   todayStart.setHours(0, 0, 0, 0);
-
-   const sevenDaysLater = new Date(todayStart);
-   sevenDaysLater.setDate(sevenDaysLater.getDate() + 7);
-   sevenDaysLater.setHours(23, 59, 59, 999);
-
-   const memberships = await prisma.member_memberships.findMany({
-      where: {
-         status: "Active",
-         end_date: {
-            gte: todayStart,
-            lte: sevenDaysLater,
-         },
-      },
-
-      select: {
-         id: true,
-         end_date: true,
-
-         members: {
-            select: {
-               fullname: true,
-            },
-         },
-
-         membership_plans: {
-            select: {
-               plan_name: true,
-            },
-         },
-      },
-
-      orderBy: {
-         end_date: "asc",
-      },
-
-      take: 5,
-   });
-
-   return memberships.map((membership) => {
-      const endDate = new Date(membership.end_date);
-      endDate.setHours(0, 0, 0, 0);
-   
-      const today = new Date(todayStart);
-      today.setHours(0, 0, 0, 0);
-   
-      const diffMs = endDate.getTime() - today.getTime();
-   
-      const daysRemaining = Math.round(
-         diffMs / (1000 * 60 * 60 * 24)
-      );
-   
-      return {
-         id: membership.id,
-         fullname: membership.members.fullname,
-         planName: membership.membership_plans.plan_name,
-         endDate: membership.end_date,
-         daysRemaining,
-      };
-   });
-};
+	const now = new Date();
+ 
+	const philippinesDate = new Intl.DateTimeFormat("en-CA", {
+	  timeZone: "Asia/Manila",
+	  year: "numeric",
+	  month: "2-digit",
+	  day: "2-digit",
+	}).format(now);
+ 
+	const [year, month, day] = philippinesDate.split("-").map(Number);
+ 
+	const todayStart = new Date(
+	  Date.UTC(year, month - 1, day) - 8 * 60 * 60 * 1000,
+	);
+ 
+	const threeDaysLaterEnd = new Date(
+	  Date.UTC(year, month - 1, day + 3, 23, 59, 59, 999) -
+		 8 * 60 * 60 * 1000,
+	);
+ 
+	const memberships = await prisma.member_memberships.findMany({
+	  where: {
+		 status: "Active",
+		 end_date: {
+			gt: now,
+			lte: threeDaysLaterEnd,
+		 },
+	  },
+	  select: {
+		 id: true,
+		 end_date: true,
+		 members: {
+			select: {
+			  fullname: true,
+			},
+		 },
+		 membership_plans: {
+			select: {
+			  plan_name: true,
+			},
+		 },
+	  },
+	  orderBy: {
+		 end_date: "asc",
+	  },
+	  take: 5,
+	});
+ 
+	return memberships.map((membership) => {
+	  const endDate = new Date(membership.end_date);
+ 
+	  const expiryDate = new Intl.DateTimeFormat("en-CA", {
+		 timeZone: "Asia/Manila",
+		 year: "numeric",
+		 month: "2-digit",
+		 day: "2-digit",
+	  }).format(endDate);
+ 
+	  const daysRemaining = Math.round(
+		 (
+			new Date(`${expiryDate}T00:00:00+08:00`).getTime() -
+			todayStart.getTime()
+		 ) /
+			(1000 * 60 * 60 * 24),
+	  );
+ 
+	  return {
+		 id: membership.id,
+		 fullname: membership.members.fullname,
+		 planName: membership.membership_plans.plan_name,
+		 endDate: membership.end_date,
+		 daysRemaining,
+	  };
+	});
+ };
 
 export async function getWeeklyGuestAttendanceService() {
    const data = await prisma.$queryRaw<

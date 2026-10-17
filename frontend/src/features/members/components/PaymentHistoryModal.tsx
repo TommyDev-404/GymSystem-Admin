@@ -45,8 +45,6 @@ type PaymentHistoryDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   memberId: number;
-  name: string;
-  email: string;
 };
 
 const paymentTypeConfig = {
@@ -108,8 +106,6 @@ export function PaymentHistoryModal({
   open,
   onOpenChange,
   memberId,
-  name,
-  email,
 }: PaymentHistoryDialogProps) {
   const now = new Date();
 
@@ -188,10 +184,6 @@ export function PaymentHistoryModal({
               <DialogDescription className="mt-1">
                 View payment transactions and subscription details.
               </DialogDescription>
-
-              <p className="mt-2 truncate text-sm text-muted-foreground">
-                {name} · {email}
-              </p>
             </div>
           </div>
         </DialogHeader>

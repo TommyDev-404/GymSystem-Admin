@@ -259,8 +259,8 @@ model member_memberships {
   id               Int                        @id @default(autoincrement())
   member_id        Int
   plan_id          Int
-  start_date       DateTime                   @db.Date
-  end_date         DateTime                   @db.Date
+  start_date       DateTime                   @db.DateTime(0)
+  end_date         DateTime                   @db.DateTime(0)
   status           member_memberships_status? @default(Active)
   created_at       DateTime?                  @default(now()) @db.Timestamp(0)
   updated_at       DateTime?                  @default(now()) @db.Timestamp(0)
