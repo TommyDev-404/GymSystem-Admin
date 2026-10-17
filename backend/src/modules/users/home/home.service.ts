@@ -128,23 +128,9 @@ export const getMemberDashboardDataService = async (member_id: number) => {
 	return {
 	  id: member.id,
 	  username: member.users?.username,
-	  membership_start: latestMembership
-		 ? new Date(latestMembership.start_date).toLocaleDateString("en-PH", {
-			  timeZone: "Asia/Manila",
-			  month: "short",
-			  day: "2-digit",
-			  year: "numeric",
-			})
-		 : null,
+	  membership_start: latestMembership.start_date,
 	  plan: latestMembership?.membership_plans.plan_name ?? null,
-	  expiry: latestMembership
-		 ? new Date(latestMembership.end_date).toLocaleDateString("en-PH", {
-			  timeZone: "Asia/Manila",
-			  month: "short",
-			  day: "2-digit",
-			  year: "numeric",
-			})
-		 : null,
+	  expiry: latestMembership.end_date,
 	  membershipStatus: latestMembership?.status ?? null,
 	  engagementStatus,
 	  points: member.points,

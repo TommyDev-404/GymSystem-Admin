@@ -27,45 +27,40 @@ type Props = {
 export function AttendanceTable({ members, isLoading }: Props) {
 	const { mutate: checkout, isPending } = useCheckoutMember();
 
-	const [, setTimeTick] = useState(0);
+	const [currentTime, setCurrentTime] = useState(() => new Date().getTime());
 
 	useEffect(() => {
-	const interval = setInterval(() => {
-		setTimeTick((tick) => tick + 1);
-	}, 60_000);
+		const interval = setInterval(() => {
+			setCurrentTime(new Date().getTime());
+		}, 1000);
 
-	return () => clearInterval(interval);
+		return () => clearInterval(interval);
 	}, []);
 	
 	const getRemainingTime = (
 		checkinTime: string | null,
-		dailyLimit: number | null
-	 ) => {
+		dailyLimit: number | null,
+		status: Attendance["status"]
+	) => {
+		if (status === "CHECK_OUT") return "0h 0m 0s";
 		if (!checkinTime) return "--";
-		if (dailyLimit === null || dailyLimit === 0) return "--";
-	 
+		if (dailyLimit === null || dailyLimit === 0) return "Unlimited";
+
 		const checkin = new Date(checkinTime);
-		const now = new Date();
-	 
-		if (Number.isNaN(checkin.getTime())) {
-		  return "--";
-		}
-	 
-		const elapsedMinutes = Math.floor(
-		  (now.getTime() - checkin.getTime()) / 60000
-		);
-	 
-		const totalLimitMinutes = dailyLimit * 60;
-		const remainingMinutes = Math.max(
-		  0,
-		  totalLimitMinutes - elapsedMinutes
-		);
-	 
-		const hours = Math.floor(remainingMinutes / 60);
-		const minutes = remainingMinutes % 60;
-	 
-		return `${hours}h ${minutes}m`;
-	 };
+
+		if (Number.isNaN(checkin.getTime())) return "--";
+
+		const expirationTime =
+				checkin.getTime() + dailyLimit * 60 * 60 * 1000;
+
+		const remainingMs = Math.max(0, expirationTime - currentTime);
+
+		const hours = Math.floor(remainingMs / 3_600_000);
+		const minutes = Math.floor((remainingMs % 3_600_000) / 60_000);
+		const seconds = Math.floor((remainingMs % 60_000) / 1000);
+
+		return `${hours}h ${minutes}m ${seconds}s`;
+	};
 	
 	const handleCheckout = async (attendance_id: number) => {
 		checkout(attendance_id, {
@@ -145,8 +140,12 @@ export function AttendanceTable({ members, isLoading }: Props) {
 											{m.daily_limit !== 0 ? `${m.daily_limit} hrs` : "Unlimited"}
 										</TableCell>
 
-										<TableCell className="px-5 py-4 text-slate-600">
-											{getRemainingTime(m.checkin_time, m.daily_limit)}
+										<TableCell className="px-5 py-4 text-slate-600 tabular-nums">
+											{getRemainingTime(
+												m.checkin_time,
+												m.daily_limit,
+												m.status
+											)}
 										</TableCell>
 																			
 										<TableCell className="px-5 py-4 text-slate-600">
@@ -170,35 +169,37 @@ export function AttendanceTable({ members, isLoading }: Props) {
 										</TableCell>
 
 										<TableCell className="px-2 py-4">
-										<Tooltip>
-											<TooltipTrigger asChild>
-												<Button
-												size="sm"
-												variant="ghost"
-												className="h-8 gap-2 rounded-lg bg-red-500 px-3 text-white hover:bg-red-600 hover:text-white"
-												onClick={() => handleCheckout(m.attendance_id)}
-												disabled={isPending || m.status == "CHECK_OUT"}
-												>
-												{isPending ? (
-													<LoaderCircle className="h-4 w-4 animate-spin" />
-												) : (
-													<CircleCheck
-														size={16}
-														strokeWidth={1.8}
-													/>
-												)}
-												</Button>
-											</TooltipTrigger>
+											{m.status === "CHECK_OUT" ? (
+												<Badge className="gap-1.5 bg-emerald-100 text-emerald-700 hover:bg-emerald-100">
+														<CircleCheck size={14} />
+														Completed
+												</Badge>
+											) : (
+												<Tooltip>
+														<TooltipTrigger asChild>
+															<Button
+																size="sm"
+																variant="ghost"
+																className="h-8 gap-2 rounded-lg bg-red-500 px-3 text-white hover:bg-red-600 hover:text-white"
+																onClick={() => handleCheckout(m.attendance_id)}
+																disabled={isPending}
+															>
+																{isPending ? (
+																		<LoaderCircle className="h-4 w-4 animate-spin" />
+																) : (
+																		<CircleCheck size={16} strokeWidth={1.8} />
+																)}
+																Check Out
+															</Button>
+														</TooltipTrigger>
 
-											<TooltipContent>
-												<p>
-												{m.status === "CHECK_OUT"
-													? "Already checked out"
-													: "Mark checkout"}
-												</p>
-											</TooltipContent>
-										</Tooltip>
+														<TooltipContent>
+															<p>Mark member as checked out</p>
+														</TooltipContent>
+												</Tooltip>
+											)}
 										</TableCell>
+
 									</TableRow>
 								))
 							)}

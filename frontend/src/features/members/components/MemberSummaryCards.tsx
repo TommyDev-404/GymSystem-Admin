@@ -2,7 +2,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { HOVER_EFFECT } from "@/utils/animations";
 import {
   CheckCircle2,
-  Clock3,
   CalendarX,
   UserRoundX,
 } from "lucide-react";
@@ -31,14 +30,6 @@ export function MemberSummaryCards({
       iconBg: "bg-emerald-50 dark:bg-emerald-950/40",
     },
     {
-      title: "Expiring Tomorrow",
-      value: summary.expiringTomorrow,
-      description: "Memberships ending tomorrow",
-      icon: Clock3,
-      iconColor: "text-amber-600 dark:text-amber-400",
-      iconBg: "bg-amber-50 dark:bg-amber-950/40",
-    },
-    {
       title: "Expired Memberships",
       value: summary.expired,
       description: "Memberships already expired",
@@ -57,7 +48,7 @@ export function MemberSummaryCards({
   ];
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
       {cards.map((card) => {
         const Icon = card.icon;
 

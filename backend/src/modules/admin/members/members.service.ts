@@ -299,31 +299,31 @@ export const createMemberService = async (data: CreateMemberDTO) => {
 				data:{
 					referrer_id: referrer.id,
 					referee_id: member.id,
-					referrer_points: 50,
-					referee_points: 30
+					referrer_points: 25,
+					referee_points: 10
 				}
 			});
 
-			// Add 100 points to referrer
+			// Add 25 points to referrer
 			await tx.members.update({
 				where:{
 					id: referrer.id
 				},
 				data:{
 					points:{
-						increment:50
+						increment:25
 					}
 				}
 			});
 
-			// Add 50 points to the new member who used referral code
+			// Add 10 points to the new member who used referral code
 			await tx.members.update({
 				where:{
 					id: member.id
 				},
 				data:{
 					points:{
-						increment: 30
+						increment: 10
 					}
 				}
 			});
@@ -336,7 +336,7 @@ export const createMemberService = async (data: CreateMemberDTO) => {
 				  type: "REFERRAL_POINTS",
 				  title: "Referral Points Earned",
 				  description:
-					 "You earned 50 points for referring a new member to JFitness.",
+					 "You earned 25 points for referring a new member to JFitness.",
 				},
 			 });
 		  
@@ -349,7 +349,7 @@ export const createMemberService = async (data: CreateMemberDTO) => {
 				  type: "REFERRAL_POINTS",
 				  title: "Welcome Bonus Earned",
 				  description:
-					 "You earned 30 points for joining JFitness using a referral code.",
+					 "You earned 10 points for joining JFitness using a referral code.",
 				},
 			 });
 			
@@ -397,7 +397,7 @@ export const createMemberService = async (data: CreateMemberDTO) => {
 				},
 				data: {
 					points: {
-						increment: 100,
+						increment: 50,
 					},
 				}
 			});
@@ -410,7 +410,7 @@ export const createMemberService = async (data: CreateMemberDTO) => {
 					category: "REWARD",
 					type: "MEMBERSHIP_POINTS",
 					title: "Membership Points Earned",
-					description: `You earned 100 points from your ${plan.plan_name} membership payment of ₱${Number(
+					description: `You earned 50 points from your ${plan.plan_name} membership payment of ₱${Number(
 						payment.amount
 					).toLocaleString("en-PH", {
 						minimumFractionDigits: 2,
