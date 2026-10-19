@@ -11,51 +11,54 @@ export const getAttendanceService = async (filters: {
   const start = new Date();
   const end = new Date();
 
-  // 📅 YEAR filter
   if (year && !month && !day) {
     start.setFullYear(year, 0, 1);
     start.setHours(0, 0, 0, 0);
 
-    end.setFullYear(year, 11, 31);
-    end.setHours(23, 59, 59, 999);
-  }
-
-  // 📅 MONTH filter
-  else if (year && month && !day) {
+    end.setFullYear(year + 1, 0, 1);
+    end.setHours(0, 0, 0, 0);
+  } else if (year && month && !day) {
     start.setFullYear(year, month - 1, 1);
     start.setHours(0, 0, 0, 0);
 
-    end.setFullYear(year, month, 0);
-    end.setHours(23, 59, 59, 999);
-  }
-
-  // 📅 DAY filter
-  else if (year && month && day) {
+    end.setFullYear(year, month, 1);
+    end.setHours(0, 0, 0, 0);
+  } else if (year && month && day) {
     start.setFullYear(year, month - 1, day);
     start.setHours(0, 0, 0, 0);
 
-    end.setFullYear(year, month - 1, day);
-    end.setHours(23, 59, 59, 999);
-  }
-
-  // 📌 DEFAULT: today
-  else {
+    end.setTime(start.getTime());
+    end.setDate(end.getDate() + 1);
+  } else {
     start.setHours(0, 0, 0, 0);
-    end.setHours(23, 59, 59, 999);
+
+    end.setTime(start.getTime());
+    end.setDate(end.getDate() + 1);
   }
 
   const result = await prisma.attendance.findMany({
     where: {
-      check_in_time: {
-        gte: start,
-        lte: end,
-      },
-
+      OR: [
+        {
+          morning_checkin_time: {
+            gte: start,
+            lt: end,
+          },
+        },
+        {
+          afternoon_checkin_time: {
+            gte: start,
+            lt: end,
+          },
+        },
+      ],
     },
     select: {
       id: true,
-      check_in_time: true,
-      checkout_time: true,
+      morning_checkin_time: true,
+      morning_checkout_time: true,
+      afternoon_checkin_time: true,
+      afternoon_checkout_time: true,
       status: true,
       members: {
         select: {
@@ -63,93 +66,146 @@ export const getAttendanceService = async (filters: {
           gender: true,
           member_memberships: {
             select: {
+              id: true,
+              start_date: true,
+              end_date: true,
+              status: true,
+              created_at: true,
               membership_plans: {
                 select: {
+                  id: true,
                   plan_name: true,
-                  daily_hours_limit: true
-                }
-              }
-            }
-          }
+                  daily_hours_limit: true,
+                },
+              },
+            },
+            orderBy: {
+              created_at: "desc",
+            },
+            take: 1,
+          },
         },
       },
     },
-    orderBy: {
-      check_in_time: "desc",
-    },
+    orderBy: [
+      {
+        afternoon_checkin_time: "desc",
+      },
+      {
+        morning_checkin_time: "desc",
+      },
+    ],
   });
 
-  const newResult = result.map((r) => ({
-    attendance_id: r.id,
-    name: r.members.fullname,
-    gender: r.members.gender,
-    status: r.status,
-    plan: r.members.member_memberships[0].membership_plans.plan_name,
-    daily_limit: r.members.member_memberships[0].membership_plans.daily_hours_limit,
-    checkin_time: r.check_in_time,
-    checkout_time: r.checkout_time,
-  }));
-  
-  return newResult;
+  return result.map((r) => {
+    const latestMembership = r.members.member_memberships[0] ?? null;
 
+    return {
+      attendance_id: r.id,
+      name: r.members.fullname,
+      gender: r.members.gender,
+      status: r.status,
+
+      plan: latestMembership?.membership_plans.plan_name ?? "No Plan",
+      plan_id: latestMembership?.membership_plans.id ?? null,
+      membership_start: latestMembership?.start_date ?? null,
+      membership_end: latestMembership?.end_date ?? null,
+      membership_status: latestMembership?.status ?? null,
+
+      daily_limit:
+        latestMembership?.membership_plans.daily_hours_limit ?? 0,
+
+      morning_checkin_time: r.morning_checkin_time,
+      morning_checkout_time: r.morning_checkout_time,
+
+      afternoon_checkin_time: r.afternoon_checkin_time,
+      afternoon_checkout_time: r.afternoon_checkout_time,
+    };
+  });
 };
 
-export const markCheckoutService = async (attendance_id: number) => {
-  const formatPhilippineTime = (date: Date) => {
-    return new Intl.DateTimeFormat("en-PH", {
+export const markCheckoutService = async (
+  attendance_id: number,
+  sessionType: "MORNING" | "AFTERNOON"
+) => {
+  const formatPhilippineTime = (date: Date) =>
+    new Intl.DateTimeFormat("en-PH", {
       timeZone: "Asia/Manila",
       hour: "2-digit",
       minute: "2-digit",
-      hour12: true
+      hour12: true,
     }).format(date);
-  };
 
   const checkoutDateTime = new Date();
 
+  const checkoutField =
+    sessionType === "MORNING"
+      ? "morning_checkout_time"
+      : "afternoon_checkout_time";
+
+  const checkinField =
+    sessionType === "MORNING"
+      ? "morning_checkin_time"
+      : "afternoon_checkin_time";
+
   const result = await prisma.$transaction(async (tx) => {
-    const res = await tx.attendance.update({
-      where: {
-        id: attendance_id
+    const attendance = await tx.attendance.findUnique({
+      where: { id: attendance_id },
+      select: {
+        id: true,
+        member_id: true,
+        morning_checkin_time: true,
+        morning_checkout_time: true,
+        afternoon_checkin_time: true,
+        afternoon_checkout_time: true,
       },
-      data: {
-        status: "CHECK_OUT",
-        checkout_time: checkoutDateTime
-      }
     });
 
-    if (!res.checkout_time) {
-      throw new Error("Checkout time was not recorded.");
+    if (!attendance) {
+      throw new Error("Attendance record not found.");
     }
 
-    const member = await tx.members.findFirst({
-      where: {
-        id: res.member_id
+    if (!attendance[checkinField]) {
+      throw new Error(`${sessionType} check-in has not been recorded.`);
+    }
+
+    if (attendance[checkoutField]) {
+      throw new Error(`${sessionType} checkout has already been recorded.`);
+    }
+
+    const res = await tx.attendance.update({
+      where: { id: attendance_id },
+      data: {
+        [checkoutField]: checkoutDateTime,
       },
-      select: {
-        fullname: true
-      }
     });
 
-    await tx.activities.create({
-      data: {
-        category: "ATTENDANCE",
-        recipient_type: "ADMIN",
-        title: "Checked Out",
-        description: `${member?.fullname} checked out successfully at ${formatPhilippineTime(res.checkout_time)}.`,
-        recipient_id: res.member_id
-      }
+    const member = await tx.members.findUnique({
+      where: { id: res.member_id },
+      select: { fullname: true },
     });
 
-    await tx.activities.create({
-      data: {
-        category: "ATTENDANCE",
-        recipient_type: "MEMBER",
-        title: "Checked Out",
-        description: "You checked out successfully.",
-        recipient_id: res.member_id
-      }
+    const formattedTime = formatPhilippineTime(checkoutDateTime);
+
+    await tx.activities.createMany({
+      data: [
+        {
+          category: "ATTENDANCE",
+          recipient_type: "ADMIN",
+          title: "Checked Out",
+          description: `${member?.fullname ?? "Member"} checked out successfully for the ${sessionType.toLowerCase()} session at ${formattedTime}.`,
+          recipient_id: res.member_id,
+        },
+        {
+          category: "ATTENDANCE",
+          recipient_type: "MEMBER",
+          title: "Checked Out",
+          description: `You checked out successfully for the ${sessionType.toLowerCase()} session.`,
+          recipient_id: res.member_id,
+        },
+      ],
     });
-    
+
     await tx.notifications.create({
       data: {
         recipient_id: res.member_id,
@@ -157,18 +213,23 @@ export const markCheckoutService = async (attendance_id: number) => {
         category: "ATTENDANCE",
         type: "MEMBER_CHECK_OUT",
         title: "Checked Out",
-        description: `You checked out successfully at ${formatPhilippineTime(res.checkout_time)}.`,
+        description: `You checked out successfully at ${formattedTime} (${sessionType.toLowerCase()} session).`,
       },
     });
 
     return {
       success: true,
-      message: "Checkout successfully."
+      message: `${sessionType} checkout successful.`,
+      attendance_id: res.id,
+      sessionType,
+      checkout_time: res[checkoutField],
     };
   });
-  
-  // Socket events
-  getIO().to("members-room").emit("attendance:checkout");
+
+  getIO().to("members-room").emit("attendance:checkout", {
+    attendance_id,
+    sessionType,
+  });
 
   return result;
 };

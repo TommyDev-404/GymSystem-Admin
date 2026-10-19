@@ -195,7 +195,11 @@ CREATE TABLE attendance (
     member_id INT NOT NULL,
     session_id VARCHAR(36) NOT NULL,
     check_in_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    checkout_time DATETIME,
+
+    morning_checkin_time DATETIME NULL,
+    morning_checkout_time DATETIME NULL,
+    afternoon_checkin_time DATETIME NULL,
+    afternoon_checkout_time DATETIME NULL,
     status ENUM(
         'CHECK-IN',
         'CHECK-OUT'

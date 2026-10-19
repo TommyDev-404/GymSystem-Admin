@@ -2,60 +2,24 @@ import { prisma } from "../../../lib/prisma.js";
 import { getIO } from "../../../lib/socket.js";
 import { getEngagementStatus } from "../../../utils/engagementStatus.js";
 
-export const getMemberWeeklyAttendanceService = async (memberId: number) => {
-	const now = new Date();
 
-	const day = now.getDay();
+type SessionType = "MORNING" | "AFTERNOON";
 
-	// Convert Sunday = 0 into Monday-based week
-	const mondayOffset = day === 0 ? -6 : 1 - day;
+type AttendanceAction = "CHECK_IN" | "CHECK_OUT";
 
-	const startOfWeek = new Date(now);
-	startOfWeek.setDate(now.getDate() + mondayOffset);
-	startOfWeek.setHours(0, 0, 0, 0);
-
-	const endOfWeek = new Date(startOfWeek);
-	endOfWeek.setDate(startOfWeek.getDate() + 7);
-
-	const attendance = await prisma.attendance.findMany({
-		where: {
-			member_id: memberId,
-			check_in_time: {
-				gte: startOfWeek,
-				lt: endOfWeek,
-			},
-		},
-		select: {
-			check_in_time: true,
-			checkout_time: true
-		},
-		orderBy: {
-			check_in_time: "asc",
-		},
-	});
-
-	const days = [
-		{ day: 1, label: "Mon" },
-		{ day: 2, label: "Tue" },
-		{ day: 3, label: "Wed" },
-		{ day: 4, label: "Thu" },
-		{ day: 5, label: "Fri" },
-		{ day: 6, label: "Sat" },
-		{ day: 0, label: "Sun" },
-	];
-
-	return days.map(({ day, label }) => ({
-		value: attendance.filter(
-			(item) => item.check_in_time.getDay() === day
-		).length,
-		label,
-	}));
+type CheckInOptions = {
+  memberId: number;
+  sessionId: string;
+  sessionType: SessionType;
+  action: AttendanceAction;
 };
 
-export const checkInService = async (
-  memberId: number,
-  sessionId: string,
-) => {
+export const checkInService = async ({
+  memberId,
+  sessionId,
+  sessionType,
+  action,
+}: CheckInOptions) => {
   if (!sessionId) {
     return {
       status: 400,
@@ -63,10 +27,22 @@ export const checkInService = async (
     };
   }
 
+  if (!["MORNING", "AFTERNOON"].includes(sessionType)) {
+    return {
+      status: 400,
+      message: "Invalid session type",
+    };
+  }
+
+  if (!["CHECK_IN", "CHECK_OUT"].includes(action)) {
+    return {
+      status: 400,
+      message: "Invalid attendance action",
+    };
+  }
+
   const session = await prisma.checkin_sessions.findUnique({
-    where: {
-      id: sessionId,
-    },
+    where: { id: sessionId },
   });
 
   if (!session) {
@@ -86,9 +62,7 @@ export const checkInService = async (
   }
 
   const member = await prisma.members.findUnique({
-    where: {
-      id: memberId,
-    },
+    where: { id: memberId },
     select: {
       fullname: true,
       points: true,
@@ -102,116 +76,148 @@ export const checkInService = async (
     };
   }
 
-  const existing = await prisma.attendance.findFirst({
+  const existing = await prisma.attendance.findUnique({
     where: {
-      member_id: memberId,
-      session_id: sessionId,
-    },
-  });
-
-  if (existing) {
-    return {
-      status: 400,
-      message: "Already checked in",
-    };
-  }
-
-  // Determine engagement status before recording this check-in.
-  const lastAttendance = await prisma.attendance.findFirst({
-    where: {
-      member_id: memberId,
-    },
-    orderBy: {
-      check_in_time: "desc",
-    },
-    select: {
-      check_in_time: true,
-    },
-  });
-
-  const previousEngagementStatus = getEngagementStatus(
-    lastAttendance?.check_in_time ?? null,
-  );
-
-  const wasInactive = previousEngagementStatus === "INACTIVE";
-
-	// check for perfect attendance
-  const attendanceCount = await prisma.attendance.count({
-		where: {
-		member_id: memberId,
-		},
-	});
-	
-	const isPerfectAttendanceBonus = (attendanceCount + 1) % 7 === 0;
-	
-	const pointsToAward = isPerfectAttendanceBonus ? 10 : 5; // increase points if perfect attendance
-	
-  const result = await prisma.$transaction(async (tx) => {
-    // 1. Create attendance.
-    await tx.attendance.create({
-      data: {
+      member_id_session_id: {
         member_id: memberId,
         session_id: sessionId,
       },
-    });
+    },
+  });
 
-    // 2. Award attendance points.
-    await tx.members.update({
-		where: {
-		  id: memberId,
-		},
-		data: {
-		  points: {
-			 increment: pointsToAward,
-		  },
-		},
-	 });
+  const checkInField =
+    sessionType === "MORNING"
+      ? "morning_checkin_time"
+      : "afternoon_checkin_time";
 
-    // 3. Create admin activity.
-    await tx.activities.create({
-      data: {
-        category: "ATTENDANCE",
-        recipient_type: "ADMIN",
-        title: "Member Check-in",
-        description: `${member.fullname} checked in`,
-        recipient_id: memberId,
+  const checkOutField =
+    sessionType === "MORNING"
+      ? "morning_checkout_time"
+      : "afternoon_checkout_time";
+
+  if (action === "CHECK_IN" && existing?.[checkInField]) {
+    return {
+      status: 400,
+      message: `Already checked in for the ${sessionType.toLowerCase()} session`,
+    };
+  }
+
+  if (action === "CHECK_OUT" && !existing) {
+    return {
+      status: 400,
+      message: "No attendance record found",
+    };
+  }
+
+  if (action === "CHECK_OUT" && !existing?.[checkInField]) {
+    return {
+      status: 400,
+      message: `You must check in for the ${sessionType.toLowerCase()} session first`,
+    };
+  }
+
+  if (action === "CHECK_OUT" && existing?.[checkOutField]) {
+    return {
+      status: 400,
+      message: `Already checked out for the ${sessionType.toLowerCase()} session`,
+    };
+  }
+
+  const lastAttendance = await prisma.attendance.findMany({
+    where: {
+      member_id: memberId,
+    },
+    select: {
+      morning_checkin_time: true,
+      afternoon_checkin_time: true,
+    },
+  });
+
+  const lastCheckInTime = lastAttendance
+    .flatMap((attendance) => [
+      attendance.morning_checkin_time,
+      attendance.afternoon_checkin_time,
+    ])
+    .filter((date): date is Date => date !== null)
+    .sort((a, b) => b.getTime() - a.getTime())[0] ?? null;
+
+  const previousEngagementStatus =
+    getEngagementStatus(lastCheckInTime);
+
+  const wasInactive = previousEngagementStatus === "INACTIVE";
+
+  let pointsToAward = 0;
+  let isPerfectAttendanceBonus = false;
+
+  if (action === "CHECK_IN") {
+    const attendanceCount = await prisma.attendance.count({
+      where: {
+        member_id: memberId,
       },
     });
 
-    // 4. Create member attendance activity.
-    await tx.activities.create({
-      data: {
-        category: "ATTENDANCE",
-        recipient_type: "MEMBER",
-        title: "Checked in",
-        description: "You successfully checked in",
-        recipient_id: memberId,
-      },
-    });
+    isPerfectAttendanceBonus = (attendanceCount + 1) % 7 === 0;
+    pointsToAward = isPerfectAttendanceBonus ? 10 : 5;
+  }
 
-    // 5. Notify the member about earned points.
-    await tx.notifications.create({
-      data: {
-        recipient_id: memberId,
-        recipient_type: "MEMBER",
-        category: "ATTENDANCE",
-        type: "ATTENDANCE_POINTS",
-        title: "You earned points!",
-        description: "Check-in complete! +5 points earned.",
-      },
-    });
+  const attendanceData = {
+    ...(action === "CHECK_IN" && sessionType === "MORNING"
+      ? { morning_checkin_time: now }
+      : {}),
+    ...(action === "CHECK_IN" && sessionType === "AFTERNOON"
+      ? { afternoon_checkin_time: now }
+      : {}),
+    ...(action === "CHECK_OUT" && sessionType === "MORNING"
+      ? { morning_checkout_time: now }
+      : {}),
+    ...(action === "CHECK_OUT" && sessionType === "AFTERNOON"
+      ? { afternoon_checkout_time: now }
+      : {}),
+  };
 
-    // 6. Welcome back inactive members.
-    if (wasInactive) {
-      await tx.activities.create({
-        data: {
-          category: "ATTENDANCE",
-          recipient_type: "MEMBER",
-          title: "Welcome Back!",
-          description:
-            "Welcome back to the gym! Your engagement status is now active. Keep up your fitness journey!",
-          recipient_id: memberId,
+  const result = await prisma.$transaction(async (tx) => {
+    const attendance = await tx.attendance.upsert({
+      where: {
+        member_id_session_id: {
+          member_id: memberId,
+          session_id: sessionId,
         },
+      },
+      create: {
+        member_id: memberId,
+        session_id: sessionId,
+        ...attendanceData,
+      },
+      update: attendanceData,
+    });
+
+    if (action === "CHECK_IN") {
+      await tx.members.update({
+        where: { id: memberId },
+        data: {
+          points: {
+            increment: pointsToAward,
+          },
+        },
+      });
+
+      await tx.activities.createMany({
+        data: [
+          {
+            category: "ATTENDANCE",
+            recipient_type: "ADMIN",
+            title: "Member Check-in",
+            description: `${member.fullname} checked in for the ${sessionType.toLowerCase()} session`,
+            recipient_id: memberId,
+          },
+          {
+            category: "ATTENDANCE",
+            recipient_type: "MEMBER",
+            title: "Checked in",
+            description: `You successfully checked in for the ${sessionType.toLowerCase()} session`,
+            recipient_id: memberId,
+          },
+        ],
       });
 
       await tx.notifications.create({
@@ -219,36 +225,145 @@ export const checkInService = async (
           recipient_id: memberId,
           recipient_type: "MEMBER",
           category: "ATTENDANCE",
-          type: "ACCOUNT_REACTIVATED",
-          title: "Welcome Back!",
-          description: "Great to see you again! Your engagement status is now Active. Keep showing up and working toward your fitness goals!"
+          type: "ATTENDANCE_POINTS",
+          title: "You earned points!",
+          description: `Check-in complete! +${pointsToAward} points earned.`,
+        },
+      });
+
+      if (wasInactive) {
+        await tx.activities.create({
+          data: {
+            category: "ATTENDANCE",
+            recipient_type: "MEMBER",
+            title: "Welcome Back!",
+            description:
+              "Welcome back to the gym! Your engagement status is now active. Keep up your fitness journey!",
+            recipient_id: memberId,
+          },
+        });
+
+        await tx.notifications.create({
+          data: {
+            recipient_id: memberId,
+            recipient_type: "MEMBER",
+            category: "ATTENDANCE",
+            type: "ACCOUNT_REACTIVATED",
+            title: "Welcome Back!",
+            description:
+              "Great to see you again! Your engagement status is now Active. Keep showing up and working toward your fitness goals!",
+          },
+        });
+      }
+    } else {
+      await tx.activities.create({
+        data: {
+          category: "ATTENDANCE",
+          recipient_type: "MEMBER",
+          title: "Checked out",
+          description: `You successfully checked out from the ${sessionType.toLowerCase()} session`,
+          recipient_id: memberId,
         },
       });
     }
 
     return {
-      success: true,
+      attendance,
       previousEngagementStatus,
-      engagementStatus: "ACTIVE",
-      welcomedBack: wasInactive,
+      engagementStatus:
+        action === "CHECK_IN" ? "ACTIVE" : previousEngagementStatus,
+      welcomedBack: action === "CHECK_IN" && wasInactive,
+      pointsAwarded: pointsToAward,
+      perfectAttendanceBonus: isPerfectAttendanceBonus,
     };
   });
 
-  // 7. Notify the admin dashboard through Socket.IO.
-  getIO()
-    .to("admin-room")
-    .emit("attendance:new", {
-      memberId,
-      reactivated: wasInactive,
-      previousEngagementStatus,
-      engagementStatus: result.engagementStatus,
-    });
+  getIO().to("admin-room").emit("attendance:new", {
+    memberId,
+    action,
+    sessionType,
+    reactivated: result.welcomedBack,
+    previousEngagementStatus,
+    engagementStatus: result.engagementStatus,
+  });
 
   return {
     status: 200,
+    success: true,
     ...result,
-    message: wasInactive
-      ? "Welcome back! Your engagement status is now active."
-      : "Check-in successful",
+    message:
+      action === "CHECK_OUT"
+        ? `${sessionType} check-out successful`
+        : result.welcomedBack
+          ? "Welcome back! Your engagement status is now active."
+          : `${sessionType} check-in successful`,
   };
+};
+
+export const getMemberWeeklyAttendanceService = async (
+  memberId: number,
+) => {
+  const now = new Date();
+
+  const day = now.getDay();
+  const mondayOffset = day === 0 ? -6 : 1 - day;
+
+  const startOfWeek = new Date(now);
+  startOfWeek.setDate(now.getDate() + mondayOffset);
+  startOfWeek.setHours(0, 0, 0, 0);
+
+  const endOfWeek = new Date(startOfWeek);
+  endOfWeek.setDate(startOfWeek.getDate() + 7);
+
+  const attendance = await prisma.attendance.findMany({
+    where: {
+      member_id: memberId,
+      OR: [
+        {
+          morning_checkin_time: {
+            gte: startOfWeek,
+            lt: endOfWeek,
+          },
+        },
+        {
+          afternoon_checkin_time: {
+            gte: startOfWeek,
+            lt: endOfWeek,
+          },
+        },
+      ],
+    },
+    select: {
+      morning_checkin_time: true,
+      afternoon_checkin_time: true,
+    },
+  });
+
+  const days = [
+    { day: 1, label: "Mon" },
+    { day: 2, label: "Tue" },
+    { day: 3, label: "Wed" },
+    { day: 4, label: "Thu" },
+    { day: 5, label: "Fri" },
+    { day: 6, label: "Sat" },
+    { day: 0, label: "Sun" },
+  ];
+
+  return days.map(({ day, label }) => {
+    const value = attendance.filter((item) => {
+      const checkInTimes = [
+        item.morning_checkin_time,
+        item.afternoon_checkin_time,
+      ];
+
+      return checkInTimes.some(
+        (time) => time !== null && time.getDay() === day,
+      );
+    }).length;
+
+    return {
+      value,
+      label,
+    };
+  });
 };

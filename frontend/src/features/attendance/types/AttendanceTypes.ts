@@ -3,6 +3,7 @@ export type QrResponse = {
    qr: string;
 }
  
+
 export type Attendance = {
    attendance_id: number,
    name: string;
@@ -10,9 +11,12 @@ export type Attendance = {
    status: string;
    plan: string;
    daily_limit: number;
-   checkin_time: string;
-   checkout_time: string | null;
-};
+ 
+   morning_checkin_time: string | null;
+   morning_checkout_time: string | null;
+   afternoon_checkin_time: string | null;
+   afternoon_checkout_time: string | null;
+ };
 
 export type Filters = {
    year?: number;

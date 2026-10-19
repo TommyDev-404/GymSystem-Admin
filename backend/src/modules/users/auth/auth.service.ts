@@ -82,6 +82,7 @@ export const loginUser = async (username: string, password: string) => {
 };
  
 export const verifyActivationCode = async (code: string) => {
+	console.log("code: ", code);
 	const activation = await prisma.member_activations.findFirst({
 		where: {
 			activation_code: code,

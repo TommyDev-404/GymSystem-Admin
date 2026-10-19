@@ -1,5 +1,4 @@
 import { toast } from "sonner";
-import { useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useForm, Controller } from "react-hook-form";
@@ -23,6 +22,8 @@ import type {
 import { useCreateMember } from "../hooks/useMember";
 import { usePlans } from "@/features/settings/sections/membership_plans/hook/usePlan";
 import { theme } from "@/utils/theme";
+import { useEffect, useState } from "react";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface Props {
   open: boolean;
@@ -31,8 +32,9 @@ interface Props {
 
 export function MemberModal({ open, setOpen }: Props) {
   const { mutate: createMember, isPending: creating } = useCreateMember();
-
   const { data: plans = [] } = usePlans();
+  
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   const defaultValues: AddMemberFormType = {
     fullname: "",
@@ -69,10 +71,17 @@ export function MemberModal({ open, setOpen }: Props) {
         keepIsSubmitted: false,
         keepSubmitCount: false,
       });
+      
+      setAcceptedTerms(false);
     }
   }, [open, reset]);
 
   const onSubmit = (data: AddMemberFormType) => {
+    if (!acceptedTerms) {
+      toast.error("Please accept the Terms and Conditions first.");
+      return;
+    }
+
     createMember(data, {
       onSuccess: () => {
         toast.success("Member created successfully");
@@ -297,32 +306,78 @@ export function MemberModal({ open, setOpen }: Props) {
 
               {/* PAYMENT METHOD */}
               {selectedPlan && (
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-slate-700 dark:text-slate-200">
-                    Payment Method
-                  </label>
-                  
-                  <Controller
-                    control={control}
-                    name="payment_method"
-                    rules={{ required: "Please select a payment method" }}
-                    render={({ field }) => (
-                      <Select value={field.value} onValueChange={field.onChange}>
-                        <SelectTrigger className="w-full py-5.5 bg-white dark:bg-stone-800 border-slate-200 dark:border-stone-700 text-slate-700 dark:text-slate-200">
-                          <SelectValue placeholder="Select payment method" />
-                        </SelectTrigger>
-                        <SelectContent position="popper">
-                          <SelectItem value="Cash">Cash</SelectItem>
-                          <SelectItem value="GCash">GCash</SelectItem>
-                        </SelectContent>
-                      </Select>
+                <div>
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                      Payment Method
+                    </label>
+                    
+                    <Controller
+                      control={control}
+                      name="payment_method"
+                      rules={{ required: "Please select a payment method" }}
+                      render={({ field }) => (
+                        <Select value={field.value} onValueChange={field.onChange}>
+                          <SelectTrigger className="w-full py-5.5 bg-white dark:bg-stone-800 border-slate-200 dark:border-stone-700 text-slate-700 dark:text-slate-200">
+                            <SelectValue placeholder="Select payment method" />
+                          </SelectTrigger>
+                          <SelectContent position="popper">
+                            <SelectItem value="Cash">Cash</SelectItem>
+                            <SelectItem value="GCash">GCash</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                    {errors.payment_method && (
+                      <p className="text-xs text-red-500">{errors.payment_method.message}</p>
                     )}
-                  />
-                  {errors.payment_method && (
-                    <p className="text-xs text-red-500">{errors.payment_method.message}</p>
-                  )}
+                  </div>
+
+                  <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50/70 p-4 dark:border-stone-700 dark:bg-stone-800/50">
+                    <div>
+                      <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+                        Terms and Conditions
+                      </p>
+
+                      <p className="mt-2 text-xs leading-5 text-slate-600 dark:text-slate-300">
+                        By signing this agreement, you confirm you are in good health,
+                        assume all risks of injury, and release the gym from liability
+                        for personal harm or lost items. You understand that the gym
+                        may modify its pricing, schedules, or facility hours at any
+                        time, and you accept that all membership payments are strictly
+                        non-refundable under any circumstances. Your membership is
+                        non-transferable for access, and you must follow the code of
+                        conduct—including proper attire, equipment hygiene, and
+                        respectful behavior—to avoid immediate termination without a
+                        refund.
+                      </p>
+                    </div>
+
+                    <div className="flex items-start gap-3 border-t border-slate-200 pt-3 dark:border-stone-700">
+                      <Checkbox
+                        id="member-terms"
+                        checked={acceptedTerms}
+                        onCheckedChange={(checked) => setAcceptedTerms(checked === true)}
+                        className="mt-0.5"
+                      />
+
+                      <label
+                        htmlFor="member-terms"
+                        className="cursor-pointer text-sm leading-5 text-slate-700 dark:text-slate-200"
+                      >
+                        I have read and agree to the Terms and Conditions.
+                      </label>
+                    </div>
+
+                    {!acceptedTerms && (
+                      <p className="text-xs text-amber-600 dark:text-amber-400">
+                        Please accept the terms before adding this member.
+                      </p>
+                    )}
+                  </div>
                 </div>
               )}
+
             </div>
           </div>
 
@@ -339,7 +394,7 @@ export function MemberModal({ open, setOpen }: Props) {
             <Button
               type="submit"
 						  className={`flex-1 h-11 ${theme.gradient} text-white`}
-              disabled={creating || !selectedPlan}
+              disabled={creating || !selectedPlan || !acceptedTerms}
             >
               {creating ? "Adding..." : "Add Member"}
             </Button>

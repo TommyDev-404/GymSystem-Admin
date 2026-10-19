@@ -21,14 +21,16 @@ model activities {
 }
 
 model attendance {
-  id               Int                @id @default(autoincrement())
-  member_id        Int
-  session_id       String             @db.VarChar(36)
-  check_in_time    DateTime           @default(now()) @db.DateTime(0)
-  checkout_time    DateTime?          @db.DateTime(0)
-  status           attendance_status? @default(CHECK_IN)
-  members          members            @relation(fields: [member_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_member")
-  checkin_sessions checkin_sessions   @relation(fields: [session_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_session")
+  id                      Int                @id @default(autoincrement())
+  member_id               Int
+  session_id              String             @db.VarChar(36)
+  status                  attendance_status? @default(CHECK_IN)
+  morning_checkin_time    DateTime?          @db.DateTime(0)
+  morning_checkout_time   DateTime?          @db.DateTime(0)
+  afternoon_checkin_time  DateTime?          @db.DateTime(0)
+  afternoon_checkout_time DateTime?          @db.DateTime(0)
+  members                 members            @relation(fields: [member_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_member")
+  checkin_sessions        checkin_sessions   @relation(fields: [session_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_session")
 
   @@unique([member_id, session_id], map: "unique_member_session")
   @@index([session_id], map: "fk_session")

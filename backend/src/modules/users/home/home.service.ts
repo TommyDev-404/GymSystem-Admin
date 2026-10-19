@@ -35,7 +35,9 @@ function calculateStreak(dates: Date[]) {
    return streak;
 }
 
-export const getMemberDashboardDataService = async (member_id: number) => {
+export const getMemberDashboardDataService = async (
+	member_id: number,
+ ) => {
 	const now = new Date();
  
 	const startOfMonth = new Date(
@@ -61,6 +63,7 @@ export const getMemberDashboardDataService = async (member_id: number) => {
 			  start_date: true,
 			  end_date: true,
 			  status: true,
+			  created_at: true,
 			  membership_plans: {
 				 select: {
 					plan_name: true,
@@ -73,12 +76,11 @@ export const getMemberDashboardDataService = async (member_id: number) => {
 		 },
 		 attendance: {
 			select: {
-			  check_in_time: true,
+			  morning_checkin_time: true,
+			  morning_checkout_time: true,
+			  afternoon_checkin_time: true,
+			  afternoon_checkout_time: true,
 			},
-			orderBy: {
-			  check_in_time: "desc",
-			},
-			take: 1,
 		 },
 		 is_activated: true,
 		 points: true,
@@ -97,40 +99,67 @@ export const getMemberDashboardDataService = async (member_id: number) => {
  
 	const thisMonth = await prisma.attendance.count({
 	  where: {
-		 member_id,
-		 check_in_time: {
-			gte: startOfMonth,
-		 },
+		 member_id: member.id,
+		 OR: [
+			{
+			  morning_checkin_time: {
+				 gte: startOfMonth,
+				 lte: now,
+			  },
+			},
+			{
+			  afternoon_checkin_time: {
+				 gte: startOfMonth,
+				 lte: now,
+			  },
+			},
+		 ],
 	  },
 	});
  
-	const attendance = await prisma.attendance.findMany({
-	  where: {
-		 member_id,
-	  },
-	  orderBy: {
-		 check_in_time: "desc",
-	  },
-	  select: {
-		 check_in_time: true,
-	  },
+	const checkInTimes = member.attendance
+	  .flatMap((attendance) => [
+		 attendance.morning_checkin_time,
+		 attendance.afternoon_checkin_time,
+	  ])
+	  .filter((date): date is Date => date !== null)
+	  .sort((a, b) => b.getTime() - a.getTime());
+ 
+	const lastAttendance = checkInTimes[0] ?? null;
+ 
+	const dayKeyFormatter = new Intl.DateTimeFormat("en-CA", {
+	  timeZone: "Asia/Manila",
+	  year: "numeric",
+	  month: "2-digit",
+	  day: "2-digit",
 	});
+ 
+	const uniqueAttendanceDates = new Map<string, Date>();
+ 
+	for (const checkInTime of checkInTimes) {
+	  const dayKey = dayKeyFormatter.format(checkInTime);
+ 
+	  if (!uniqueAttendanceDates.has(dayKey)) {
+		 uniqueAttendanceDates.set(dayKey, checkInTime);
+	  }
+	}
  
 	const dayStreak = calculateStreak(
-	  attendance.map((item) => item.check_in_time),
+	  Array.from(uniqueAttendanceDates.values()).sort(
+		 (a, b) => b.getTime() - a.getTime(),
+	  ),
 	);
  
-	const lastAttendance = member.attendance[0]?.check_in_time ?? null;
 	const engagementStatus = getEngagementStatus(lastAttendance);
  
-	const latestMembership = member.member_memberships[0];
+	const latestMembership = member.member_memberships[0] ?? null;
  
 	return {
 	  id: member.id,
 	  username: member.users?.username,
-	  membership_start: latestMembership.start_date,
+	  membership_start: latestMembership?.start_date ?? null,
 	  plan: latestMembership?.membership_plans.plan_name ?? null,
-	  expiry: latestMembership.end_date,
+	  expiry: latestMembership?.end_date ?? null,
 	  membershipStatus: latestMembership?.status ?? null,
 	  engagementStatus,
 	  points: member.points,
@@ -142,52 +171,86 @@ export const getMemberDashboardDataService = async (member_id: number) => {
 	};
  };
  
-export const getMemberAttendanceHistoryService = async (
-	member_id: number
+ export const getMemberAttendanceHistoryService = async (
+	member_id: number,
  ) => {
 	const attendance = await prisma.attendance.findMany({
 	  where: {
 		 member_id,
 	  },
-	  orderBy: {
-		 check_in_time: "desc",
-	  },
 	  select: {
 		 id: true,
-		 check_in_time: true,
-		 checkout_time: true,
+		 morning_checkin_time: true,
+		 morning_checkout_time: true,
+		 afternoon_checkin_time: true,
+		 afternoon_checkout_time: true,
 	  },
 	});
  
-	return attendance.map((item) => ({
-	  id: item.id,
+	const formatPhilippineDate = (date: Date | null) => {
+	  if (!date) return null;
  
-	  date: item.check_in_time
-		 ? new Date(item.check_in_time).toLocaleDateString("en-PH", {
-			  timeZone: "Asia/Manila",
-			  month: "short",
-			  day: "2-digit",
-			  year: "numeric",
-			})
-		 : null,
+	  return new Date(date).toLocaleDateString("en-PH", {
+		 timeZone: "Asia/Manila",
+		 month: "short",
+		 day: "2-digit",
+		 year: "numeric",
+	  });
+	};
  
-	  checkInTime: item.check_in_time
-		 ? new Date(item.check_in_time).toLocaleTimeString("en-PH", {
-			  timeZone: "Asia/Manila",
-			  hour: "2-digit",
-			  minute: "2-digit",
-			})
-		 : null,
+	const formatPhilippineTime = (date: Date | null) => {
+	  if (!date) return null;
  
-	  checkOutTime: item.checkout_time
-		 ? new Date(item.checkout_time).toLocaleTimeString("en-PH", {
-			  timeZone: "Asia/Manila",
-			  hour: "2-digit",
-			  minute: "2-digit",
-			})
-		 : null,
-	}));
+	  return new Date(date).toLocaleTimeString("en-PH", {
+		 timeZone: "Asia/Manila",
+		 hour: "2-digit",
+		 minute: "2-digit",
+		 hour12: true,
+	  });
+	};
+ 
+	return attendance
+	  .map((item) => {
+		 const checkInTimes = [
+			item.morning_checkin_time,
+			item.afternoon_checkin_time,
+		 ].filter((date): date is Date => date !== null);
+ 
+		 const latestCheckIn =
+			checkInTimes.length > 0
+			  ? new Date(
+					Math.max(...checkInTimes.map((date) => date.getTime())),
+				 )
+			  : null;
+ 
+		 return {
+			id: item.id,
+			date: formatPhilippineDate(latestCheckIn),
+ 
+			morningCheckInTime: formatPhilippineTime(
+			  item.morning_checkin_time,
+			),
+			morningCheckOutTime: formatPhilippineTime(
+			  item.morning_checkout_time,
+			),
+ 
+			afternoonCheckInTime: formatPhilippineTime(
+			  item.afternoon_checkin_time,
+			),
+			afternoonCheckOutTime: formatPhilippineTime(
+			  item.afternoon_checkout_time,
+			),
+ 
+			latestCheckIn,
+		 };
+	  })
+	  .sort((a, b) => {
+		 return (b.latestCheckIn?.getTime() ?? 0) -
+			(a.latestCheckIn?.getTime() ?? 0);
+	  })
+	  .map(({ latestCheckIn, ...item }) => item);
  };
+ 
 
 export const getRecentActivityService  = async (member_id: number) => {
 	const activities = await prisma.activities.findMany({

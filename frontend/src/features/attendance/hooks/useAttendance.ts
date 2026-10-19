@@ -16,16 +16,25 @@ export const useGetMemberAttendance = (params?: Filters) => {
   });
 };
 
+type SessionType = "MORNING" | "AFTERNOON";
+
+type CheckoutPayload = {
+  attendance_id: number;
+  sessionType: SessionType;
+};
+
 export function useCheckoutMember() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (attendance_id: number) => api.markCheckoutApi(attendance_id),
+    mutationFn: ({ attendance_id, sessionType }: CheckoutPayload) =>
+      api.markCheckoutApi({ attendance_id, sessionType }),
+
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["attendance"],
       });
-      
+
       queryClient.invalidateQueries({
         queryKey: ["dashboard-summary-data"],
       });

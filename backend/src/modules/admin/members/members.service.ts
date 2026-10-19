@@ -35,202 +35,229 @@ function calculateDuration(duration_type: string, duration: number) {
 
 export const getMemberSummaryService = async () => {
 	const now = new Date();
- 
+
 	const memberships = await prisma.member_memberships.findMany({
-	  include: {
-		 members: {
+		include: {
+			members: {
 			select: {
-			  attendance: {
-				 orderBy: {
-					check_in_time: "desc",
-				 },
-				 select: {
-					check_in_time: true,
-				 },
-			  },
+				attendance: {
+					select: {
+					morning_checkin_time: true,
+					afternoon_checkin_time: true,
+					},
+				},
 			},
-		 },
-	  },
-	  orderBy: [
-		 { member_id: "asc" },
-		 { created_at: "desc" },
-	  ],
+			},
+		},
+		orderBy: [
+			{ member_id: "asc" },
+			{ created_at: "desc" },
+		],
 	});
- 
+
 	const latestMemberships = new Map<
-	  number,
-	  (typeof memberships)[number]
+		number,
+		(typeof memberships)[number]
 	>();
- 
+
 	for (const membership of memberships) {
-	  if (!latestMemberships.has(membership.member_id)) {
-		 latestMemberships.set(membership.member_id, membership);
-	  }
+		if (!latestMemberships.has(membership.member_id)) {
+			latestMemberships.set(membership.member_id, membership);
+		}
 	}
- 
+
 	let active = 0;
 	let expiringTomorrow = 0;
 	let expired = 0;
 	let inactiveMembers = 0;
- 
+
 	const startOfToday = new Date(now);
 	startOfToday.setHours(0, 0, 0, 0);
- 
+
 	const startOfTomorrow = new Date(startOfToday);
 	startOfTomorrow.setDate(startOfTomorrow.getDate() + 1);
- 
+
 	const startOfDayAfterTomorrow = new Date(startOfTomorrow);
 	startOfDayAfterTomorrow.setDate(
-	  startOfDayAfterTomorrow.getDate() + 1,
+		startOfDayAfterTomorrow.getDate() + 1,
 	);
-	
+
 	const inactiveThreshold = new Date(now);
 	inactiveThreshold.setDate(inactiveThreshold.getDate() - 15);
- 
+
 	for (const membership of latestMemberships.values()) {
 		const isExpired =
-		  membership.status === "Expired" ||
-		  membership.end_date < now;
-	 
+			membership.status === "Expired" ||
+			membership.end_date < now;
+
 		const isActive =
-		  membership.status === "Active" &&
-		  membership.end_date >= now;
-	 
+			membership.status === "Active" &&
+			membership.end_date >= now;
+
 		if (isActive) {
-		  active++;
-	 
-		  if (
-			 membership.end_date >= startOfTomorrow &&
-			 membership.end_date < startOfDayAfterTomorrow
-		  ) {
-			 expiringTomorrow++;
-		  }
+			active++;
+
+			if (
+			membership.end_date >= startOfTomorrow &&
+			membership.end_date < startOfDayAfterTomorrow
+			) {
+			expiringTomorrow++;
+			}
 		}
-	 
+
 		if (isExpired) {
-		  expired++;
+			expired++;
 		}
-	 
-		const latestAttendance =
-		  membership.members.attendance[0]?.check_in_time;
-	 
-		if (
-		  latestAttendance &&
-		  latestAttendance <= inactiveThreshold
-		) {
-		  inactiveMembers++;
+
+		const checkInTimes = membership.members.attendance.flatMap(
+			(attendance) => [
+			attendance.morning_checkin_time,
+			attendance.afternoon_checkin_time,
+			],
+		);
+
+		const validCheckInTimes = checkInTimes.filter(
+			(time): time is Date => time !== null,
+		);
+
+		if (validCheckInTimes.length === 0) {
+			continue;
 		}
-	 }
- 
+
+		const latestAttendance = new Date(
+			Math.max(
+			...validCheckInTimes.map((time) => time.getTime()),
+			),
+		);
+
+		if (latestAttendance <= inactiveThreshold) {
+			inactiveMembers++;
+		}
+	}
+
 	console.log("Inactive: ", inactiveMembers);
+
 	return {
-	  active,
-	  expiringTomorrow,
-	  expired,
-	  inactiveMembers
+		active,
+		expiringTomorrow,
+		expired,
+		inactiveMembers,
 	};
 };
 
 export const getMembersService = async (filters: MemberFilters) => {
 	const { search, engagementStatus, membershipStatus } = filters;
-
+ 
 	const members = await prisma.members.findMany({
-		where: {
-			...(search?.trim() && {
+	  where: {
+		 ...(search?.trim() && {
 			fullname: {
-				contains: search.trim()
+			  contains: search.trim(),
 			},
-			}),
-		},
-		select: {
-			id: true,
-			fullname: true,
-			email: true,
-			age: true,
-			gender: true,
-			join_date: true,
-			member_memberships: {
-				select: {
-					id: true,
-					start_date: true,
-					end_date: true,
-					status: true,
-					created_at: true,
-					membership_plans: {
-						select: {
-						id: true,
-						plan_name: true,
-						duration_type: true,
-						duration: true,
-						daily_hours_limit: true,
-						price: true,
-						},
-					},
-				},
-			orderBy: {
-				created_at: "desc",
-			},
-			take: 1,
-			},
-			attendance: {
+		 }),
+	  },
+	  select: {
+		 id: true,
+		 fullname: true,
+		 email: true,
+		 age: true,
+		 gender: true,
+		 join_date: true,
+		 member_memberships: {
 			select: {
-				check_in_time: true,
+			  id: true,
+			  start_date: true,
+			  end_date: true,
+			  status: true,
+			  created_at: true,
+			  membership_plans: {
+				 select: {
+					id: true,
+					plan_name: true,
+					duration_type: true,
+					duration: true,
+					daily_hours_limit: true,
+					price: true,
+				 },
+			  },
 			},
 			orderBy: {
-				check_in_time: "desc",
+			  created_at: "desc",
 			},
 			take: 1,
+		 },
+		 attendance: {
+			select: {
+			  morning_checkin_time: true,
+			  afternoon_checkin_time: true,
 			},
-		},
-		orderBy: {
-			join_date: "desc",
-		},
+		 },
+	  },
+	  orderBy: {
+		 join_date: "desc",
+	  },
 	});
-
+ 
 	const mappedMembers = members.map((member) => {
-		const membership = member.member_memberships[0] ?? null;
-		const lastAttendance = member.attendance[0]?.check_in_time ?? null;
-
-		return {
-			id: member.id,
-			fullname: member.fullname,
-			email: member.email,
-			age: member.age,
-			gender: member.gender,
-			join_date: member.join_date,
-
-			membership_id: membership?.id ?? null,
-			plan_id: membership?.membership_plans.id ?? null,
-			plan_name: membership?.membership_plans.plan_name ?? null,
-			plan_price: membership?.membership_plans.price ?? null,
-			membership_start: membership?.start_date ?? null,
-			membership_end: membership?.end_date ?? null,
-			duration_type:
-			membership?.membership_plans.duration_type ?? null,
-			duration: membership?.membership_plans.duration ?? null,
-			daily_hours_limit:
+	  const membership = member.member_memberships[0] ?? null;
+ 
+	  const checkInTimes = member.attendance.flatMap((attendance) => [
+		 attendance.morning_checkin_time,
+		 attendance.afternoon_checkin_time,
+	  ]);
+ 
+	  const validCheckInTimes = checkInTimes.filter(
+		 (time): time is Date => time !== null,
+	  );
+ 
+	  const lastAttendance =
+		 validCheckInTimes.length > 0
+			? new Date(
+				 Math.max(
+					...validCheckInTimes.map((time) => time.getTime()),
+				 ),
+			  )
+			: null;
+ 
+	  return {
+		 id: member.id,
+		 fullname: member.fullname,
+		 email: member.email,
+		 age: member.age,
+		 gender: member.gender,
+		 join_date: member.join_date,
+ 
+		 membership_id: membership?.id ?? null,
+		 plan_id: membership?.membership_plans.id ?? null,
+		 plan_name: membership?.membership_plans.plan_name ?? null,
+		 plan_price: membership?.membership_plans.price ?? null,
+		 membership_start: membership?.start_date ?? null,
+		 membership_end: membership?.end_date ?? null,
+		 duration_type: membership?.membership_plans.duration_type ?? null,
+		 duration: membership?.membership_plans.duration ?? null,
+		 daily_hours_limit:
 			membership?.membership_plans.daily_hours_limit ?? null,
-
-			status: membership?.status ?? null,
-			last_attendance: lastAttendance,
-			engagement_status: getEngagementStatus(lastAttendance),
-		};
+ 
+		 status: membership?.status ?? null,
+		 last_attendance: lastAttendance,
+		 engagement_status: getEngagementStatus(lastAttendance),
+	  };
 	});
-
+ 
 	return mappedMembers.filter((member) => {
-		const matchesEngagement =
-			!engagementStatus ||
-			engagementStatus === "All" ||
-			member.engagement_status === engagementStatus;
-
-		const matchesMembership =
-			!membershipStatus ||
-			membershipStatus === "All" ||
-			member.status === membershipStatus;
-
-		return matchesEngagement && matchesMembership;
+	  const matchesEngagement =
+		 !engagementStatus ||
+		 engagementStatus === "All" ||
+		 member.engagement_status === engagementStatus;
+ 
+	  const matchesMembership =
+		 !membershipStatus ||
+		 membershipStatus === "All" ||
+		 member.status === membershipStatus;
+ 
+	  return matchesEngagement && matchesMembership;
 	});
-};
+ };
 
 export const createMemberService = async (data: CreateMemberDTO) => {
 	const referralCode = generateReferralCode(data.fullname);

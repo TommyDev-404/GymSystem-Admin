@@ -94,28 +94,46 @@ export const getSummaryDataService = async () => {
 		// ==========================================
 
 		const currentlyPresent = await tx.attendance.count({
-			where: {
-				status: "CHECK_IN",
-				check_in_time: {
+		where: {
+			OR: [
+				{
+				morning_checkin_time: {
 					gte: startOfToday,
 					lte: endOfToday,
 				},
-			},
+				},
+				{
+				afternoon_checkin_time: {
+					gte: startOfToday,
+					lte: endOfToday,
+				},
+				},
+			],
+		},
 		});
 
 		const yesterdayPresent = await tx.attendance.count({
-			where: {
-				status: "CHECK_IN",
-				check_in_time: {
+		where: {
+			OR: [
+				{
+				morning_checkin_time: {
 					gte: startOfYesterday,
 					lte: endOfYesterday,
 				},
-			},
+				},
+				{
+				afternoon_checkin_time: {
+					gte: startOfYesterday,
+					lte: endOfYesterday,
+				},
+				},
+			],
+		},
 		});
 
 		const presentTrend = getTrend(
-			currentlyPresent,
-			yesterdayPresent
+		currentlyPresent,
+		yesterdayPresent
 		);
 
 		// ==========================================
@@ -123,29 +141,47 @@ export const getSummaryDataService = async () => {
 		// ==========================================
 
 		const totalMalePresent = await tx.attendance.count({
-			where: {
-				status: "CHECK_IN",
-				members: {
-					gender: "Male",
-				},
-				check_in_time: {
+		where: {
+			members: {
+				gender: "Male",
+			},
+			OR: [
+				{
+				morning_checkin_time: {
 					gte: startOfToday,
 					lte: endOfToday,
 				},
-			},
+				},
+				{
+				afternoon_checkin_time: {
+					gte: startOfToday,
+					lte: endOfToday,
+				},
+				},
+			],
+		},
 		});
 
 		const totalFemalePresent = await tx.attendance.count({
-			where: {
-				status: "CHECK_IN",
-				members: {
-					gender: "Female",
-				},
-				check_in_time: {
+		where: {
+			members: {
+				gender: "Female",
+			},
+			OR: [
+				{
+				morning_checkin_time: {
 					gte: startOfToday,
 					lte: endOfToday,
 				},
-			},
+				},
+				{
+				afternoon_checkin_time: {
+					gte: startOfToday,
+					lte: endOfToday,
+				},
+				},
+			],
+		},
 		});
 
 		// ==========================================
@@ -390,40 +426,43 @@ export const getMembershipsExpiringSoonService = async () => {
  };
 
 export async function getWeeklyGuestAttendanceService() {
-   const data = await prisma.$queryRaw<
-      {
-      day: string;
-      count: number;
-      }[]
-   >`
-      WITH RECURSIVE days AS (
-      SELECT DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY) AS attendance_date
+const data = await prisma.$queryRaw<
+	{
+		day: string;
+		count: number;
+	}[]
+>`
+	WITH RECURSIVE days AS (
+		SELECT DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY) AS attendance_date
 
-      UNION ALL
+		UNION ALL
 
-      SELECT DATE_ADD(attendance_date, INTERVAL 1 DAY)
-      FROM days
-      WHERE attendance_date < DATE_ADD(
-         DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY),
-         INTERVAL 6 DAY
-      )
-      )
+		SELECT DATE_ADD(attendance_date, INTERVAL 1 DAY)
+		FROM days
+		WHERE attendance_date < DATE_ADD(
+		DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY),
+		INTERVAL 6 DAY
+		)
+	)
 
-      SELECT
-      DAYNAME(d.attendance_date) AS day,
-      COALESCE(COUNT(a.id), 0) AS count
-      FROM days d
-      LEFT JOIN attendance a
-      ON DATE(a.check_in_time) = d.attendance_date
-      AND a.member_id IS NOT NULL
-      GROUP BY d.attendance_date
-      ORDER BY d.attendance_date;
-   `;
+	SELECT
+		DAYNAME(d.attendance_date) AS day,
+		COALESCE(COUNT(DISTINCT a.id), 0) AS count
+	FROM days d
+	LEFT JOIN attendance a
+		ON (
+		DATE(a.morning_checkin_time) = d.attendance_date
+		OR DATE(a.afternoon_checkin_time) = d.attendance_date
+		)
+		AND a.member_id IS NOT NULL
+	GROUP BY d.attendance_date
+	ORDER BY d.attendance_date;
+`;
 
-   return data.map(item => ({
-      day: item.day,
-      presentMembers: Number(item.count),
-   }));
+return data.map((item) => ({
+	day: item.day,
+	presentMembers: Number(item.count),
+}));
 }
 
 export async function getMembershipStatusService() {

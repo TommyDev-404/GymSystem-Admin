@@ -11,7 +11,20 @@ export const getMemberAttendanceApi = async (params?: Filters) => {
   return res.data;
 };
 
-export const markCheckoutApi = async (attendance_id: number) => {
-  const res = await api.post(`/attendance/checkout/${attendance_id}`);
+export type SessionType = "MORNING" | "AFTERNOON";
+
+type CheckoutPayload = {
+  attendance_id: number;
+  sessionType: SessionType;
+};
+
+export const markCheckoutApi = async ({
+  attendance_id,
+  sessionType,
+}: CheckoutPayload) => {
+  const res = await api.post(`/attendance/checkout/${attendance_id}`, {
+    sessionType,
+  });
+
   return res.data;
 };
