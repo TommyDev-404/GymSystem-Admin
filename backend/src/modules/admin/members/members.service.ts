@@ -44,7 +44,6 @@ export const getMemberSummaryService = async () => {
 				 orderBy: {
 					check_in_time: "desc",
 				 },
-				 take: 1,
 				 select: {
 					check_in_time: true,
 				 },
@@ -89,43 +88,46 @@ export const getMemberSummaryService = async () => {
 	inactiveThreshold.setDate(inactiveThreshold.getDate() - 15);
  
 	for (const membership of latestMemberships.values()) {
-	  const isExpired =
-		 membership.status === "Expired" ||
-		 membership.end_date < now;
- 
-	  const isActive =
-		 membership.status === "Active" &&
-		 membership.end_date >= now;
- 
-	  if (isActive) {
-		 active++;
- 
-		 if (
-			membership.end_date >= startOfTomorrow &&
-			membership.end_date < startOfDayAfterTomorrow
-		 ) {
-			expiringTomorrow++;
-		 }
- 
-		 const latestAttendance = membership.members.attendance[0]?.check_in_time;
- 
-		 if (latestAttendance <= inactiveThreshold
-		 ) {
-			inactiveMembers++;
-		 }
-	  }
- 
-	  if (isExpired) {
-		 expired++;
-	  }
-	}
+		const isExpired =
+		  membership.status === "Expired" ||
+		  membership.end_date < now;
+	 
+		const isActive =
+		  membership.status === "Active" &&
+		  membership.end_date >= now;
+	 
+		if (isActive) {
+		  active++;
+	 
+		  if (
+			 membership.end_date >= startOfTomorrow &&
+			 membership.end_date < startOfDayAfterTomorrow
+		  ) {
+			 expiringTomorrow++;
+		  }
+		}
+	 
+		if (isExpired) {
+		  expired++;
+		}
+	 
+		const latestAttendance =
+		  membership.members.attendance[0]?.check_in_time;
+	 
+		if (
+		  latestAttendance &&
+		  latestAttendance <= inactiveThreshold
+		) {
+		  inactiveMembers++;
+		}
+	 }
  
 	console.log("Inactive: ", inactiveMembers);
 	return {
 	  active,
 	  expiringTomorrow,
 	  expired,
-	  inactiveMembers: inactiveMembers === 0 ? 1 : inactiveMembers,
+	  inactiveMembers
 	};
 };
 
