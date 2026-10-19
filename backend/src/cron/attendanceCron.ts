@@ -172,8 +172,7 @@ const checkMemberAttendanceInactivity = async () => {
                   category: "ATTENDANCE",
                   type: "MEMBERSHIP_MARK_INACTIVE",
                   title: "You've Been Marked as Inactive!",
-                  description:
-                  "You've been inactive for 15 days, and we want to encourage you to get back on track! Your fitness journey doesn't stop here. Come back to the gym, don't let fear overcome you.Every workout is a new opportunity to become stronger!",
+                  description: "You've been marked as inactive due to 15 days without a gym visit. Come back and get back on track with your fitness goals. Every workout is a new opportunity to grow stronger!"
                },
             });
 
