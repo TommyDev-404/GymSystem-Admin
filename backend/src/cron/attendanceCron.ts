@@ -111,8 +111,7 @@ const checkMemberAttendanceInactivity = async () => {
          // 12 DAYS INACTIVE
          if (
             daysInactive >= 12 &&
-            daysInactive < 15 &&
-            isOneMonthMembership
+            daysInactive < 15 
          ) {
             const [
                existingMemberNotification,
@@ -164,7 +163,7 @@ const checkMemberAttendanceInactivity = async () => {
          }
 
          // 15 DAYS INACTIVE - MARK MEMBER STATUS AS INACTIVE
-         if (daysInactive >= 15 && isOneMonthMembership) {
+         if (daysInactive >= 15) {
             await prisma.notifications.create({
                data: {
                   recipient_id: memberId,
