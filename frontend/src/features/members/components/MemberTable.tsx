@@ -133,17 +133,22 @@ export function MemberTable({ params }: Props) {
                               {getInitials(member.fullname)}
                             </AvatarFallback>
                           </Avatar>
-
+                      
                           <div className="flex min-w-0 flex-col gap-1">
                             <span className="truncate font-medium text-slate-800 dark:text-slate-100">
                               {member.fullname}
                             </span>
-
+                            
+                            <span className="truncate text-xs text-slate-500 dark:text-slate-400">
+                              {member.email}
+                            </span>
+                            
                             <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
                               <span>{member.age} years old</span>
                               <span className="text-slate-300 dark:text-slate-600">•</span>
                               <span>{member.gender}</span>
                             </div>
+                      
                           </div>
                         </div>
                       </TableCell>

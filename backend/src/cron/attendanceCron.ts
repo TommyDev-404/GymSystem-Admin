@@ -144,7 +144,7 @@ const checkMemberAttendanceInactivity = async () => {
                      category: "ATTENDANCE",
                      type: "MEMBER_INACTIVE_14_DAYS",
                      title: "We Miss You! ",
-                     description: "It's been a while since your last gym visit. You're at risk of falling off track with your fitness goals, but it's not too late! Come back to the gym, keep building healthy habits, and stay consistent. We're here to support you every step of the way!"
+                     description: "You haven't visited the gym in 12 days, putting your fitness consistency at risk. Come back and keep working toward your goals!"
                   },
                });
             }
