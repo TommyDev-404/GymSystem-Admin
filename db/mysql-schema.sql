@@ -159,6 +159,7 @@ CREATE TABLE payments (
     member_id INT NOT NULL,
     membership_id INT NOT NULL,
     amount DECIMAL(10,2) NOT NULL,
+    amount DECIMAL(10,2) NULL,
     payment_method ENUM(
         'Cash',
         'GCash',

@@ -238,44 +238,70 @@ export function UpgradeMembershipModal({
             </div>
 
             {selectedPlan && isUpgrade && (
-              <div className="space-y-3 rounded-xl border border-emerald-100 bg-emerald-50 p-4 dark:border-emerald-900/40 dark:bg-emerald-950/20">
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-500 dark:text-slate-400">
-                    Current payment
-                  </span>
-                  <span className="font-medium text-slate-700 dark:text-slate-200">
-                    ₱
-                    {currentPrice.toLocaleString("en-PH", {
-                      minimumFractionDigits: 2,
-                    })}
-                  </span>
-                </div>
+  <div className="rounded-xl border border-stone-200 bg-white p-4 dark:border-stone-700 dark:bg-stone-900">
+    <p className="mb-4 text-sm font-semibold text-slate-800 dark:text-slate-100">
+      Upgrade Summary
+    </p>
 
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-500 dark:text-slate-400">
-                    New plan
-                  </span>
-                  <span className="font-medium text-slate-700 dark:text-slate-200">
-                    ₱
-                    {newPrice.toLocaleString("en-PH", {
-                      minimumFractionDigits: 2,
-                    })}
-                  </span>
-                </div>
+    <div className="space-y-3">
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <p className="text-sm font-medium text-slate-700 dark:text-slate-200">
+            {selectedPlan.plan_name}
+          </p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            New plan price
+          </p>
+        </div>
 
-                <div className="flex items-center justify-between border-t border-emerald-200 pt-3 dark:border-emerald-900/50">
-                  <span className="font-semibold text-slate-700 dark:text-slate-200">
-                    Additional Amount
-                  </span>
-                  <span className="text-xl font-bold text-emerald-600 dark:text-emerald-400">
-                    ₱
-                    {additionalAmount.toLocaleString("en-PH", {
-                      minimumFractionDigits: 2,
-                    })}
-                  </span>
-                </div>
-              </div>
-            )}
+        <span className="font-semibold text-slate-800 dark:text-slate-100">
+          ₱
+          {newPrice.toLocaleString("en-PH", {
+            minimumFractionDigits: 2,
+          })}
+        </span>
+      </div>
+
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <p className="text-sm font-medium text-slate-700 dark:text-slate-200">
+            {currentPlan?.plan_name ?? "Current plan"}
+          </p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            Less: current plan price
+          </p>
+        </div>
+
+        <span className="font-medium text-rose-600 dark:text-rose-400">
+          − ₱
+          {currentPrice.toLocaleString("en-PH", {
+            minimumFractionDigits: 2,
+          })}
+        </span>
+      </div>
+
+      <div className="border-t border-dashed border-stone-200 pt-3 dark:border-stone-700">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="font-semibold text-slate-800 dark:text-slate-100">
+              Additional Amount
+            </p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Amount to pay for the upgrade
+            </p>
+          </div>
+
+          <span className="text-xl font-bold text-emerald-600 dark:text-emerald-400">
+            ₱
+            {additionalAmount.toLocaleString("en-PH", {
+              minimumFractionDigits: 2,
+            })}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
 
             {selectedPlan && isUpgrade && (
               <div className="space-y-1.5">

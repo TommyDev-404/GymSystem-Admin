@@ -30,6 +30,8 @@ import type { PaymentHistoryFilters } from "../types/member";
 type Payment = {
   id: number;
   amount: number;
+  plan_price: number;
+  discount: number;
   paymentMethod: string;
   startDate: string | null;
   endDate: string | null;
@@ -313,9 +315,11 @@ export function PaymentHistoryModal({
                           <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-start">
                             <div className="min-w-0">
                               <div className="flex flex-wrap items-center gap-2">
-                                <p className="font-semibold">
-                                  {payment.plan}
-                                </p>
+                                <p className="font-semibold">{payment.plan}</p>
+
+                                <span className="text-sm font-medium tabular-nums text-muted-foreground">
+                                  {currencyFormatter.format(payment.plan_price)}
+                                </span>
 
                                 <Badge
                                   variant="secondary"
@@ -333,16 +337,29 @@ export function PaymentHistoryModal({
                             </div>
 
                             <div className="sm:text-right">
-                              <p className="text-lg font-semibold tracking-tight tabular-nums">
+                              <p className="text-xs font-medium text-muted-foreground">
+                                Total Paid
+                              </p>
+
+                              <p className="mt-1 text-lg font-semibold tracking-tight tabular-nums">
                                 {currencyFormatter.format(payment.amount)}
                               </p>
 
-                              <Badge
-                                variant="outline"
-                                className={`mt-1 ${statusStyles[payment.status]}`}
-                              >
-                                {payment.status}
-                              </Badge>
+                              {Number(payment.discount ?? 0) > 0 && (
+                                <span className="mt-1 inline-flex items-center gap-1 rounded-md bg-rose-50 px-2 py-0.5 text-xs font-medium text-rose-700 dark:bg-rose-950/40 dark:text-rose-400">
+                                  −{currencyFormatter.format(Number(payment.discount))}
+                                  <span className="font-normal opacity-80">discount</span>
+                                </span>
+                              )}
+
+                              <div>
+                                <Badge
+                                  variant="outline"
+                                  className={`mt-1 ${statusStyles[payment.status] ?? "border-border text-muted-foreground"}`}
+                                >
+                                  {payment.status}
+                                </Badge>
+                              </div>
                             </div>
                           </div>
 

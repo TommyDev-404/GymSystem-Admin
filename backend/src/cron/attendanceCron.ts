@@ -80,7 +80,6 @@ const checkMemberAttendanceInactivity = async () => {
       });
 
       for (const membership of activeMembers) {
-         const membershipId = membership.id;
          const memberId = membership.member_id;
          const memberName = membership.members.fullname;
          const memberDuration = membership.membership_plans.duration;
@@ -144,7 +143,7 @@ const checkMemberAttendanceInactivity = async () => {
                      category: "ATTENDANCE",
                      type: "MEMBER_INACTIVE_14_DAYS",
                      title: "We Miss You! ",
-                     description: "You haven't visited the gym in 12 days, putting your fitness consistency at risk. Come back and keep working toward your goals!"
+                     description: "You haven't visited the gym in 12 days. If you remain inactive for 15 days, your membership engagement status will be marked as inactive. Visit the gym soon to stay on track with your fitness goals!"
                   },
                });
             }
@@ -157,7 +156,7 @@ const checkMemberAttendanceInactivity = async () => {
                      category: "ATTENDANCE",
                      type: "MEMBER_INACTIVE_14_DAYS",
                      title: "Membership Inactivity Warning",
-                     description: `${memberName} has not visited the gym for 12 days. Their engagement is now considered at risk.`,
+                     description: `${memberName} has not visited the gym for 12 days. If they reach 15 days without visiting, their engagement status will be marked as inactive.`,
                   },
                });
             }
@@ -183,7 +182,7 @@ const checkMemberAttendanceInactivity = async () => {
                   category: "ATTENDANCE",
                   type: "MEMBERSHIP_MARK_INACTIVE",
                   title: "Member Marked as Inactive",
-                  description: `${memberName} has been marked as inactive after 15 days without a gym visit. Consider reaching out to encourage them to return, rebuild their consistency, and continue working toward their fitness goals. Their membership status remains unchanged.`,
+                  description: `${memberName} has been marked as inactive after 15 days without a gym visit. Consider reaching out to encourage them to return. Their membership status remains unchanged.`,
                 },
             });
          }

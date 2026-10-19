@@ -229,6 +229,7 @@ export const getSummaryDataService = async () => {
 				status: "Paid",
 				paid_at: {
 					gte: startOfCurrentMonth,
+					lte: now,
 				},
 			},
 		});
@@ -254,6 +255,7 @@ export const getSummaryDataService = async () => {
 		return {
 			totalMembers,
 
+			newMembersPreviousMonth,
 			newMembersThisMonth,
 			memberTrend,
 
@@ -264,6 +266,7 @@ export const getSummaryDataService = async () => {
 			totalFemalePresent,
 
 			totalPaidThisMonth: totalPaidThisMonth._sum.amount ?? 0,
+			totalPaidPrevMonth: totalPaidPreviousMonth._sum.amount ?? 0,
 
 			paymentTrendThisMonth,
 

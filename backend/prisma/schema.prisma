@@ -154,6 +154,7 @@ model payments {
   member_id          Int
   membership_id      Int
   amount             Decimal                  @db.Decimal(10, 2)
+  discount           Decimal?                 @db.Decimal(10, 2)
   payment_method     payments_payment_method?
   payment_type       payments_payment_type
   status             payments_status?         @default(Paid)

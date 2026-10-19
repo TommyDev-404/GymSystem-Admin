@@ -7,6 +7,7 @@ export interface Payment {
   membershipId: number;
   plan: string;
   amount: number;
+	discount: number;
   status: "Paid" | "Pending" | "Cancelled" | "Refunded";
   paymentMethod?: "Cash" | "GCash" | "Bank Transfer";
   paidDate?: string;

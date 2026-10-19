@@ -11,12 +11,19 @@ export const getPaymentsApi = async (params?: PaymentFiltersType) => {
   }
 };
 
-export const getSummaryDataApi = async () => {
+export const getSummaryDataApi = async (
+  month?: number,
+  year?: number
+) => {
   try {
-    const res = await api.get("/payments/summary");
+    const res = await api.get("/payments/summary", {
+      params: { month, year },
+    });
+
     return res.data;
   } catch (error) {
-    console.log("Error: ", error)
+    console.log("Error: ", error);
+    throw error;
   }
 };
 

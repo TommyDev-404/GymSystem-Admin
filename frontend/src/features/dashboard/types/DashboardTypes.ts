@@ -1,6 +1,7 @@
 
 export type SummaryData = {
    totalMembers: number;
+   newMembersPreviousMonth: number;
    newMembersThisMonth: number;
    memberTrend: number;
    currentlyPresent: number;
@@ -8,6 +9,7 @@ export type SummaryData = {
    totalMalePresent: number;
    totalFemalePresent: number;
    totalPaidThisMonth: number;
+   totalPaidPrevMonth: number;
    paymentTrendThisMonth: number;
    overallExpiredMemberships: number;
    expiredMembershipsThisMonth: number;

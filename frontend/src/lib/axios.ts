@@ -1,6 +1,6 @@
 import axios from "axios";
 
 export const api = axios.create({
-  baseURL: "https://jfitness-gym.tech/api/admin", //"http://localhost:5000/admin",
+  baseURL: "http://localhost:5000/admin", //"https://jfitness-gym.tech/api/admin"
   withCredentials: true,
 });

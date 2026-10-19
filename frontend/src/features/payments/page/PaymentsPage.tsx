@@ -53,7 +53,7 @@ export function PaymentsPage() {
   const {
     data: summaryData = {} as PaymentSummary,
     isLoading: loadingSummaryData,
-  } = usePaymentSummaryData();
+  } = usePaymentSummaryData(Number(month), Number(year));
 
   if (loadingSummaryData) return <PageLoader />;
 

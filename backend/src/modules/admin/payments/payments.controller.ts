@@ -1,15 +1,27 @@
 import { Request, Response } from "express";
 import * as service from "./payments.service.js";
 
-
-export const getPaymentsSummaryController = async (req: Request, res: Response) => {
+export const getPaymentsSummaryController = async (
+  req: Request,
+  res: Response
+) => {
   try {
-    const summary = await service.getPaymentSummaryService();
-    return res.json(summary);
+    const month = req.query.month
+      ? Number(req.query.month)
+      : undefined;
 
+    const year = req.query.year
+      ? Number(req.query.year)
+      : undefined;
+
+    const summary = await service.getPaymentSummaryService(month, year);
+
+    return res.json(summary);
   } catch (err) {
-		console.log(err);
-    return res.status(500).json({ message: "Failed to fetch payments summary" });
+    console.log(err);
+    return res.status(500).json({
+      message: "Failed to fetch payments summary",
+    });
   }
 };
 

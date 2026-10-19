@@ -84,8 +84,8 @@ export const getMemberSummaryService = async () => {
 	startOfDayAfterTomorrow.setDate(
 	  startOfDayAfterTomorrow.getDate() + 1,
 	);
- 
-	const inactiveThreshold = new Date(startOfToday);
+	
+	const inactiveThreshold = new Date(now);
 	inactiveThreshold.setDate(inactiveThreshold.getDate() - 15);
  
 	for (const membership of latestMemberships.values()) {
@@ -109,9 +109,7 @@ export const getMemberSummaryService = async () => {
  
 		 const latestAttendance = membership.members.attendance[0]?.check_in_time;
  
-		 if (
-			latestAttendance &&
-			latestAttendance < inactiveThreshold
+		 if (latestAttendance <= inactiveThreshold
 		 ) {
 			inactiveMembers++;
 		 }
@@ -671,23 +669,13 @@ export const upgradeMembershipPlanService = async (
 			  membership_id: newMembership.id,
 			  member_id: member.id,
 			  amount: additionalAmount,
+			  discount: currentPrice,
 			  payment_method: data.payment_method,
 			  payment_type: "Upgrade",
 			  status: "Paid",
 			  description: `Upgrade from ${currentPlan.plan_name} to ${plan.plan_name}`,
 			},
 		 });
-
-		// Admin activity
-		await tx.activities.create({
-			data: {
-				recipient_id: member.id,
-				recipient_type: "ADMIN",
-				category: "MEMBER",
-				title: "Membership Upgraded",
-				description: `Admin upgraded ${member.fullname}'s membership from ${currentPlan.plan_name} to ${plan.plan_name}. Additional payment: ₱${additionalAmount.toFixed(2)}.`,
-			},
-		});
 
 		// Create member notification for membership upgrade
 		await tx.notifications.create({
@@ -703,6 +691,22 @@ export const upgradeMembershipPlanService = async (
 						minimumFractionDigits: 2,
 					}
 				)} has been successfully recorded.`,
+			},
+		});
+
+		// Create admin notification for membership upgrade
+		await tx.notifications.create({
+			data: {
+				recipient_type: "ADMIN",
+				category: "MEMBERSHIP",
+				type: "MEMBERSHIP_UPGRADE",
+				title: "Member Membership Upgraded",
+				description: `${member.fullname}'s membership has been upgraded from ${currentPlan.plan_name} to ${plan.plan_name}. An additional payment of ₱${additionalAmount.toLocaleString(
+					"en-PH",
+					{
+					minimumFractionDigits: 2,
+					},
+				)} has been recorded.`,
 			},
 		});
 
@@ -874,36 +878,48 @@ export const renewMembershipServiceService = async (data: {
 			}
 		});
 
-		// Member Recent activity
+		// Member notification for membership renewal
 		await tx.notifications.create({
-			data:{
-				recipient_id: data.member_id,
-				recipient_type: 'MEMBER',
-				category:"MEMBERSHIP",
-				type: "MEMBERSHIP_RENEWAL",
-				title:"Membership Renewed",
-				description:
-					`Your ${plan.plan_name} membership has been renewed until ${endDate.toLocaleDateString(
-						"en-PH",
-						{
-							month:"short",
-							day:"2-digit",
-							year:"numeric"
-						}
-					)}.`
-			}
+		data: {
+			recipient_id: data.member_id,
+			recipient_type: "MEMBER",
+			category: "MEMBERSHIP",
+			type: "MEMBERSHIP_RENEWAL",
+			title: "Membership Renewed",
+			description: `Your ${plan.plan_name} membership has been renewed for ₱${Number(
+				plan.price,
+			 ).toLocaleString("en-PH", {
+				minimumFractionDigits: 2,
+				maximumFractionDigits: 2,
+			 })}. Your membership is valid until ${endDate.toLocaleDateString(
+				"en-PH",
+				{
+				  month: "short",
+				  day: "2-digit",
+				  year: "numeric",
+				},
+			 )}.`,
+		},
 		});
 
-		// ADMIN ACTIVITY
-		await tx.activities.create({
-			data:{
-				recipient_id:data.member_id,
-				recipient_type:"ADMIN",
-				category:"MEMBER",
-				title:"Membership Renewed",
-				description:
-					`${member?.fullname} renewed their ${plan.plan_name} membership for ₱${plan.price}.`
-			}
+		// Admin notification for membership renewal
+		await tx.notifications.create({
+		data: {
+			recipient_type: "ADMIN",
+			category: "MEMBERSHIP",
+			type: "MEMBERSHIP_RENEWAL",
+			title: "Membership Renewed",
+			description: `${member?.fullname} renewed their ${plan.plan_name} membership for ₱${Number(
+				plan.price,
+			).toLocaleString("en-PH", {
+				minimumFractionDigits: 2,
+				maximumFractionDigits: 2,
+			})}. The membership is valid until ${endDate.toLocaleDateString("en-PH", {
+				month: "short",
+				day: "2-digit",
+				year: "numeric",
+			})}.`,
+		},
 		});
 	
 		return {
@@ -952,7 +968,8 @@ export const getMemberPaymentHistory = async (
 				select: {
 					plan_name: true,
 					duration: true,
-						duration_type: true
+					duration_type: true,
+						price: true
 				},
 			},
 			},
@@ -966,6 +983,7 @@ export const getMemberPaymentHistory = async (
 	return payments.map((payment) => ({
 		id: payment.id,
 		amount: Number(payment.amount),
+		discount: Number(payment.discount),
 			paymentMethod: payment.payment_method,
 		startDate: payment.member_memberships.start_date,
 		endDate: payment.member_memberships.end_date,
@@ -977,5 +995,6 @@ export const getMemberPaymentHistory = async (
 		plan:
 			payment.member_memberships?.membership_plans?.plan_name ??
 			"Unknown Plan",
+		plan_price: payment.member_memberships.membership_plans.price ?? 0
 	}));
 };

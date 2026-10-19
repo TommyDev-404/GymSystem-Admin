@@ -111,7 +111,7 @@ export function PaymentsTable({ params }: Props) {
               <TableHead className={TH_CLASS}>Member</TableHead>
               <TableHead className={TH_CLASS}>Plan</TableHead>
               <TableHead className={TH_CLASS}>Type</TableHead>
-              <TableHead className={TH_CLASS}>Amount</TableHead>
+              <TableHead className={TH_CLASS}>Paid Amount</TableHead>
               <TableHead className={TH_CLASS}>Method</TableHead>
               <TableHead className={TH_CLASS}>Status</TableHead>
               <TableHead className={TH_CLASS}>Paid On</TableHead>
@@ -196,13 +196,22 @@ export function PaymentsTable({ params }: Props) {
                         </span>
                       )}
                     </TableCell>
+                    
+                    <TableCell className={TD_CLASS}>
+                      <div className="flex flex-col items-start gap-1">
+                        <span className="font-semibold tabular-nums text-slate-800 dark:text-slate-100">
+                          {currencyFormatter.format(Number(p.amount))}
+                        </span>
 
-                    <TableCell
-                      className={`${TD_CLASS} font-semibold text-slate-700 dark:text-slate-100`}
-                    >
-                      {currencyFormatter.format(Number(p.amount))}
+                        {Number(p.discount ?? 0) > 0 && (
+                          <span className="inline-flex items-center gap-1 rounded-md bg-rose-50 px-2 py-0.5 text-xs font-medium text-rose-700 dark:bg-rose-950/40 dark:text-rose-400">
+                            −{currencyFormatter.format(Number(p.discount))}
+                            <span className="font-normal opacity-80">discount</span>
+                          </span>
+                        )}
+                      </div>
                     </TableCell>
-
+                    
                     <TableCell
                       className={`${TD_CLASS} text-slate-500 dark:text-slate-400`}
                     >

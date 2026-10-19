@@ -1,62 +1,59 @@
 import { prisma } from "../../../lib/prisma.js";
 import { PaymentFilterDTO } from "./payments.types.js";
 
-export const getPaymentSummaryService = async () => {
+export const getPaymentSummaryService = async (
+  month?: number,
+  year?: number
+) => {
+  const where =
+    month && year
+      ? {
+          paid_at: {
+            gte: new Date(year, month - 1, 1),
+            lt: new Date(year, month, 1),
+          },
+        }
+      : year
+        ? {
+            paid_at: {
+              gte: new Date(year, 0, 1),
+              lt: new Date(year + 1, 0, 1),
+            },
+          }
+        : {};
 
-	const [renewal, upgrade, membership] = await prisma.$transaction([
-		prisma.payments.aggregate({
-			where: {
-				payment_type: "Renewal"
-			},
-			_sum: {
-				amount: true,
-			},
-			_count: {
-				_all: true,
-			},
-		}),
+  const [renewal, upgrade, membership] = await prisma.$transaction([
+    prisma.payments.aggregate({
+      where: { ...where, payment_type: "Renewal" },
+      _sum: { amount: true },
+      _count: { _all: true },
+    }),
+    prisma.payments.aggregate({
+      where: { ...where, payment_type: "Upgrade" },
+      _sum: { amount: true },
+      _count: { _all: true },
+    }),
+    prisma.payments.aggregate({
+      where: { ...where, payment_type: "Membership" },
+      _sum: { amount: true },
+      _count: { _all: true },
+    }),
+  ]);
 
-		prisma.payments.aggregate({
-			where: {
-				payment_type: "Upgrade"
-			},
-			_sum: {
-				amount: true,
-			},
-			_count: {
-				_all: true,
-			},
-		}),
-
-		prisma.payments.aggregate({
-			where: {
-				payment_type: "Membership"
-			},
-			_sum: {
-				amount: true,
-			},
-			_count: {
-				_all: true,
-			},
-		}),
-	]);
-
-	return {
-		renewal: {
-			amount: Number(renewal._sum.amount ?? 0),
-			count: renewal._count._all,
-		},
-
-		upgrade: {
-			amount: Number(upgrade._sum.amount ?? 0),
-			count: upgrade._count._all,
-		},
-
-		membership: {
-			amount: Number(membership._sum.amount ?? 0),
-			count: membership._count._all,
-		},
-	};
+  return {
+    renewal: {
+      amount: Number(renewal._sum.amount ?? 0),
+      count: renewal._count._all,
+    },
+    upgrade: {
+      amount: Number(upgrade._sum.amount ?? 0),
+      count: upgrade._count._all,
+    },
+    membership: {
+      amount: Number(membership._sum.amount ?? 0),
+      count: membership._count._all,
+    },
+  };
 };
 
 export const getPaymentsService = async (filters: PaymentFilterDTO) => {
@@ -184,6 +181,7 @@ export const getPaymentsService = async (filters: PaymentFilterDTO) => {
         },
       ).format(Number(plan.price))}`,
       amount: Number(payment.amount),
+      discount: Number(payment.discount),
       status: payment.status,
       paymentType: payment.payment_type,
       paymentMethod: payment.payment_method,

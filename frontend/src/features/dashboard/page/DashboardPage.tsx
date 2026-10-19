@@ -87,11 +87,11 @@ export function DashboardPage() {
 				<StatCard
 					title="Total Members"
 					value={summaryData?.totalMembers?.toString() ?? "0"}
-					sub={`New Members: ${summaryData?.newMembersThisMonth ?? 0}`}
+					sub={`This month: ${summaryData?.newMembersThisMonth ?? 0}  •  Last month: ${summaryData?.newMembersPreviousMonth ?? 0}`}
 					icon={Users}
 					trend={`${summaryData?.memberTrend ?? 0}%`}
 					trendUp={(summaryData?.memberTrend ?? 0) >= 0}
-					trendLabel="vs last month"
+					trendLabel={`vs last month `}
 					color="bg-emerald-50 dark:bg-emerald-950/40"
 					iconColor="text-emerald-600 dark:text-emerald-400"
 				/>
@@ -99,7 +99,7 @@ export function DashboardPage() {
 				<StatCard
 					title="Currently Present"
 					value={summaryData?.currentlyPresent?.toString() ?? "0"}
-					sub={`Male: ${summaryData?.totalMalePresent ?? 0} · Female: ${summaryData?.totalFemalePresent ?? 0}`}
+					sub={`Male: ${summaryData?.totalMalePresent ?? 0} • Female: ${summaryData?.totalFemalePresent ?? 0}`}
 					icon={UserCheck}
 					trend={`${summaryData?.presentTrend ?? 0}%`}
 					trendUp={(summaryData?.presentTrend ?? 0) >= 0}
@@ -130,7 +130,10 @@ export function DashboardPage() {
 					icon={DollarSign}
 					trend={`${summaryData?.paymentTrendThisMonth ?? 0}%`}
 					trendUp={(summaryData?.paymentTrendThisMonth ?? 0) >= 0}
-					trendLabel="vs last month"
+					trendLabel={`vs last month • ${new Intl.NumberFormat("en-PH", {
+						style: "currency",
+						currency: "PHP",
+					}).format(summaryData?.totalPaidPrevMonth ?? 0)}`}
 					color="bg-violet-50 dark:bg-violet-950/40"
 					iconColor="text-violet-600 dark:text-violet-400"
 				/>

@@ -2,10 +2,10 @@ import { useQuery } from "@tanstack/react-query";
 import * as api from "@/features/payments/api/payments.api";
 import type { Payment, PaymentFiltersType, PaymentSummary } from "../types/PaymentTypes";
 
-export function usePaymentSummaryData() {
+export function usePaymentSummaryData(month?: number, year?: number) {
   return useQuery<PaymentSummary>({
-    queryKey: ['payment-summary'],
-    queryFn: api.getSummaryDataApi
+    queryKey: ["payment-summary", month, year],
+    queryFn: () => api.getSummaryDataApi(month, year),
   });
 }
 
