@@ -44,19 +44,26 @@ function parseTimestamp(date: string | null | undefined): number | null {
   return Number.isFinite(timestamp) ? timestamp : null;
 }
 
-function formatPhilippineTime(date: string | null | undefined) {
+function formatPhilippineTime(
+  date: string | null | undefined,
+): string {
   if (!date) return "--";
 
-  const parsedDate = new Date(date);
+  const match = date.match(
+    /^\d{4}-\d{2}-\d{2}[ T](\d{2}):(\d{2})(?::(\d{2}))?/,
+  );
 
-  if (Number.isNaN(parsedDate.getTime())) return "--";
+  if (!match) return "--";
 
-  return new Intl.DateTimeFormat("en-PH", {
-    timeZone: "Asia/Manila",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: true,
-  }).format(parsedDate);
+  const hours = Number(match[1]);
+  const minutes = Number(match[2]);
+
+  if (hours > 23 || minutes > 59) return "--";
+
+  const period = hours >= 12 ? "PM" : "AM";
+  const displayHours = hours % 12 || 12;
+
+  return `${String(displayHours).padStart(2, "0")}:${String(minutes).padStart(2, "0")} ${period}`;
 }
 
 const RemainingTime = memo(function RemainingTime({
