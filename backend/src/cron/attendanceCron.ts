@@ -38,6 +38,7 @@ const autoCheckoutForgottenAttendance = async () => {
          },
          data: {
             checkout_time: todayStart,
+            status: "CHECK_OUT"
          },
       });
 
@@ -111,8 +112,7 @@ const checkMemberAttendanceInactivity = async () => {
          // 12 DAYS INACTIVE
          if (
             daysInactive >= 12 &&
-            daysInactive < 15 &&
-            isOneMonthMembership
+            daysInactive < 15 
          ) {
             const [
                existingMemberNotification,
@@ -164,7 +164,7 @@ const checkMemberAttendanceInactivity = async () => {
          }
 
          // 15 DAYS INACTIVE - MARK MEMBER STATUS AS INACTIVE
-         if (daysInactive >= 15 && isOneMonthMembership) {
+         if (daysInactive >= 15) {
             await prisma.notifications.create({
                data: {
                   recipient_id: memberId,
@@ -202,9 +202,9 @@ export const startAttendanceCron = () => {
    void autoCheckoutForgottenAttendance();
    void checkMemberAttendanceInactivity();
 
-   // Run every day at 9:00 AM Philippine time
+   // Run every minute
    cron.schedule(
-      "0 9 * * *",
+      "* * * * *",
       async () => {
          await autoCheckoutForgottenAttendance();
          await checkMemberAttendanceInactivity();
@@ -215,6 +215,6 @@ export const startAttendanceCron = () => {
    );
 
    console.log(
-      "Attendance cron started. Auto checkout and inactivity checks run on startup and daily at 9:00 AM."
+      "Attendance cron started. Auto checkout and inactivity checks run on startup and every minute."
    );
 };

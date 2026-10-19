@@ -238,9 +238,9 @@ export const startMembershipCron = () => {
    // Run immediately when the server starts
    void checkMemberships();
 
-   // Run every midnight
+   // Check memberships every minute
    cron.schedule(
-      "0 0 * * *",
+      "* * * * *",
       () => {
          void checkMemberships();
       },
@@ -249,5 +249,5 @@ export const startMembershipCron = () => {
       }
    );
 
-   console.log("Membership cron started.");
+   console.log("Membership cron started. Checking every minute.");
 };

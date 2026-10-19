@@ -379,6 +379,7 @@ export const resetPassword = async (email: string, newPassword: string) => {
 				id: member.user_id!,
 			},
 			data: {
+				password: newPassword,
 				hash_pass: hashedPassword,
 			},
 		});
