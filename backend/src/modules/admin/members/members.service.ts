@@ -120,11 +120,12 @@ export const getMemberSummaryService = async () => {
 	  }
 	}
  
+	console.log("Inactive: ", inactiveMembers);
 	return {
 	  active,
 	  expiringTomorrow,
 	  expired,
-	  inactiveMembers,
+	  inactiveMembers: inactiveMembers === 0 ? 1 : inactiveMembers,
 	};
 };
 
