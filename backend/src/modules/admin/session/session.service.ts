@@ -52,7 +52,7 @@ export const createDailySessionService = async () => {
   return prisma.checkin_sessions.create({
     data: {
       id: randomUUID(),
-      created_at,
+      created_at: start,
       expires_at: end,
     },
   });
