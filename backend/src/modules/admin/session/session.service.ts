@@ -1,62 +1,63 @@
+
 import { randomUUID } from "crypto";
 import { prisma } from "../../../lib/prisma.js";
 
-export const createDailySessionService = async () => {
-  const start = new Date();
-  start.setHours(0, 0, 0, 0);
+const getPhilippineDayRange = () => {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Manila",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date());
 
-  const end = new Date();
-  end.setHours(23, 59, 59, 999);
+  const values = Object.fromEntries(
+    parts.map(({ type, value }) => [type, value]),
+  );
+
+  const year = Number(values.year);
+  const month = Number(values.month);
+  const day = Number(values.day);
+
+  // Philippine time is UTC+8.
+  const start = new Date(
+    Date.UTC(year, month - 1, day, -8, 0, 0, 0),
+  );
+
+  const end = new Date(
+    Date.UTC(year, month - 1, day + 1, -8, 0, 0, 0) - 1,
+  );
+
+  return { start, end };
+};
+
+export const createDailySessionService = async () => {
+  const { start, end } = getPhilippineDayRange();
 
   const existing = await prisma.checkin_sessions.findFirst({
     where: {
       created_at: {
         gte: start,
-        lte: end
-      }
-    }
+        lte: end,
+      },
+    },
   });
 
   if (existing) {
     return existing;
   }
-   
-  const expires_at = new Date();
-  expires_at.setHours(23, 59, 59, 999);
 
-  const sessionId = randomUUID();
-
-  return await prisma.checkin_sessions.create({
+  return prisma.checkin_sessions.create({
     data: {
-      id: sessionId,
-      expires_at
-    }
+      id: randomUUID(),
+      expires_at: end,
+    },
   });
 };
 
 export const getTodayQrService = async () => {
-  const start = new Date();
-  start.setHours(0, 0, 0, 0);
+  const session = await createDailySessionService();
 
-  const end = new Date();
-  end.setHours(23, 59, 59, 999);
-
-  const session = await prisma.checkin_sessions.findFirst({
-    where: {
-      created_at: {
-        gte: start,
-        lte: end
-      }
-    }
+  return JSON.stringify({
+    session_id: session.id,
   });
-
-  if (!session) {
-    throw { status: 404, message: "No session found" };
-  }
-
-  const payload = JSON.stringify({
-    session_id: session.id
-  });
-
-  return payload;
 };
