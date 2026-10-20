@@ -325,9 +325,28 @@ export function AttendanceTable({ members, isLoading }: Props) {
                         </TableCell>
 
                         <TableCell className="px-5 py-4">
-                          <Badge className="bg-indigo-100 text-indigo-700 hover:bg-indigo-100 dark:bg-indigo-950/60 dark:text-indigo-300">
-                            {m.plan ?? "No Plan"}
-                          </Badge>
+                          {m.plan ? (
+                            <div className="flex flex-col gap-1">
+                              <span className="font-medium text-foreground">
+                                {m.plan}
+                              </span>
+
+                              <span className="text-xs text-muted-foreground">
+                                {m.duration} {m.duration_type}
+                              </span>
+
+                              <span className="text-sm font-semibold text-red-600">
+                                {new Intl.NumberFormat("en-PH", {
+                                  style: "currency",
+                                  currency: "PHP",
+                                }).format(Number(m.price))}
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-sm text-muted-foreground">
+                              No Plan
+                            </span>
+                          )}
                         </TableCell>
 
                         <TableCell className="whitespace-nowrap px-5 py-4 text-slate-600 dark:text-slate-300">

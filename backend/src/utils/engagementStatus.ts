@@ -39,7 +39,7 @@ export const getEngagementStatus = (lastAttendance: Date | null): EngagementStat
   }
 
   if (daysSinceVisit <= 7) return "ACTIVE";
-  if (daysSinceVisit <= 14) return "AT_RISK";
+  if (daysSinceVisit <= 12) return "AT_RISK";
 
   return "INACTIVE";
 };

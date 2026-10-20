@@ -18,6 +18,7 @@ export async function generateCoachResponse(
       ${message}
     `,
   });
-
+  
+  console.log("Gemini response:", response.text);
   return response.text ?? "";
 }

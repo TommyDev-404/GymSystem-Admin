@@ -76,6 +76,9 @@ export const getAttendanceService = async (filters: {
                   id: true,
                   plan_name: true,
                   daily_hours_limit: true,
+                  duration: true,
+                  duration_type: true,
+                  price: true
                 },
               },
             },
@@ -111,9 +114,10 @@ export const getAttendanceService = async (filters: {
       membership_start: latestMembership?.start_date ?? null,
       membership_end: latestMembership?.end_date ?? null,
       membership_status: latestMembership?.status ?? null,
-
-      daily_limit:
-        latestMembership?.membership_plans.daily_hours_limit ?? 0,
+      daily_limit: latestMembership?.membership_plans.daily_hours_limit ?? 0,
+      duration: latestMembership.membership_plans.duration,
+      duration_type: latestMembership.membership_plans.duration_type,
+      price: latestMembership.membership_plans.price,
 
       morning_checkin_time: r.morning_checkin_time,
       morning_checkout_time: r.morning_checkout_time,

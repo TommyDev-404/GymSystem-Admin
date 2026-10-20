@@ -11,6 +11,9 @@ export type Attendance = {
    status: string;
    plan: string;
    daily_limit: number;
+   duration: string;
+   duration_type: string;
+   price: number;
  
    morning_checkin_time: string | null;
    morning_checkout_time: string | null;

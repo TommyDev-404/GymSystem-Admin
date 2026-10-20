@@ -33,6 +33,7 @@ const checkMemberships = async () => {
          },
          ];
 
+      // create a notif for 3 and 1 day before the membership expiration
       for (const stage of reminderStages) {
          const targetDate = new Date(now);
          targetDate.setDate(targetDate.getDate() + stage.days);
@@ -75,6 +76,7 @@ const checkMemberships = async () => {
          console.log(
             `Found ${expiringMemberships.length} memberships expiring in ${stage.days} day(s).`,
          );
+
 
          for (const membership of expiringMemberships) {
             const fullname = membership.members.fullname;

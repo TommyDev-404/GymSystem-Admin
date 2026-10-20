@@ -42,9 +42,8 @@ const app = express();
 const allowedOrigins = [
   "https://jfitness-gym.tech",
   "https://www.jfitness-gym.tech",
- // "http://localhost:5173",
-  //"http://localhost:3000",
-  //"https://25hnhfvf-5000.asse.devtunnels.ms/",
+ "http://localhost:5173",
+  "https://25hnhfvf-5000.asse.devtunnels.ms/",
 ];
 
 app.use(

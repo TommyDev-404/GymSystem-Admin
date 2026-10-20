@@ -141,10 +141,9 @@ export const checkInService = async ({
     .filter((date): date is Date => date !== null)
     .sort((a, b) => b.getTime() - a.getTime())[0] ?? null;
 
-  const previousEngagementStatus =
-    getEngagementStatus(lastCheckInTime);
+  const previousEngagementStatus = getEngagementStatus(lastCheckInTime);
 
-  const wasInactive = previousEngagementStatus === "INACTIVE";
+  const wasInactive = previousEngagementStatus === "INACTIVE" || previousEngagementStatus === "AT_RISK";
 
   let pointsToAward = 0;
   let isPerfectAttendanceBonus = false;
