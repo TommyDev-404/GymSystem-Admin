@@ -212,6 +212,8 @@ export const checkInService = async ({
       : {}),
   };
 
+  console.log("Date: ", now);
+  console.log("Attendance: ", attendanceData);
   const result = await prisma.$transaction(async (tx) => {
     const attendance = await tx.attendance.upsert({
       where: {
