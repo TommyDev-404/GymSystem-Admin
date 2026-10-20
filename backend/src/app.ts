@@ -29,7 +29,6 @@ import chatbotRoutes from "./modules/users/ai/ai.route.js";
 
 import paymongoWebhookRoutes from "./modules/users/payment-history/paymongoWebhook.routes.js";
 
-
 import cookieParser from "cookie-parser";
 
 import dotenv from "dotenv";

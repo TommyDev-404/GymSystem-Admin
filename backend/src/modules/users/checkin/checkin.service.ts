@@ -133,30 +133,68 @@ export const checkInService = async ({
     },
   });
 
-  const lastCheckInTime = lastAttendance
-    .flatMap((attendance) => [
-      attendance.morning_checkin_time,
-      attendance.afternoon_checkin_time,
-    ])
-    .filter((date): date is Date => date !== null)
-    .sort((a, b) => b.getTime() - a.getTime())[0] ?? null;
+  const lastCheckInTime =
+    lastAttendance
+      .flatMap((attendance) => [
+        attendance.morning_checkin_time,
+        attendance.afternoon_checkin_time,
+      ])
+      .filter((date): date is Date => date !== null)
+      .sort((a, b) => b.getTime() - a.getTime())[0] ?? null;
 
   const previousEngagementStatus = getEngagementStatus(lastCheckInTime);
 
-  const wasInactive = previousEngagementStatus === "INACTIVE" || previousEngagementStatus === "AT_RISK";
+  const wasInactive =
+    previousEngagementStatus === "INACTIVE" ||
+    previousEngagementStatus === "AT_RISK";
 
   let pointsToAward = 0;
   let isPerfectAttendanceBonus = false;
+  let alreadyEarnedPointsToday = false;
 
   if (action === "CHECK_IN") {
-    const attendanceCount = await prisma.attendance.count({
+    const attendanceRecords = await prisma.attendance.findMany({
       where: {
         member_id: memberId,
       },
+      select: {
+        morning_checkin_time: true,
+        afternoon_checkin_time: true,
+      },
     });
 
-    isPerfectAttendanceBonus = (attendanceCount + 1) % 7 === 0;
-    pointsToAward = isPerfectAttendanceBonus ? 10 : 5;
+    const attendanceDays = new Set(
+      attendanceRecords
+        .flatMap((attendance) => [
+          attendance.morning_checkin_time,
+          attendance.afternoon_checkin_time,
+        ])
+        .filter((date): date is Date => date !== null)
+        .map((date) =>
+          new Intl.DateTimeFormat("en-CA", {
+            timeZone: "Asia/Manila",
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+          }).format(date),
+        ),
+    );
+
+    const today = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Asia/Manila",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(now);
+
+    alreadyEarnedPointsToday = attendanceDays.has(today);
+
+    if (!alreadyEarnedPointsToday) {
+      isPerfectAttendanceBonus =
+        (attendanceDays.size + 1) % 7 === 0;
+
+      pointsToAward = isPerfectAttendanceBonus ? 10 : 5;
+    }
   }
 
   const attendanceData = {
@@ -191,14 +229,43 @@ export const checkInService = async ({
     });
 
     if (action === "CHECK_IN") {
-      await tx.members.update({
-        where: { id: memberId },
-        data: {
-          points: {
-            increment: pointsToAward,
+      if (pointsToAward > 0) {
+        await tx.members.update({
+          where: { id: memberId },
+          data: {
+            points: {
+              increment: pointsToAward,
+            },
           },
-        },
-      });
+        });
+
+        await tx.notifications.create({
+          data: {
+            recipient_id: memberId,
+            recipient_type: "MEMBER",
+            category: "ATTENDANCE",
+            type: "ATTENDANCE_POINTS",
+            title: isPerfectAttendanceBonus
+              ? "Perfect Attendance Bonus!"
+              : "You earned points!",
+            description: isPerfectAttendanceBonus
+              ? `Check-in complete! +${pointsToAward} points earned for your 7th attendance day.`
+              : `Check-in complete! +${pointsToAward} points earned.`,
+          },
+        });
+      } else {
+        await tx.notifications.create({
+          data: {
+            recipient_id: memberId,
+            recipient_type: "MEMBER",
+            category: "ATTENDANCE",
+            type: "ATTENDANCE_POINTS",
+            title: "Check-in complete!",
+            description:
+              "You've already claimed your attendance points for today. Your check-in has been recorded!",
+          },
+        });
+      }
 
       await tx.activities.createMany({
         data: [
@@ -217,17 +284,6 @@ export const checkInService = async ({
             recipient_id: memberId,
           },
         ],
-      });
-
-      await tx.notifications.create({
-        data: {
-          recipient_id: memberId,
-          recipient_type: "MEMBER",
-          category: "ATTENDANCE",
-          type: "ATTENDANCE_POINTS",
-          title: "You earned points!",
-          description: `Check-in complete! +${pointsToAward} points earned.`,
-        },
       });
 
       if (wasInactive) {
@@ -269,10 +325,14 @@ export const checkInService = async ({
       attendance,
       previousEngagementStatus,
       engagementStatus:
-        action === "CHECK_IN" ? "ACTIVE" : previousEngagementStatus,
+        action === "CHECK_IN"
+          ? "ACTIVE"
+          : previousEngagementStatus,
       welcomedBack: action === "CHECK_IN" && wasInactive,
       pointsAwarded: pointsToAward,
       perfectAttendanceBonus: isPerfectAttendanceBonus,
+      alreadyEarnedPointsToday:
+        action === "CHECK_IN" && alreadyEarnedPointsToday,
     };
   });
 
@@ -294,7 +354,9 @@ export const checkInService = async ({
         ? `${sessionType} check-out successful`
         : result.welcomedBack
           ? "Welcome back! Your engagement status is now active."
-          : `${sessionType} check-in successful`,
+          : result.alreadyEarnedPointsToday
+            ? `${sessionType} check-in successful. You have already earned your attendance points today.`
+            : `${sessionType} check-in successful. You earned ${pointsToAward} points.`,
   };
 };
 
