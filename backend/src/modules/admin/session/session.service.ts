@@ -1,4 +1,3 @@
-
 import { randomUUID } from "crypto";
 import { prisma } from "../../../lib/prisma.js";
 
@@ -18,16 +17,18 @@ const getPhilippineDayRange = () => {
   const month = Number(values.month);
   const day = Number(values.day);
 
-  // Philippine time is UTC+8.
   const start = new Date(
-    Date.UTC(year, month - 1, day, -8, 0, 0, 0),
+    Date.UTC(year, month - 1, day, -8),
   );
 
-  const end = new Date(
-    Date.UTC(year, month - 1, day + 1, -8, 0, 0, 0) - 1,
+  const nextDayStart = new Date(
+    Date.UTC(year, month - 1, day + 1, -8),
   );
 
-  return { start, end };
+  return {
+    start,
+    end: new Date(nextDayStart.getTime() - 1),
+  };
 };
 
 export const createDailySessionService = async () => {
@@ -46,16 +47,35 @@ export const createDailySessionService = async () => {
     return existing;
   }
 
+  const created_at = new Date();
+
   return prisma.checkin_sessions.create({
     data: {
       id: randomUUID(),
+      created_at,
       expires_at: end,
     },
   });
 };
 
 export const getTodayQrService = async () => {
-  const session = await createDailySessionService();
+  const { start, end } = getPhilippineDayRange();
+
+  const session = await prisma.checkin_sessions.findFirst({
+    where: {
+      created_at: {
+        gte: start,
+        lte: end,
+      },
+    },
+  });
+
+  if (!session) {
+    throw {
+      status: 404,
+      message: "No session found",
+    };
+  }
 
   return JSON.stringify({
     session_id: session.id,
