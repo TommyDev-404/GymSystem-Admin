@@ -231,17 +231,6 @@ export const checkInService = async ({
       });
 
       if (wasInactive) {
-        await tx.activities.create({
-          data: {
-            category: "ATTENDANCE",
-            recipient_type: "MEMBER",
-            title: "Welcome Back!",
-            description:
-              "Welcome back to the gym! Your engagement status is now active. Keep up your fitness journey!",
-            recipient_id: memberId,
-          },
-        });
-
         await tx.notifications.create({
           data: {
             recipient_id: memberId,
@@ -251,6 +240,16 @@ export const checkInService = async ({
             title: "Welcome Back!",
             description:
               "Great to see you again! Your engagement status is now Active. Keep showing up and working toward your fitness goals!",
+          },
+        });
+
+        await tx.notifications.create({
+          data: {
+            recipient_type: "ADMIN",
+            category: "ATTENDANCE",
+            type: "ACCOUNT_REACTIVATED",
+            title: "Member Reactivated",
+            description: `${member.fullname} has returned to the gym and their engagement status is now Active.`,
           },
         });
       }
