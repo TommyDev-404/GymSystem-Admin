@@ -14,6 +14,7 @@ type CheckInOptions = {
   action: AttendanceAction;
 };
 
+
 export const checkInService = async ({
   memberId,
   sessionId,
@@ -51,8 +52,12 @@ export const checkInService = async ({
       message: "Invalid QR code",
     };
   }
-
-  const now = new Date();
+  
+  const now = new Date(
+    new Date().toLocaleString("en-US", {
+      timeZone: "Asia/Manila",
+    }),
+  );
 
   if (session.expires_at.getTime() <= now.getTime()) {
     return {
