@@ -43,7 +43,7 @@ export function MemberModal({ open, setOpen }: Props) {
     gender: "",
     plan_id: 0,
     referral_code: "",
-    payment_method: undefined,
+    payment_method: "Cash",
   };
   
   const {
@@ -307,32 +307,6 @@ export function MemberModal({ open, setOpen }: Props) {
               {/* PAYMENT METHOD */}
               {selectedPlan && (
                 <div>
-                  <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-slate-700 dark:text-slate-200">
-                      Payment Method
-                    </label>
-                    
-                    <Controller
-                      control={control}
-                      name="payment_method"
-                      rules={{ required: "Please select a payment method" }}
-                      render={({ field }) => (
-                        <Select value={field.value} onValueChange={field.onChange}>
-                          <SelectTrigger className="w-full py-5.5 bg-white dark:bg-stone-800 border-slate-200 dark:border-stone-700 text-slate-700 dark:text-slate-200">
-                            <SelectValue placeholder="Select payment method" />
-                          </SelectTrigger>
-                          <SelectContent position="popper">
-                            <SelectItem value="Cash">Cash</SelectItem>
-                            <SelectItem value="GCash">GCash</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      )}
-                    />
-                    {errors.payment_method && (
-                      <p className="text-xs text-red-500">{errors.payment_method.message}</p>
-                    )}
-                  </div>
-
                   <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50/70 p-4 dark:border-stone-700 dark:bg-stone-800/50">
                     <div>
                       <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">

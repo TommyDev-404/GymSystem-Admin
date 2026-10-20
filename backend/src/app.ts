@@ -27,6 +27,9 @@ import userRewardRoutes from "./modules/users/reward/reward.routes.js";
 import userReferralRoutes from "./modules/users/referral-program/referral.routes.js";
 import chatbotRoutes from "./modules/users/ai/ai.route.js";
 
+import paymongoWebhookRoutes from "./modules/users/payment-history/paymongoWebhook.routes.js";
+
+
 import cookieParser from "cookie-parser";
 
 import dotenv from "dotenv";
@@ -39,8 +42,9 @@ const app = express();
 const allowedOrigins = [
   "https://jfitness-gym.tech",
   "https://www.jfitness-gym.tech",
-  "http://localhost:5173",
-  "http://localhost:3000",
+ // "http://localhost:5173",
+  //"http://localhost:3000",
+  //"https://25hnhfvf-5000.asse.devtunnels.ms/",
 ];
 
 app.use(
@@ -57,7 +61,11 @@ app.use(
 );
 
 app.use(cookieParser());
+
+app.use(paymongoWebhookRoutes);
+
 app.use(express.json());
+
 
 // ==================== Admin Routes ===================
 app.use("/admin/auth", adminAuthRoutes);

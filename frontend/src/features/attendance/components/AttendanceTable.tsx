@@ -49,21 +49,16 @@ function formatPhilippineTime(
 ): string {
   if (!date) return "--";
 
-  const match = date.match(
-    /^\d{4}-\d{2}-\d{2}[ T](\d{2}):(\d{2})(?::(\d{2}))?/,
-  );
+  const timestamp = new Date(date);
 
-  if (!match) return "--";
+  if (!Number.isFinite(timestamp.getTime())) return "--";
 
-  const hours = Number(match[1]);
-  const minutes = Number(match[2]);
-
-  if (hours > 23 || minutes > 59) return "--";
-
-  const period = hours >= 12 ? "PM" : "AM";
-  const displayHours = hours % 12 || 12;
-
-  return `${String(displayHours).padStart(2, "0")}:${String(minutes).padStart(2, "0")} ${period}`;
+  return new Intl.DateTimeFormat("en-PH", {
+    timeZone: "Asia/Manila",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  }).format(timestamp);
 }
 
 const RemainingTime = memo(function RemainingTime({

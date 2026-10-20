@@ -336,6 +336,20 @@ model referrals {
   @@index([referrer_id], map: "fk_referrer")
 }
 
+model payment_attempts {
+  id                  Int                   @id @default(autoincrement())
+  reference_number    String                @unique
+  checkout_session_id String?               @unique
+  member_id           Int
+  membership_id       Int
+  plan_id             Int
+  amount              Decimal               @db.Decimal(10, 2)
+  status              String                @default("PENDING")
+  type                payment_attempts_type
+  created_at          DateTime              @default(now())
+  paid_at             DateTime?
+}
+
 enum tutorials_level {
   Beginner
   Intermediate
@@ -456,4 +470,11 @@ enum member_memberships_status {
   Active
   Expired
   Cancelled
+}
+
+enum payment_attempts_type {
+  NEW
+  RENEWAL
+  UPGRADE
+  EMPTY_ENUM_VALUE @map("")
 }

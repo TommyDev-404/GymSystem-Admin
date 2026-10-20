@@ -41,7 +41,7 @@ import {
 	const { control, handleSubmit, reset, formState: { errors } } = useForm<RenewForm>({
 	  defaultValues: {
 		 plan_id: undefined,
-		 payment_method: undefined,
+		 payment_method: "Cash",
 	  },
 	});
  
@@ -52,7 +52,7 @@ import {
 		 {
 			member_id: member.id!,
 			plan_id: data.plan_id,
-			payment_method: data.payment_method,
+			payment_method: data.payment_method ?? "Cash",
 		 },
 		 {
 			onSuccess: () => {
@@ -131,50 +131,6 @@ import {
 				 
 				 {errors.plan_id && (
 					<p className="text-xs text-red-500">{errors.plan_id.message}</p>
-				)}
-			  </div>
- 
-			  <div className="space-y-1.5">
-				 <label className="text-sm font-medium text-slate-700 dark:text-slate-200">
-					Payment Method
-				 </label>
- 
-				 <Controller
-					control={control}
-					name="payment_method"
-					rules={{ required: "Payment method is required" }}
-					render={({ field }) => (
-					  <Select
-						 value={field.value}
-						 onValueChange={field.onChange}
-					  >
-						 <SelectTrigger className="w-full border-slate-200 bg-white py-5.5 text-slate-700 transition-all duration-200 dark:border-stone-700 dark:bg-stone-800 dark:text-slate-200">
-							<SelectValue placeholder="Select payment method" />
-						 </SelectTrigger>
- 
-						 <SelectContent
-							position="popper"
-							className="z-[100] border-slate-200 bg-white dark:border-stone-700 dark:bg-stone-900"
-						 >
-							<SelectItem
-							  value="Cash"
-							  className="cursor-pointer transition-colors duration-150"
-							>
-							  Cash
-							</SelectItem>
- 
-							<SelectItem
-							  value="GCash"
-							  className="cursor-pointer transition-colors duration-150"
-							>
-							  GCash
-							</SelectItem>
-						 </SelectContent>
-					  </Select>
-					)}
-					/>
-						 {errors.payment_method && (
-					<p className="text-xs text-red-500">{errors.payment_method.message}</p>
 				)}
 			  </div>
  

@@ -453,6 +453,24 @@ CREATE TABLE referrals (
     UNIQUE (referee_id)
 );
 
+CREATE TABLE payment_attempts (
+    id INT NOT NULL AUTO_INCREMENT,
+    reference_number VARCHAR(191) NOT NULL,
+    checkout_session_id VARCHAR(191) NULL,
+    member_id INT NOT NULL,
+    membership_id INT NOT NULL,
+    plan_id INT NOT NULL,
+    amount DECIMAL(10, 2) NOT NULL,
+    status VARCHAR(191) NOT NULL DEFAULT 'PENDING',
+    type ENUM("NEW", "RENEWAL", "UPGRADE") NOT NULL,
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    paid_at DATETIME(3) NULL,
+
+    PRIMARY KEY (id),
+    UNIQUE KEY payment_attempts_reference_number_key (reference_number),
+    UNIQUE KEY payment_attempts_checkout_session_id_key (checkout_session_id)
+);
+
 INSERT INTO users (
    username, 
    email, 

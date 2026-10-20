@@ -57,7 +57,7 @@ export function UpgradeMembershipModal({
 
     reset({
       plan_id: undefined,
-      payment_method: undefined,
+      payment_method: "Cash",
     });
   }, [open, member?.id, reset]);
 
@@ -119,7 +119,7 @@ export function UpgradeMembershipModal({
         data: {
           membership_id: member.membership_id,
           plan_id: selectedPlan.id,
-          payment_method: data.payment_method,
+          payment_method: data.payment_method ?? "Cash",
           amount: additionalAmount,
         },
       },
@@ -238,105 +238,69 @@ export function UpgradeMembershipModal({
             </div>
 
             {selectedPlan && isUpgrade && (
-  <div className="rounded-xl border border-stone-200 bg-white p-4 dark:border-stone-700 dark:bg-stone-900">
-    <p className="mb-4 text-sm font-semibold text-slate-800 dark:text-slate-100">
-      Upgrade Summary
-    </p>
+              <div className="rounded-xl border border-stone-200 bg-white p-4 dark:border-stone-700 dark:bg-stone-900">
+                <p className="mb-4 text-sm font-semibold text-slate-800 dark:text-slate-100">
+                  Upgrade Summary
+                </p>
 
-    <div className="space-y-3">
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <p className="text-sm font-medium text-slate-700 dark:text-slate-200">
-            {selectedPlan.plan_name}
-          </p>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            New plan price
-          </p>
-        </div>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <p className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                        {selectedPlan.plan_name}
+                      </p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        New plan price
+                      </p>
+                    </div>
 
-        <span className="font-semibold text-slate-800 dark:text-slate-100">
-          ₱
-          {newPrice.toLocaleString("en-PH", {
-            minimumFractionDigits: 2,
-          })}
-        </span>
-      </div>
+                    <span className="font-semibold text-slate-800 dark:text-slate-100">
+                      ₱
+                      {newPrice.toLocaleString("en-PH", {
+                        minimumFractionDigits: 2,
+                      })}
+                    </span>
+                  </div>
 
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <p className="text-sm font-medium text-slate-700 dark:text-slate-200">
-            {currentPlan?.plan_name ?? "Current plan"}
-          </p>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            Less: current plan price
-          </p>
-        </div>
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <p className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                        {currentPlan?.plan_name ?? "Current plan"}
+                      </p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        Less: current plan price
+                      </p>
+                    </div>
 
-        <span className="font-medium text-rose-600 dark:text-rose-400">
-          − ₱
-          {currentPrice.toLocaleString("en-PH", {
-            minimumFractionDigits: 2,
-          })}
-        </span>
-      </div>
+                    <span className="font-medium text-rose-600 dark:text-rose-400">
+                      − ₱
+                      {currentPrice.toLocaleString("en-PH", {
+                        minimumFractionDigits: 2,
+                      })}
+                    </span>
+                  </div>
 
-      <div className="border-t border-dashed border-stone-200 pt-3 dark:border-stone-700">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <p className="font-semibold text-slate-800 dark:text-slate-100">
-              Additional Amount
-            </p>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              Amount to pay for the upgrade
-            </p>
-          </div>
+                  <div className="border-t border-dashed border-stone-200 pt-3 dark:border-stone-700">
+                    <div className="flex items-center justify-between gap-4">
+                      <div>
+                        <p className="font-semibold text-slate-800 dark:text-slate-100">
+                          Additional Amount
+                        </p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                          Amount to pay for the upgrade
+                        </p>
+                      </div>
 
-          <span className="text-xl font-bold text-emerald-600 dark:text-emerald-400">
-            ₱
-            {additionalAmount.toLocaleString("en-PH", {
-              minimumFractionDigits: 2,
-            })}
-          </span>
-        </div>
-      </div>
-    </div>
-  </div>
-)}
-
-            {selectedPlan && isUpgrade && (
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-slate-700 dark:text-slate-200">
-                  Payment Method
-                </label>
-
-                <Controller
-                  control={control}
-                  name="payment_method"
-                  rules={{ required: "Please select a payment method" }}
-                  render={({ field }) => (
-                    <Select
-                      value={field.value}
-                      onValueChange={field.onChange}
-                    >
-                      <SelectTrigger className="w-full bg-white py-5.5 text-slate-700 border-slate-200 dark:bg-stone-800 dark:border-stone-700 dark:text-slate-200">
-                        <SelectValue placeholder="Select payment method" />
-                      </SelectTrigger>
-
-                      <SelectContent
-                        position="popper"
-                        className="z-[100] bg-white border-slate-200 dark:bg-stone-900 dark:border-stone-700"
-                      >
-                        <SelectItem value="Cash">Cash</SelectItem>
-                        <SelectItem value="GCash">GCash</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  )}
-                  />
-                  
-                  {errors.payment_method && (
-                    <p className="text-xs text-red-500">{errors.payment_method.message}</p>
-                  )}
-              </div>
+                      <span className="text-xl font-bold text-emerald-600 dark:text-emerald-400">
+                        ₱
+                        {additionalAmount.toLocaleString("en-PH", {
+                          minimumFractionDigits: 2,
+                        })}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>  
             )}
 
             <div className="mt-2 flex gap-3">
