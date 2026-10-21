@@ -676,8 +676,11 @@ export const upgradeMembershipPlanService = async (
 			);
 		}
 
-		// Calculate additional amount
+		// Calculate upgrade payment with a 30% discount
 		const additionalAmount = newPrice - currentPrice;
+		const discountRate = 0.30;
+		const discountAmount = additionalAmount * discountRate;
+		const finalAmount = additionalAmount - discountAmount;
 
 		// Calculate new membership dates based on the upgraded plan
 		const { endDate } = calculateDuration(plan.duration_type, plan.duration);
@@ -708,12 +711,12 @@ export const upgradeMembershipPlanService = async (
 			data: {
 			  membership_id: newMembership.id,
 			  member_id: member.id,
-			  amount: additionalAmount,
-			  discount: currentPrice,
+			  amount: finalAmount,
+			  discount: discountAmount,
 			  payment_method: data.payment_method ?? "Cash",
 			  payment_type: "Upgrade",
 			  status: "Paid",
-			  description: `Upgrade from ${currentPlan.plan_name} to ${plan.plan_name}`,
+			  description: `Upgrade from ${currentPlan.plan_name} to ${plan.plan_name} (30% discount)`,
 			},
 		});
 		
@@ -752,12 +755,9 @@ export const upgradeMembershipPlanService = async (
 				category: "MEMBERSHIP",
 				type: "MEMBERSHIP_UPGRADE",
 				title: "Membership Upgraded",
-				description: `Your membership has been upgraded from ${currentPlan.plan_name} (${currentPlan.duration}-${currentPlan.duration_type}) to ${plan.plan_name} (${plan.duration}-${plan.duration_type}). An additional payment of ₱${additionalAmount.toLocaleString(
-					"en-PH",
-					{
-						minimumFractionDigits: 2,
-					}
-				)} has been successfully recorded.`,
+				description: `Your membership has been upgraded from ${currentPlan.plan_name} (${currentPlan.duration}-${currentPlan.duration_type}) to ${plan.plan_name} (${plan.duration}-${plan.duration_type}). Your additional payment of ₱${finalAmount.toLocaleString("en-PH", {
+					minimumFractionDigits: 2,
+				 })} has been recorded after a 30% discount.`,
 			},
 		});
 
@@ -768,12 +768,9 @@ export const upgradeMembershipPlanService = async (
 				category: "MEMBERSHIP",
 				type: "MEMBERSHIP_UPGRADE",
 				title: "Member Membership Upgraded",
-				description: `${member.fullname}'s membership has been upgraded from ${currentPlan.plan_name} to ${plan.plan_name}. An additional payment of ₱${additionalAmount.toLocaleString(
-					"en-PH",
-					{
+				description: `${member.fullname}'s membership has been upgraded from ${currentPlan.plan_name} to ${plan.plan_name}. An additional payment of ₱${finalAmount.toLocaleString("en-PH", {
 					minimumFractionDigits: 2,
-					},
-				)} has been recorded.`,
+				 })} has been recorded after a 30% discount.`,
 			},
 		});
 
@@ -786,11 +783,14 @@ export const upgradeMembershipPlanService = async (
 				previous_plan_name: currentPlan.plan_name,
 				plan_id: plan.id,
 				plan_name: plan.plan_name,
+				start_date: membership.start_date,
+				end_date: membership.end_date,
 				current_price: currentPrice,
 				new_price: newPrice,
 				additional_amount: additionalAmount,
-				start_date: membership.start_date,
-				end_date: membership.end_date,
+				discount_rate: 30,
+				discount_amount: discountAmount,
+				final_amount: finalAmount,
 			},
 		};
 	});

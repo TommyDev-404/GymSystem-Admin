@@ -66,8 +66,11 @@ function formatPhilippineTime(
 
 const RemainingTime = memo(function RemainingTime({
   member,
+  status,
 }: {
-  member: Attendance;
+    member: Attendance;
+    
+    status: "CHECK_IN" | "CHECK_OUT" | "NO_CHECK_IN";
 }) {
   const [currentTime, setCurrentTime] = useState(() => Date.now());
 
@@ -96,6 +99,14 @@ const RemainingTime = memo(function RemainingTime({
 
   if (!hasCheckIn) {
     return <span className="text-slate-400">--</span>;
+  }
+  
+  if (status === "CHECK_OUT") {
+    return (
+      <span className="font-mono text-xs font-medium tabular-nums text-slate-700 dark:text-slate-200">
+        0h 0m 0s
+      </span>
+    );
   }
 
   if (member.daily_limit == null || Number(member.daily_limit) === 0) {
@@ -342,7 +353,7 @@ export function AttendanceTable({ members, isLoading }: Props) {
                         </TableCell>
 
                         <TableCell className="whitespace-nowrap px-5 py-4">
-                          <RemainingTime member={member} />
+                          <RemainingTime member={member} status={statusLabel} />
                         </TableCell>
 
                         <TableCell className="px-5 py-3">
