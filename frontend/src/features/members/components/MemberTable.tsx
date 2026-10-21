@@ -22,8 +22,8 @@ import type { Member, MemberFilters } from "@/features/members/types/member";
 import { ResendActivationModal } from "./ResendActivationModal";
 import { getInitials } from "@/utils/initials";
 import { TableLoader } from "@/components/shared/TableLoader";
-import RenewMembershipDialog from "./RenewMembershipDialog";
-import { UpgradeMembershipModal } from "./UpgradeMembershipModal";
+//import RenewMembershipDialog from "./RenewMembershipDialog";
+//import { UpgradeMembershipModal } from "./UpgradeMembershipModal";
 import { useMembers } from "../hooks/useMember";
 import { PaymentHistoryModal } from "./PaymentHistoryModal";
 
@@ -66,14 +66,15 @@ export function MemberTable({ params }: Props) {
   const { data: members = [], isLoading } = useMembers(params);
 
   const [resendMember, setResendMember] = useState<Member | null>(null);
-  const [openMemberModal, setOpenMemberModal] = useState(false);
-  const [renewMember, setRenewMember] = useState<Member | null>(null);
-  const [renewOpen, setRenewOpen] = useState(false);
-  const [selectedMember, setSelectedMember] = useState<Member | null>(null);
   const [paymentHistoryMember, setPaymentHistoryMember] = useState<Member | null>(null);
   const [paymentHistoryOpen, setPaymentHistoryOpen] = useState(false);
 
   /*
+  const [openMemberModal, setOpenMemberModal] = useState(false);
+  const [renewMember, setRenewMember] = useState<Member | null>(null);
+  const [renewOpen, setRenewOpen] = useState(false);
+  const [selectedMember, setSelectedMember] = useState<Member | null>(null);
+  
   const handleEdit = (member: Member) => {
     setSelectedMember(member);
     setOpenMemberModal(true);
@@ -276,6 +277,19 @@ export function MemberTable({ params }: Props) {
                                 </TooltipContent>
                               </Tooltip>
                             )}
+                            
+                            <UpgradeMembershipModal
+                              open={openMemberModal}
+                              setOpen={setOpenMemberModal}
+                              member={selectedMember}
+                            />
+
+                            <RenewMembershipDialog
+                              open={renewOpen}
+                              setOpen={setRenewOpen}
+                              member={renewMember}
+                            />
+     
                           */}
                           <Tooltip>
                             <TooltipTrigger asChild>
@@ -332,18 +346,6 @@ export function MemberTable({ params }: Props) {
         onClose={() => setResendMember(null)}
       />
 
-      <UpgradeMembershipModal
-        open={openMemberModal}
-        setOpen={setOpenMemberModal}
-        member={selectedMember}
-      />
-
-      <RenewMembershipDialog
-        open={renewOpen}
-        setOpen={setRenewOpen}
-        member={renewMember}
-      />
-     
       {paymentHistoryOpen && paymentHistoryMember !== null && (
         <PaymentHistoryModal
           open={paymentHistoryOpen}
