@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Eye, Mail, RefreshCcw, Repeat2 } from "lucide-react";
+import { Eye, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -73,11 +73,12 @@ export function MemberTable({ params }: Props) {
   const [paymentHistoryMember, setPaymentHistoryMember] = useState<Member | null>(null);
   const [paymentHistoryOpen, setPaymentHistoryOpen] = useState(false);
 
+  /*
   const handleEdit = (member: Member) => {
     setSelectedMember(member);
     setOpenMemberModal(true);
   };
-
+*/
   const TH_CLASS =
     "px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500";
 
