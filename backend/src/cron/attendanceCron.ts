@@ -83,7 +83,6 @@ const autoCheckoutForgottenAttendance = async () => {
    }
 };
  
-
 const getNotificationDate = (
   startDate: Date,
   daysAfterStart: number,
@@ -285,7 +284,6 @@ const checkMemberAttendanceInactivity = async () => {
     console.error("Member attendance scheduler error:", error);
   }
 };
-
 
 export const startAttendanceCron = () => {
    // Run immediately when the server starts

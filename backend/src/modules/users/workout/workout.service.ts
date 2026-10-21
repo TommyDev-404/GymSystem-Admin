@@ -278,6 +278,8 @@ export const createPersonalWorkoutService = async (data: CreateWorkoutInput) => 
 		exercises = [],
 	} = data;
 
+	console.log("Exercises: ", exercises);
+
 	await prisma.$transaction(async (tx) => {
 		const createdWorkout = await tx.member_workouts.create({
 			data: {

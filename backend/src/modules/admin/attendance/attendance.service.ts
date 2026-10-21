@@ -1,6 +1,7 @@
 import { prisma } from "../../../lib/prisma.js";
 import { getIO } from "../../../lib/socket.js";
 
+/*
 export const getAttendanceService = async (filters: {
   year?: number;
   month?: number;
@@ -122,6 +123,161 @@ export const getAttendanceService = async (filters: {
       morning_checkin_time: r.morning_checkin_time,
       morning_checkout_time: r.morning_checkout_time,
 
+      afternoon_checkin_time: r.afternoon_checkin_time,
+      afternoon_checkout_time: r.afternoon_checkout_time,
+    };
+  });
+};
+*/
+
+const PHT_TIME_ZONE = "Asia/Manila";
+
+const getPHTDateParts = (date: Date = new Date()) => {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: PHT_TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+
+  const getPart = (type: string) =>
+    Number(parts.find((part) => part.type === type)?.value);
+
+  return {
+    year: getPart("year"),
+    month: getPart("month"),
+    day: getPart("day"),
+  };
+};
+
+const getPHTBoundaryAsUTC = (
+  year: number,
+  month: number,
+  day: number,
+) => {
+  // PHT is UTC+8.
+  return new Date(Date.UTC(year, month - 1, day) - 8 * 60 * 60 * 1000);
+};
+
+export const getAttendanceService = async (filters: {
+  year?: number;
+  month?: number;
+  day?: number;
+}) => {
+  const today = getPHTDateParts();
+
+  const year = filters.year ?? today.year;
+  const month = filters.month;
+  const day = filters.day;
+
+  let start: Date;
+  let end: Date;
+
+  if (month && day) {
+    start = getPHTBoundaryAsUTC(year, month, day);
+    end = getPHTBoundaryAsUTC(
+      day === new Date(Date.UTC(year, month, 0)).getUTCDate()
+        ? year + (month === 12 ? 1 : 0)
+        : year,
+      month === 12 && day === new Date(Date.UTC(year, month, 0)).getUTCDate()
+        ? 1
+        : month + (day === new Date(Date.UTC(year, month, 0)).getUTCDate() ? 1 : 0),
+      day === new Date(Date.UTC(year, month, 0)).getUTCDate()
+        ? 1
+        : day + 1,
+    );
+  } else if (month) {
+    start = getPHTBoundaryAsUTC(year, month, 1);
+    end = getPHTBoundaryAsUTC(
+      month === 12 ? year + 1 : year,
+      month === 12 ? 1 : month + 1,
+      1,
+    );
+  } else {
+    start = getPHTBoundaryAsUTC(year, 1, 1);
+    end = getPHTBoundaryAsUTC(year + 1, 1, 1);
+  }
+
+  const result = await prisma.attendance.findMany({
+    where: {
+      OR: [
+        {
+          morning_checkin_time: {
+            gte: start,
+            lt: end,
+          },
+        },
+        {
+          afternoon_checkin_time: {
+            gte: start,
+            lt: end,
+          },
+        },
+      ],
+    },
+    select: {
+      id: true,
+      morning_checkin_time: true,
+      morning_checkout_time: true,
+      afternoon_checkin_time: true,
+      afternoon_checkout_time: true,
+      status: true,
+      members: {
+        select: {
+          fullname: true,
+          gender: true,
+          member_memberships: {
+            select: {
+              id: true,
+              start_date: true,
+              end_date: true,
+              status: true,
+              created_at: true,
+              membership_plans: {
+                select: {
+                  id: true,
+                  plan_name: true,
+                  daily_hours_limit: true,
+                  duration: true,
+                  duration_type: true,
+                  price: true,
+                },
+              },
+            },
+            orderBy: {
+              created_at: "desc",
+            },
+            take: 1,
+          },
+        },
+      },
+    },
+    orderBy: [
+      { afternoon_checkin_time: "desc" },
+      { morning_checkin_time: "desc" },
+    ],
+  });
+
+  return result.map((r) => {
+    const latestMembership = r.members.member_memberships[0] ?? null;
+    const plan = latestMembership?.membership_plans;
+
+    return {
+      attendance_id: r.id,
+      name: r.members.fullname,
+      gender: r.members.gender,
+      status: r.status,
+      plan: plan?.plan_name ?? "No Plan",
+      plan_id: plan?.id ?? null,
+      membership_start: latestMembership?.start_date ?? null,
+      membership_end: latestMembership?.end_date ?? null,
+      membership_status: latestMembership?.status ?? null,
+      daily_limit: plan?.daily_hours_limit ?? 0,
+      duration: plan?.duration ?? null,
+      duration_type: plan?.duration_type ?? null,
+      price: plan?.price ?? null,
+      morning_checkin_time: r.morning_checkin_time,
+      morning_checkout_time: r.morning_checkout_time,
       afternoon_checkin_time: r.afternoon_checkin_time,
       afternoon_checkout_time: r.afternoon_checkout_time,
     };

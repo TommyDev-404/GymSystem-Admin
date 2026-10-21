@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Eye, Mail } from "lucide-react";
+import { Eye, Mail, RefreshCcw, Repeat2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -22,8 +22,8 @@ import type { Member, MemberFilters } from "@/features/members/types/member";
 import { ResendActivationModal } from "./ResendActivationModal";
 import { getInitials } from "@/utils/initials";
 import { TableLoader } from "@/components/shared/TableLoader";
-//import RenewMembershipDialog from "./RenewMembershipDialog";
-//import { UpgradeMembershipModal } from "./UpgradeMembershipModal";
+import RenewMembershipDialog from "./RenewMembershipDialog";
+import { UpgradeMembershipModal } from "./UpgradeMembershipModal";
 import { useMembers } from "../hooks/useMember";
 import { PaymentHistoryModal } from "./PaymentHistoryModal";
 
@@ -66,20 +66,18 @@ export function MemberTable({ params }: Props) {
   const { data: members = [], isLoading } = useMembers(params);
 
   const [resendMember, setResendMember] = useState<Member | null>(null);
-  const [paymentHistoryMember, setPaymentHistoryMember] = useState<Member | null>(null);
-  const [paymentHistoryOpen, setPaymentHistoryOpen] = useState(false);
-
-  /*
   const [openMemberModal, setOpenMemberModal] = useState(false);
   const [renewMember, setRenewMember] = useState<Member | null>(null);
   const [renewOpen, setRenewOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
-  
+  const [paymentHistoryMember, setPaymentHistoryMember] = useState<Member | null>(null);
+  const [paymentHistoryOpen, setPaymentHistoryOpen] = useState(false);
+
   const handleEdit = (member: Member) => {
     setSelectedMember(member);
     setOpenMemberModal(true);
   };
-*/
+
   const TH_CLASS =
     "px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500";
 
@@ -234,63 +232,50 @@ export function MemberTable({ params }: Props) {
                       
                       <TableCell>
                         <div className="flex justify-start gap-1">
-                          {/*
-                            {member.status === "Expired" ? (
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    className="hover:bg-[#963348]/10 dark:hover:bg-[#963348]/20"
-                                    onClick={() => {
-                                      setRenewMember(member);
-                                      setRenewOpen(true);
-                                    }}
-                                  >
-                                    <RefreshCcw
-                                      size={16}
-                                      className="text-[#963348] dark:text-[#C45A6F]"
-                                    />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>Renew membership</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            ) : (
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    className="hover:bg-slate-100 dark:hover:bg-slate-800"
-                                    onClick={() => handleEdit(member)}
-                                  >
-                                    <Repeat2
-                                      size={16}
-                                      className="text-slate-700 dark:text-slate-300"
-                                    />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>Upgrade membership</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            )}
-                            
-                            <UpgradeMembershipModal
-                              open={openMemberModal}
-                              setOpen={setOpenMemberModal}
-                              member={selectedMember}
-                            />
-
-                            <RenewMembershipDialog
-                              open={renewOpen}
-                              setOpen={setRenewOpen}
-                              member={renewMember}
-                            />
-     
-                          */}
+                          
+                          {member.status === "Expired" ? (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="hover:bg-[#963348]/10 dark:hover:bg-[#963348]/20"
+                                  onClick={() => {
+                                    setRenewMember(member);
+                                    setRenewOpen(true);
+                                  }}
+                                >
+                                  <RefreshCcw
+                                    size={16}
+                                    className="text-[#963348] dark:text-[#C45A6F]"
+                                  />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Renew membership</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          ) : (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="hover:bg-slate-100 dark:hover:bg-slate-800"
+                                  onClick={() => handleEdit(member)}
+                                >
+                                  <Repeat2
+                                    size={16}
+                                    className="text-slate-700 dark:text-slate-300"
+                                  />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Upgrade membership</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          )}
+                          
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <Button
@@ -346,6 +331,18 @@ export function MemberTable({ params }: Props) {
         onClose={() => setResendMember(null)}
       />
 
+      <UpgradeMembershipModal
+        open={openMemberModal}
+        setOpen={setOpenMemberModal}
+        member={selectedMember}
+      />
+
+      <RenewMembershipDialog
+        open={renewOpen}
+        setOpen={setRenewOpen}
+        member={renewMember}
+      />
+     
       {paymentHistoryOpen && paymentHistoryMember !== null && (
         <PaymentHistoryModal
           open={paymentHistoryOpen}
