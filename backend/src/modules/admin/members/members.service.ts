@@ -671,16 +671,19 @@ export const upgradeMembershipPlanService = async (
 
 		// Only allow upgrades
 		if (newPrice <= currentPrice) {
-			throw new Error(
-				"Selected membership plan must have a higher price"
-			);
+		throw new Error(
+			"Selected membership plan must have a higher price",
+		);
 		}
 
-		// Calculate upgrade payment with a 30% discount
-		const additionalAmount = newPrice - currentPrice;
+		// Calculate 30% discount based on the current plan price
 		const discountRate = 0.30;
-		const discountAmount = additionalAmount * discountRate;
-		const finalAmount = additionalAmount - discountAmount;
+		const discountAmount = currentPrice * discountRate;
+
+		// Subtract the discount from the selected new plan price
+		const finalAmount = Math.round(
+		(newPrice - discountAmount) * 100,
+		) / 100;
 
 		// Calculate new membership dates based on the upgraded plan
 		const { endDate } = calculateDuration(plan.duration_type, plan.duration);
@@ -783,14 +786,10 @@ export const upgradeMembershipPlanService = async (
 				previous_plan_name: currentPlan.plan_name,
 				plan_id: plan.id,
 				plan_name: plan.plan_name,
-				start_date: membership.start_date,
-				end_date: membership.end_date,
 				current_price: currentPrice,
 				new_price: newPrice,
-				additional_amount: additionalAmount,
-				discount_rate: 30,
-				discount_amount: discountAmount,
-				final_amount: finalAmount,
+				start_date: membership.start_date,
+				end_date: membership.end_date,
 			},
 		};
 	});
