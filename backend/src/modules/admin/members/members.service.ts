@@ -705,7 +705,34 @@ export const upgradeMembershipPlanService = async (
 			  status: "Paid",
 			  description: `Upgrade from ${currentPlan.plan_name} to ${plan.plan_name}`,
 			},
-		 });
+		});
+		
+		// add 50 points if monthly is being renewed
+		if (plan.duration_type === "Month") {
+			// Add 100 membership points
+			await tx.members.update({
+				where: {
+					id: member?.id
+				},
+				data: {
+					points: {
+						increment: 50,
+					},
+				}
+			});
+
+			// Create member notification for membership points
+			await tx.notifications.create({
+				data: {
+					recipient_id: member?.id,
+					recipient_type: "MEMBER",
+					category: "REWARD",
+					type: "MEMBERSHIP_POINTS",
+					title: "Membership Points Earned",
+					description: `Congratulations! You've earned 50 points for upgrading to the ${plan.plan_name} plan.`,
+				},
+			});
+		}
 
 		// Create member notification for membership upgrade
 		await tx.notifications.create({
@@ -903,10 +930,38 @@ export const renewMembershipServiceService = async (data: {
 			where:{
 				id:data.member_id
 			},
-			select:{
+			select: {
+				id: true,
 				fullname:true
 			}
 		});
+
+		// add 50 points if monthly is being renewed
+		if (plan.duration_type === "Month") {
+			// Add 100 membership points
+			await tx.members.update({
+				where: {
+					id: member?.id
+				},
+				data: {
+					points: {
+						increment: 50,
+					},
+				}
+			});
+
+			// Create member notification for membership points
+			await tx.notifications.create({
+				data: {
+					recipient_id: member?.id,
+					recipient_type: "MEMBER",
+					category: "REWARD",
+					type: "MEMBERSHIP_POINTS",
+					title: "Membership Points Earned",
+					description: `Thank you for renewing your membership plan! You've earned 50 points as a monthly renewal reward.`,
+				},
+			});
+		}
 
 		// Member notification for membership renewal
 		await tx.notifications.create({
@@ -916,7 +971,7 @@ export const renewMembershipServiceService = async (data: {
 			category: "MEMBERSHIP",
 			type: "MEMBERSHIP_RENEWAL",
 			title: "Membership Renewed",
-			description: `Your ${plan.plan_name} membership has been renewed for ₱${Number(
+			description: `Your membership has been renewed successfully with a plan of ${plan.plan_name} for ₱${Number(
 				plan.price,
 			 ).toLocaleString("en-PH", {
 				minimumFractionDigits: 2,
@@ -939,7 +994,7 @@ export const renewMembershipServiceService = async (data: {
 			category: "MEMBERSHIP",
 			type: "MEMBERSHIP_RENEWAL",
 			title: "Membership Renewed",
-			description: `${member?.fullname} renewed their ${plan.plan_name} membership for ₱${Number(
+			description: `${member?.fullname} renewed their membership  with a plan of ${plan.plan_name} for ₱${Number(
 				plan.price,
 			).toLocaleString("en-PH", {
 				minimumFractionDigits: 2,
