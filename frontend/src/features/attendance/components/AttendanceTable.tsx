@@ -1,3 +1,4 @@
+
 import { memo, useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -13,9 +14,9 @@ import {
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
-  TooltipTrigger,
   TooltipContent,
   TooltipProvider,
+  TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { CircleCheck, LoaderCircle } from "lucide-react";
 import { toast } from "sonner";
@@ -36,29 +37,31 @@ type SessionTimeCellProps = {
   checkOutTime: string | null;
 };
 
-function parseTimestamp(date: string | null | undefined): number | null {
-  if (!date) return null;
+const PHILIPPINE_TIME_ZONE = "Asia/Manila";
 
-  const timestamp = new Date(date).getTime();
+const timeFormatter = new Intl.DateTimeFormat("en-PH", {
+  timeZone: PHILIPPINE_TIME_ZONE,
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: true,
+});
+
+function parseTimestamp(value: string | null | undefined): number | null {
+  if (!value) return null;
+
+  const timestamp = new Date(value).getTime();
 
   return Number.isFinite(timestamp) ? timestamp : null;
 }
 
 function formatPhilippineTime(
-  date: string | null | undefined,
+  value: string | null | undefined,
 ): string {
-  if (!date) return "--";
+  const timestamp = parseTimestamp(value);
 
-  const timestamp = new Date(date);
+  if (timestamp === null) return "--";
 
-  if (!Number.isFinite(timestamp.getTime())) return "--";
-
-  return new Intl.DateTimeFormat("en-PH", {
-    timeZone: "Asia/Manila",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: true,
-  }).format(timestamp);
+  return timeFormatter.format(timestamp);
 }
 
 const RemainingTime = memo(function RemainingTime({
@@ -82,9 +85,7 @@ const RemainingTime = memo(function RemainingTime({
   useEffect(() => {
     if (!hasActiveSession) return;
 
-    const updateTime = () => {
-      setCurrentTime(Date.now());
-    };
+    const updateTime = () => setCurrentTime(Date.now());
 
     updateTime();
 
@@ -97,15 +98,7 @@ const RemainingTime = memo(function RemainingTime({
     return <span className="text-slate-400">--</span>;
   }
 
-  if (afternoonOut !== null) {
-    return (
-      <span className="font-mono text-xs font-medium tabular-nums text-slate-500">
-        0h 0m 0s
-      </span>
-    );
-  }
-
-  if (member.daily_limit == null) {
+  if (member.daily_limit == null || Number(member.daily_limit) === 0) {
     return <span className="text-xs text-slate-500">Unlimited</span>;
   }
 
@@ -115,27 +108,23 @@ const RemainingTime = memo(function RemainingTime({
     return <span className="text-slate-400">--</span>;
   }
 
-  if (dailyLimit === 0) {
-    return <span className="text-xs text-slate-500">Unlimited</span>;
-  }
-
-  const getElapsedTime = (
+  const elapsedTime = (
     checkIn: number | null,
     checkOut: number | null,
   ) => {
     if (checkIn === null) return 0;
 
-    const endTime = checkOut ?? currentTime;
-
-    return Math.max(0, endTime - checkIn);
+    return Math.max(0, (checkOut ?? currentTime) - checkIn);
   };
 
-  const morningElapsed = getElapsedTime(morningIn, morningOut);
-  const afternoonElapsed = getElapsedTime(afternoonIn, afternoonOut);
+  const totalElapsed =
+    elapsedTime(morningIn, morningOut) +
+    elapsedTime(afternoonIn, afternoonOut);
 
-  const totalElapsed = morningElapsed + afternoonElapsed;
-  const totalAllowed = dailyLimit * 60 * 60 * 1000;
-  const remainingMs = Math.max(0, totalAllowed - totalElapsed);
+  const remainingMs = Math.max(
+    0,
+    dailyLimit * 60 * 60 * 1000 - totalElapsed,
+  );
 
   const hours = Math.floor(remainingMs / 3_600_000);
   const minutes = Math.floor((remainingMs % 3_600_000) / 60_000);
@@ -184,9 +173,7 @@ function SessionTimeCell({
 
         <span
           className={`ml-auto h-1.5 w-1.5 shrink-0 rounded-full ${
-            hasCheckIn
-              ? "bg-emerald-500"
-              : "bg-slate-300 dark:bg-slate-600"
+            hasCheckIn ? "bg-emerald-500" : "bg-slate-300 dark:bg-slate-600"
           }`}
         />
       </div>
@@ -214,9 +201,7 @@ function SessionTimeCell({
 
         <span
           className={`ml-auto h-1.5 w-1.5 shrink-0 rounded-full ${
-            hasCheckOut
-              ? "bg-sky-500"
-              : "bg-slate-300 dark:bg-slate-600"
+            hasCheckOut ? "bg-sky-500" : "bg-slate-300 dark:bg-slate-600"
           }`}
         />
       </div>
@@ -234,9 +219,7 @@ export function AttendanceTable({ members, isLoading }: Props) {
     checkout(
       { attendance_id, sessionType },
       {
-        onSuccess: (data) => {
-          toast.success(data.message);
-        },
+        onSuccess: (data) => toast.success(data.message),
         onError: () => {
           toast.error("Unable to check out. Please try again.");
         },
@@ -279,19 +262,21 @@ export function AttendanceTable({ members, isLoading }: Props) {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  members.map((m) => {
+                  members.map((member) => {
                     const hasMorningCheckIn = Boolean(
-                      m.morning_checkin_time,
+                      member.morning_checkin_time,
                     );
                     const hasAfternoonCheckIn = Boolean(
-                      m.afternoon_checkin_time,
+                      member.afternoon_checkin_time,
                     );
 
                     const canCheckoutMorning =
-                      hasMorningCheckIn && !m.morning_checkout_time;
+                      hasMorningCheckIn &&
+                      !member.morning_checkout_time;
 
                     const canCheckoutAfternoon =
-                      hasAfternoonCheckIn && !m.afternoon_checkout_time;
+                      hasAfternoonCheckIn &&
+                      !member.afternoon_checkout_time;
 
                     const hasActiveSession =
                       canCheckoutMorning || canCheckoutAfternoon;
@@ -307,39 +292,39 @@ export function AttendanceTable({ members, isLoading }: Props) {
 
                     return (
                       <TableRow
-                        key={m.attendance_id}
+                        key={member.attendance_id}
                         className="transition-colors hover:bg-slate-50 dark:hover:bg-stone-900/40"
                       >
                         <TableCell className="px-5 py-4">
                           <div className="flex items-center gap-3">
                             <Avatar className="h-9 w-9 bg-emerald-100">
                               <AvatarFallback className="bg-[#963348] text-xs font-semibold text-white dark:bg-[#7A1F31]">
-                                {getInitials(m.name)}
+                                {getInitials(member.name)}
                               </AvatarFallback>
                             </Avatar>
 
                             <span className="whitespace-nowrap font-medium text-slate-700 dark:text-slate-200">
-                              {m.name}
+                              {member.name}
                             </span>
                           </div>
                         </TableCell>
 
                         <TableCell className="px-5 py-4">
-                          {m.plan ? (
+                          {member.plan ? (
                             <div className="flex flex-col gap-1">
                               <span className="font-medium text-foreground">
-                                {m.plan}
+                                {member.plan}
                               </span>
 
                               <span className="text-xs text-muted-foreground">
-                                {m.duration} {m.duration_type}
+                                {member.duration} {member.duration_type}
                               </span>
 
                               <span className="text-sm font-semibold text-red-600">
                                 {new Intl.NumberFormat("en-PH", {
                                   style: "currency",
                                   currency: "PHP",
-                                }).format(Number(m.price))}
+                                }).format(Number(member.price))}
                               </span>
                             </div>
                           ) : (
@@ -350,27 +335,27 @@ export function AttendanceTable({ members, isLoading }: Props) {
                         </TableCell>
 
                         <TableCell className="whitespace-nowrap px-5 py-4 text-slate-600 dark:text-slate-300">
-                          {m.daily_limit != null &&
-                          Number(m.daily_limit) !== 0
-                            ? `${m.daily_limit} hrs`
+                          {member.daily_limit != null &&
+                          Number(member.daily_limit) !== 0
+                            ? `${member.daily_limit} hrs`
                             : "Unlimited"}
                         </TableCell>
 
                         <TableCell className="whitespace-nowrap px-5 py-4">
-                          <RemainingTime member={m} />
+                          <RemainingTime member={member} />
                         </TableCell>
 
                         <TableCell className="px-5 py-3">
                           <SessionTimeCell
-                            checkInTime={m.morning_checkin_time}
-                            checkOutTime={m.morning_checkout_time}
+                            checkInTime={member.morning_checkin_time}
+                            checkOutTime={member.morning_checkout_time}
                           />
                         </TableCell>
 
                         <TableCell className="px-5 py-3">
                           <SessionTimeCell
-                            checkInTime={m.afternoon_checkin_time}
-                            checkOutTime={m.afternoon_checkout_time}
+                            checkInTime={member.afternoon_checkin_time}
+                            checkOutTime={member.afternoon_checkout_time}
                           />
                         </TableCell>
 
@@ -390,68 +375,54 @@ export function AttendanceTable({ members, isLoading }: Props) {
 
                         <TableCell className="px-3 py-4">
                           <div className="flex min-w-[190px] flex-col items-start gap-2">
-                            {canCheckoutMorning && (
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    className="h-8 gap-2 rounded-lg bg-red-500 px-3 text-white hover:bg-red-600 hover:text-white"
-                                    onClick={() =>
-                                      handleCheckout(
-                                        m.attendance_id,
-                                        "MORNING",
-                                      )
-                                    }
-                                    disabled={isPending}
-                                  >
-                                    {isPending ? (
-                                      <LoaderCircle className="h-4 w-4 animate-spin" />
-                                    ) : (
-                                      <CircleCheck size={16} />
-                                    )}
-                                    Checkout Morning
-                                  </Button>
-                                </TooltipTrigger>
+                            {(
+                              [
+                                {
+                                  type: "MORNING" as const,
+                                  canCheckout: canCheckoutMorning,
+                                  label: "Checkout Morning",
+                                },
+                                {
+                                  type: "AFTERNOON" as const,
+                                  canCheckout: canCheckoutAfternoon,
+                                  label: "Checkout Afternoon",
+                                },
+                              ] as const
+                            )
+                              .filter((session) => session.canCheckout)
+                              .map((session) => (
+                                <Tooltip key={session.type}>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      className="h-8 gap-2 rounded-lg bg-red-500 px-3 text-white hover:bg-red-600 hover:text-white"
+                                      onClick={() =>
+                                        handleCheckout(
+                                          member.attendance_id,
+                                          session.type,
+                                        )
+                                      }
+                                      disabled={isPending}
+                                    >
+                                      {isPending ? (
+                                        <LoaderCircle className="h-4 w-4 animate-spin" />
+                                      ) : (
+                                        <CircleCheck size={16} />
+                                      )}
+                                      {session.label}
+                                    </Button>
+                                  </TooltipTrigger>
 
-                                <TooltipContent>
-                                  Check out of the morning session
-                                </TooltipContent>
-                              </Tooltip>
-                            )}
-
-                            {canCheckoutAfternoon && (
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    className="h-8 gap-2 rounded-lg bg-red-500 px-3 text-white hover:bg-red-600 hover:text-white"
-                                    onClick={() =>
-                                      handleCheckout(
-                                        m.attendance_id,
-                                        "AFTERNOON",
-                                      )
-                                    }
-                                    disabled={isPending}
-                                  >
-                                    {isPending ? (
-                                      <LoaderCircle className="h-4 w-4 animate-spin" />
-                                    ) : (
-                                      <CircleCheck size={16} />
-                                    )}
-                                    Checkout Afternoon
-                                  </Button>
-                                </TooltipTrigger>
-
-                                <TooltipContent>
-                                  Check out of the afternoon session
-                                </TooltipContent>
-                              </Tooltip>
-                            )}
+                                  <TooltipContent>
+                                    Check out of the{" "}
+                                    {session.type.toLowerCase()} session
+                                  </TooltipContent>
+                                </Tooltip>
+                              ))}
 
                             {hasMorningCheckIn &&
-                              Boolean(m.morning_checkout_time) && (
+                              Boolean(member.morning_checkout_time) && (
                                 <Badge className="gap-1.5 bg-emerald-100 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:text-emerald-300">
                                   <CircleCheck size={13} />
                                   Morning completed
@@ -459,7 +430,7 @@ export function AttendanceTable({ members, isLoading }: Props) {
                               )}
 
                             {hasAfternoonCheckIn &&
-                              Boolean(m.afternoon_checkout_time) && (
+                              Boolean(member.afternoon_checkout_time) && (
                                 <Badge className="gap-1.5 bg-emerald-100 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:text-emerald-300">
                                   <CircleCheck size={13} />
                                   Afternoon completed

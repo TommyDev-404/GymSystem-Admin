@@ -2,18 +2,14 @@ import { prisma } from "../../../lib/prisma.js";
 import { getIO } from "../../../lib/socket.js";
 import { getEngagementStatus } from "../../../utils/engagementStatus.js";
 
-
 type SessionType = "MORNING" | "AFTERNOON";
-
 type AttendanceAction = "CHECK_IN" | "CHECK_OUT";
-
 type CheckInOptions = {
   memberId: number;
   sessionId: string;
   sessionType: SessionType;
   action: AttendanceAction;
 };
-
 
 export const checkInService = async ({
   memberId,
@@ -53,11 +49,7 @@ export const checkInService = async ({
     };
   }
   
-  const now = new Date(
-    new Date().toLocaleString("en-US", {
-      timeZone: "Asia/Manila",
-    }),
-  );
+  const now = new Date();
 
   if (session.expires_at.getTime() <= now.getTime()) {
     return {

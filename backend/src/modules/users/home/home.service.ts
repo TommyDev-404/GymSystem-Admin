@@ -66,7 +66,8 @@ export const getMemberDashboardDataService = async (
 			  status: true,
 			  created_at: true,
 			  membership_plans: {
-				 select: {
+				  select: {
+					 id: true,
 					plan_name: true,
 				 },
 			  },
@@ -160,6 +161,7 @@ export const getMemberDashboardDataService = async (
 	  username: member.users?.username,
 	  membership_start: latestMembership?.start_date ?? null,
 	  membership_id: latestMembership?.id ?? null,
+	  plan_id: latestMembership?.membership_plans.id ?? null,
 	  plan: latestMembership?.membership_plans.plan_name ?? null,
 	  expiry: latestMembership?.end_date ?? null,
 	  membershipStatus: latestMembership?.status ?? null,

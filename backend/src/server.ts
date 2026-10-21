@@ -5,6 +5,7 @@ import { initSocket } from "./lib/socket.js";
 import { startSessionScheduler } from "./cron/sessionCron.js";
 import { startMembershipCron } from "./cron/membershipCron.js";
 import { startAttendanceCron } from "./cron/attendanceCron.js";
+import { getTodayQrService } from "./modules/admin/session/session.service.js";
 
 // ==================== Server Setup ====================
 
@@ -23,7 +24,7 @@ startSessionScheduler();
 startMembershipCron();
 startAttendanceCron();
 
-server.listen(PORT, () => {
+server.listen(PORT, async () => {
   console.log(`
 ╔════════════════════════════════════════════╗
 ║        🏋️ Gym System Backend Server        ║
@@ -32,6 +33,22 @@ server.listen(PORT, () => {
 ║  Environment: production                     ║
 ╚════════════════════════════════════════════╝
   `);
+  
+  const res = await getTodayQrService();
+
+console.log("Res:", res);
+
+const data = JSON.parse(res);
+
+console.log(
+  "Created at (PHT):",
+  new Date(data.created_at).toLocaleString("en-PH", {
+    timeZone: "Asia/Manila",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  }),
+);
 });
 
 

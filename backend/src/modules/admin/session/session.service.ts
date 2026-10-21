@@ -1,20 +1,31 @@
 import { randomUUID } from "crypto";
 import { prisma } from "../../../lib/prisma.js";
 
+const PHILIPPINE_UTC_OFFSET_MS = 8 * 60 * 60 * 1000;
+
 const getPhilippineDayRange = () => {
   const now = new Date();
 
-  const philippineDate = new Date(
-    now.toLocaleString("en-US", {
-      timeZone: "Asia/Manila",
-    }),
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Manila",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(now);
+
+  const year = Number(parts.find((part) => part.type === "year")!.value);
+  const month = Number(parts.find((part) => part.type === "month")!.value);
+  const day = Number(parts.find((part) => part.type === "day")!.value);
+
+  const start = new Date(
+    Date.UTC(year, month - 1, day) - PHILIPPINE_UTC_OFFSET_MS,
   );
 
-  const start = new Date(philippineDate);
-  start.setHours(0, 0, 0, 0);
-
-  const end = new Date(philippineDate);
-  end.setHours(23, 59, 59, 999);
+  const end = new Date(
+    Date.UTC(year, month - 1, day + 1) -
+      PHILIPPINE_UTC_OFFSET_MS -
+      1,
+  );
 
   return { start, end };
 };
@@ -34,11 +45,11 @@ export const createDailySessionService = async () => {
   if (existing) {
     return existing;
   }
-
+  
   return prisma.checkin_sessions.create({
     data: {
       id: randomUUID(),
-      created_at: start,
+      created_at: new Date(),
       expires_at: end,
     },
   });
@@ -65,5 +76,7 @@ export const getTodayQrService = async () => {
 
   return JSON.stringify({
     session_id: session.id,
+    created_at: session.created_at,
+    expires_at: session.expires_at,
   });
 };
