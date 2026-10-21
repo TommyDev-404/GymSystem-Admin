@@ -137,19 +137,70 @@ router.post(
       }
 
       const plan = await getMembershipPrice(planId);
-      const amountInPesos = plan.price;
-
-      if (
-        !Number.isFinite(amountInPesos) ||
-        amountInPesos <= 0
-      ) {
+      
+      let amountInPesos = plan.price;
+      
+      if (checkoutType === "UPGRADE") {
+        if (!parsedMembershipId) {
+          res.status(400).json({
+            message: "Membership ID is required for upgrades.",
+            requestId,
+          });
+          return;
+        }
+      
+        const previousMembership = await prisma.member_memberships.findFirst({
+          where: {
+            id: parsedMembershipId,
+            member_id: memberId,
+          },
+          include: {
+            membership_plans: {
+              select: {
+                price: true,
+              },
+            },
+          },
+        });
+      
+        if (!previousMembership) {
+          res.status(404).json({
+            message: "Previous membership not found.",
+            requestId,
+          });
+          return;
+        }
+      
+        const previousPlanPrice = Number(
+          previousMembership.membership_plans.price,
+        );
+      
+        if (
+          !Number.isFinite(previousPlanPrice) ||
+          previousPlanPrice <= 0 ||
+          plan.price <= previousPlanPrice
+        ) {
+          res.status(400).json({
+            message: "Invalid upgrade plan price.",
+            requestId,
+          });
+          return;
+        }
+      
+        const discount = previousPlanPrice * 0.30;
+      
+        amountInPesos =
+          Math.round((plan.price - discount) * 100) / 100;
+      }
+      
+      if (!Number.isFinite(amountInPesos) || amountInPesos <= 0) {
         res.status(400).json({
           message: "Invalid membership price.",
           requestId,
         });
         return;
       }
-
+      
       const amount = Math.round(amountInPesos * 100);
       const referenceNumber = `GYM-${planId}-${randomUUID()}`;
 
