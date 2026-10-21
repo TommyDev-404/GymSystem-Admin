@@ -35,20 +35,18 @@ server.listen(PORT, async () => {
   `);
   
   const res = await getTodayQrService();
+    
+  const data = JSON.parse(res);
 
-console.log("Res:", res);
-
-const data = JSON.parse(res);
-
-console.log(
-  "Created at (PHT):",
-  new Date(data.created_at).toLocaleString("en-PH", {
-    timeZone: "Asia/Manila",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: true,
-  }),
-);
+  console.log(
+    "Created at (PHT):",
+    new Date(data.created_at).toLocaleString("en-PH", {
+      timeZone: "Asia/Manila",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    }),
+  );
 });
 
 

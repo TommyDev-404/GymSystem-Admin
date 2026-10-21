@@ -17,10 +17,10 @@ export const getAllNotificationsService = async (member_id: number) => {
 			created_at: true
 		},
 		orderBy:{
-			created_at:"desc"
+			created_at:"desc",
 		}
 	});
-
+ 
 	return activities;
 }
 

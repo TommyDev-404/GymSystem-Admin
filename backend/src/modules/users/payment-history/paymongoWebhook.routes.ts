@@ -20,7 +20,7 @@ router.post(
       contentType: req.headers["content-type"],
     });
 
-    const webhookSecret = process.env.PAYMONGO_WEHBOOK_SECRET; //"whsk_ikc1YpFAgWSV5fPrx7fWkoHM";
+    const webhookSecret = process.env.PAYMONGO_WEHBOOK_SECRET_TEST; //"whsk_ikc1YpFAgWSV5fPrx7fWkoHM";
 
     if (!webhookSecret) {
       console.error("PAYMONGO_WEBHOOK_SECRET is missing");

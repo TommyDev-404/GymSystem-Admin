@@ -37,13 +37,18 @@ export const getMemberSummaryService = async () => {
 	const now = new Date();
 
 	const memberships = await prisma.member_memberships.findMany({
+		where: {
+			NOT: {
+				status: "Cancelled"
+			}
+		},
 		include: {
 			members: {
 			select: {
 				attendance: {
 					select: {
-					morning_checkin_time: true,
-					afternoon_checkin_time: true,
+						morning_checkin_time: true,
+						afternoon_checkin_time: true,
 					},
 				},
 			},
@@ -135,8 +140,6 @@ export const getMemberSummaryService = async () => {
 		}
 	}
 
-	console.log("Inactive: ", inactiveMembers);
-
 	return {
 		active,
 		expiringTomorrow,
@@ -147,14 +150,14 @@ export const getMemberSummaryService = async () => {
 
 export const getMembersService = async (filters: MemberFilters) => {
 	const { search, engagementStatus, membershipStatus } = filters;
- 
+
 	const members = await prisma.members.findMany({
 	  where: {
 		 ...(search?.trim() && {
 			fullname: {
 			  contains: search.trim(),
 			},
-		 }),
+			})
 	  },
 	  select: {
 		 id: true,
@@ -163,7 +166,12 @@ export const getMembersService = async (filters: MemberFilters) => {
 		 age: true,
 		 gender: true,
 		 join_date: true,
-		 member_memberships: {
+		  member_memberships: {
+			where: {
+				status: {
+				  not: "Cancelled",
+				},
+			 },
 			select: {
 			  id: true,
 			  start_date: true,
@@ -197,7 +205,7 @@ export const getMembersService = async (filters: MemberFilters) => {
 		 join_date: "desc",
 	  },
 	});
- 
+	
 	const mappedMembers = members.map((member) => {
 	  const membership = member.member_memberships[0] ?? null;
  
@@ -243,7 +251,7 @@ export const getMembersService = async (filters: MemberFilters) => {
 		 engagement_status: getEngagementStatus(lastAttendance),
 	  };
 	});
- 
+
 	return mappedMembers.filter((member) => {
 	  const matchesEngagement =
 		 !engagementStatus ||
@@ -624,6 +632,8 @@ export const upgradeMembershipPlanService = async (
 				id: true,
 				plan_name: true,
 				price: true,
+				duration: true,
+				duration_type: true
 			},
 		});
 
@@ -729,7 +739,7 @@ export const upgradeMembershipPlanService = async (
 					category: "REWARD",
 					type: "MEMBERSHIP_POINTS",
 					title: "Membership Points Earned",
-					description: `Congratulations! You've earned 50 points for upgrading to the ${plan.plan_name} plan.`,
+					description: `Congratulations! You've earned 50 points for upgrading to the ${plan.plan_name} (${plan.duration}-${plan.duration_type}) plan.`,
 				},
 			});
 		}
@@ -742,7 +752,7 @@ export const upgradeMembershipPlanService = async (
 				category: "MEMBERSHIP",
 				type: "MEMBERSHIP_UPGRADE",
 				title: "Membership Upgraded",
-				description: `Your membership has been upgraded from ${currentPlan.plan_name} to ${plan.plan_name}. An additional payment of ₱${additionalAmount.toLocaleString(
+				description: `Your membership has been upgraded from ${currentPlan.plan_name} (${currentPlan.duration}-${currentPlan.duration_type}) to ${plan.plan_name} (${plan.duration}-${plan.duration_type}). An additional payment of ₱${additionalAmount.toLocaleString(
 					"en-PH",
 					{
 						minimumFractionDigits: 2,
@@ -965,26 +975,26 @@ export const renewMembershipServiceService = async (data: {
 
 		// Member notification for membership renewal
 		await tx.notifications.create({
-		data: {
-			recipient_id: data.member_id,
-			recipient_type: "MEMBER",
-			category: "MEMBERSHIP",
-			type: "MEMBERSHIP_RENEWAL",
-			title: "Membership Renewed",
-			description: `Your membership has been renewed successfully with a plan of ${plan.plan_name} for ₱${Number(
-				plan.price,
-			 ).toLocaleString("en-PH", {
-				minimumFractionDigits: 2,
-				maximumFractionDigits: 2,
-			 })}. Your membership is valid until ${endDate.toLocaleDateString(
-				"en-PH",
-				{
-				  month: "short",
-				  day: "2-digit",
-				  year: "numeric",
-				},
-			 )}.`,
-		},
+			data: {
+				recipient_id: data.member_id,
+				recipient_type: "MEMBER",
+				category: "MEMBERSHIP",
+				type: "MEMBERSHIP_RENEWAL",
+				title: "Membership Renewed",
+				description: `Your membership has been renewed successfully with a plan of ${plan.plan_name} (${plan.duration}-${plan.duration_type}) for ₱${Number(
+					plan.price,
+				).toLocaleString("en-PH", {
+					minimumFractionDigits: 2,
+					maximumFractionDigits: 2,
+				})}. Your membership is valid until ${endDate.toLocaleDateString(
+					"en-PH",
+					{
+					month: "short",
+					day: "2-digit",
+					year: "numeric",
+					},
+				)}.`,
+			},
 		});
 
 		// Admin notification for membership renewal
@@ -994,7 +1004,7 @@ export const renewMembershipServiceService = async (data: {
 			category: "MEMBERSHIP",
 			type: "MEMBERSHIP_RENEWAL",
 			title: "Membership Renewed",
-			description: `${member?.fullname} renewed their membership  with a plan of ${plan.plan_name} for ₱${Number(
+			description: `${member?.fullname} renewed their membership  with a plan of ${plan.plan_name} (${plan.duration}-${plan.duration_type}) for ₱${Number(
 				plan.price,
 			).toLocaleString("en-PH", {
 				minimumFractionDigits: 2,

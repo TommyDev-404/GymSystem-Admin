@@ -15,7 +15,7 @@ export async function getAllNotificationsService() {
 			created_at: true,
 		},
 		orderBy: {
-			created_at: "desc",
+			is_read: "asc",
 		},
 	});
 }

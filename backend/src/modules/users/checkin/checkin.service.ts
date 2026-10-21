@@ -209,8 +209,6 @@ export const checkInService = async ({
       : {}),
   };
 
-  console.log("Date: ", now);
-  console.log("Attendance: ", attendanceData);
   const result = await prisma.$transaction(async (tx) => {
     const attendance = await tx.attendance.upsert({
       where: {
@@ -259,9 +257,8 @@ export const checkInService = async ({
             recipient_type: "MEMBER",
             category: "ATTENDANCE",
             type: "ATTENDANCE_POINTS",
-            title: "Check-in complete!",
-            description:
-              "You've already claimed your attendance points for today. Your check-in has been recorded!",
+            title: `Afternoon Check-in Successful!`,
+            description: `Your ${sessionType.toLowerCase()} check-in has been recorded successfully.`,
           },
         });
       }
@@ -313,8 +310,8 @@ export const checkInService = async ({
         data: {
           category: "ATTENDANCE",
           recipient_type: "MEMBER",
-          title: "Checked out",
-          description: `You successfully checked out from the ${sessionType.toLowerCase()} session`,
+          title: `${sessionType.charAt(0).toUpperCase() + sessionType.slice(1)} Check-out Successful!`,
+          description: `Your ${sessionType.toLowerCase()} check-out has been recorded successfully.`,
           recipient_id: memberId,
         },
       });
@@ -350,12 +347,12 @@ export const checkInService = async ({
     ...result,
     message:
       action === "CHECK_OUT"
-        ? `${sessionType} check-out successful`
+        ? `${sessionType.charAt(0).toUpperCase() + sessionType.slice(1)} check-out successful`
         : result.welcomedBack
           ? "Welcome back! Your engagement status is now active."
           : result.alreadyEarnedPointsToday
-            ? `${sessionType} check-in successful. You have already earned your attendance points today.`
-            : `${sessionType} check-in successful. You earned ${pointsToAward} points.`,
+            ? `Afternoon check-in successful. You have already earned your attendance points today.`
+            : `Morning check-in successful. You earned ${pointsToAward} points.`,
   };
 };
 

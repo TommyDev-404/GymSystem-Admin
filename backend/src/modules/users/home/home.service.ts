@@ -58,7 +58,12 @@ export const getMemberDashboardDataService = async (
 			},
 		 },
 		 email: true,
-		 member_memberships: {
+		  member_memberships: {
+			where: {
+				status: {
+				  not: "Cancelled",
+				},
+			 },
 			 select: {
 				id: true,
 			  start_date: true,
