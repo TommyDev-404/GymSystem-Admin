@@ -42,12 +42,15 @@ export const getMemberPaymentHistoryService = async (member_id: number) => {
 				amount:true,
 				payment_method:true,
 				status:true,
+				payment_type: true,
 
 				member_memberships: {
 					select: {
 						membership_plans: {
 							select: {
-								plan_name: true
+								plan_name: true,
+								duration: true,
+								duration_type: true
 							}
 						}
 					}
@@ -70,6 +73,9 @@ export const getMemberPaymentHistoryService = async (member_id: number) => {
 			datePaid: payment.paid_at,
 			paymentMethod: payment.payment_method,
 			status: payment.status,
+			type: payment.payment_type,
+			duration: payment.member_memberships.membership_plans.duration,
+			duration_type: payment.member_memberships.membership_plans.duration_type,
 		}))
 	};
 };

@@ -232,49 +232,50 @@ export function MemberTable({ params }: Props) {
                       
                       <TableCell>
                         <div className="flex justify-start gap-1">
-                          {member.status === "Expired" ? (
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  size="icon"
-                                  variant="ghost"
-                                  className="hover:bg-[#963348]/10 dark:hover:bg-[#963348]/20"
-                                  onClick={() => {
-                                    setRenewMember(member);
-                                    setRenewOpen(true);
-                                  }}
-                                >
-                                  <RefreshCcw
-                                    size={16}
-                                    className="text-[#963348] dark:text-[#C45A6F]"
-                                  />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Renew membership</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          ) : (
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  size="icon"
-                                  variant="ghost"
-                                  className="hover:bg-slate-100 dark:hover:bg-slate-800"
-                                  onClick={() => handleEdit(member)}
-                                >
-                                  <Repeat2
-                                    size={16}
-                                    className="text-slate-700 dark:text-slate-300"
-                                  />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Upgrade membership</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          )}
-
+                          {/*
+                            {member.status === "Expired" ? (
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    className="hover:bg-[#963348]/10 dark:hover:bg-[#963348]/20"
+                                    onClick={() => {
+                                      setRenewMember(member);
+                                      setRenewOpen(true);
+                                    }}
+                                  >
+                                    <RefreshCcw
+                                      size={16}
+                                      className="text-[#963348] dark:text-[#C45A6F]"
+                                    />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Renew membership</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            ) : (
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    className="hover:bg-slate-100 dark:hover:bg-slate-800"
+                                    onClick={() => handleEdit(member)}
+                                  >
+                                    <Repeat2
+                                      size={16}
+                                      className="text-slate-700 dark:text-slate-300"
+                                    />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Upgrade membership</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            )}
+                          */}
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <Button
