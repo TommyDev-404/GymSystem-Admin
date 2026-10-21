@@ -83,6 +83,7 @@ const autoCheckoutForgottenAttendance = async () => {
    }
 };
  
+
 const getNotificationDate = (
   startDate: Date,
   daysAfterStart: number,
@@ -95,10 +96,9 @@ const getNotificationDate = (
 };
 
 const checkMemberAttendanceInactivity = async () => {
-  
   try {
     const now = new Date();
- 
+
     const activeMembers = await prisma.member_memberships.findMany({
       where: {
         status: "Active",
@@ -164,75 +164,80 @@ const checkMemberAttendanceInactivity = async () => {
         latestAfternoon?.afternoon_checkin_time,
       ].filter((time): time is Date => time != null);
 
-      if (checkInTimes.length === 0) {
-        continue;
-      }
+      const inactivityStartDate =
+        checkInTimes.length > 0
+          ? new Date(
+              Math.max(...checkInTimes.map((time) => time.getTime())),
+            )
+          : new Date(membership.start_date);
 
-      const lastCheckIn = new Date(
-        Math.max(...checkInTimes.map((time) => time.getTime())),
-      );
-
-      const differenceInMs = now.getTime() - lastCheckIn.getTime();
+      const differenceInMs =
+        now.getTime() - inactivityStartDate.getTime();
 
       const daysInactive = Math.floor(
         differenceInMs / (1000 * 60 * 60 * 24),
       );
 
-      // get the 
       const warningDate = getNotificationDate(
-        membership.start_date,
+        inactivityStartDate,
         12,
         now,
       );
-      
+
       const inactiveDate = getNotificationDate(
-        membership.start_date,
+        inactivityStartDate,
         15,
         now,
       );
-      
-      console.log("Start Date: ", membership.start_date)
-      console.log("Warning Date: ", warningDate)
-    const ensureNotification = async ({
-      recipientType,
-      type,
-      title,
-      description,
-      created_at,
-    }: {
-      recipientType: "MEMBER" | "ADMIN";
-      type: "MEMBER_INACTIVE_14_DAYS" | "MEMBERSHIP_MARK_INACTIVE";
-      title: string;
-      description: string;
-      created_at: Date;
-    }) => {
-      const existingNotification = await prisma.notifications.findFirst({
-        where: {
-          recipient_id: memberId,
-          recipient_type: recipientType,
-          category: "ATTENDANCE",
-          type,
-          created_at
-        },
-      });
-    
-      if (!existingNotification) {
-        await prisma.notifications.create({
-          data: {
-            recipient_id: memberId,
-            recipient_type: recipientType,
-            category: "ATTENDANCE",
-            type,
-            title,
-            description,
-            created_at,
-          },
-        });
-      }
-    };
 
-      // 12 DAYS OR MORE WITHOUT A VISIT
-      // Also runs for members who have already reached 15+ days.
+      console.log("Member:", memberName);
+      console.log("Inactivity Start Date:", inactivityStartDate);
+      console.log("Days Inactive:", daysInactive);
+      console.log("Warning Date:", warningDate);
+      console.log("Inactive Date:", inactiveDate);
+
+      const ensureNotification = async ({
+        recipientType,
+        type,
+        title,
+        description,
+        created_at,
+      }: {
+        recipientType: "MEMBER" | "ADMIN";
+        type:
+          | "MEMBER_INACTIVE_14_DAYS"
+          | "MEMBERSHIP_MARK_INACTIVE";
+        title: string;
+        description: string;
+        created_at: Date;
+      }) => {
+        const existingNotification =
+          await prisma.notifications.findFirst({
+            where: {
+              recipient_id: memberId,
+              recipient_type: recipientType,
+              category: "ATTENDANCE",
+              type,
+              created_at,
+            },
+          });
+
+        if (!existingNotification) {
+          await prisma.notifications.create({
+            data: {
+              recipient_id: memberId,
+              recipient_type: recipientType,
+              category: "ATTENDANCE",
+              type,
+              title,
+              description,
+              created_at,
+            },
+          });
+        }
+      };
+
+      // 12 days or more without a visit
       if (daysInactive >= 12) {
         await Promise.all([
           ensureNotification({
@@ -241,7 +246,7 @@ const checkMemberAttendanceInactivity = async () => {
             title: "We Miss You!",
             description:
               "You haven't visited the gym in 12 days. If you remain inactive for 15 days, your membership engagement status will be marked as inactive. Visit the gym soon to stay on track with your fitness goals!",
-            created_at: warningDate
+            created_at: warningDate,
           }),
 
           ensureNotification({
@@ -249,13 +254,12 @@ const checkMemberAttendanceInactivity = async () => {
             type: "MEMBER_INACTIVE_14_DAYS",
             title: "Membership Inactivity Warning",
             description: `${memberName} has not visited the gym for at least 12 days. If they reach 15 days without visiting, their engagement status will be marked as inactive.`,
-            created_at: warningDate
+            created_at: warningDate,
           }),
         ]);
       }
 
-      // 15 DAYS OR MORE WITHOUT A VISIT
-      // Create the inactive notifications only if they do not exist.
+      // 15 days or more without a visit
       if (daysInactive >= 15) {
         await Promise.all([
           ensureNotification({
@@ -264,16 +268,15 @@ const checkMemberAttendanceInactivity = async () => {
             title: "You've Been Marked as Inactive!",
             description:
               "You've been marked as inactive due to 15 days without a gym visit. Come back and get back on track with your fitness goals. Every workout is a new opportunity to grow stronger!",
-              created_at: inactiveDate
+            created_at: inactiveDate,
           }),
-          
 
           ensureNotification({
             recipientType: "ADMIN",
             type: "MEMBERSHIP_MARK_INACTIVE",
             title: "Member Marked as Inactive",
-            description: `${memberName} has been marked as inactive after 15 days without a gym visit. Consider reaching out to encourage them to return. Their membership status remains unchanged.`,
-            created_at: inactiveDate
+            description: `${memberName} has not visited the gym for at least 15 days. Consider reaching out to encourage them to return. Their membership status remains unchanged.`,
+            created_at: inactiveDate,
           }),
         ]);
       }
@@ -282,6 +285,7 @@ const checkMemberAttendanceInactivity = async () => {
     console.error("Member attendance scheduler error:", error);
   }
 };
+
 
 export const startAttendanceCron = () => {
    // Run immediately when the server starts
